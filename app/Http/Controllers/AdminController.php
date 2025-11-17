@@ -321,13 +321,10 @@ class AdminController extends Controller
         }
 
         try {
-            // Get all passengers
             $passengers = Passenger::latest()->get();
-            
-            // Get all drivers
+        
             $drivers = Driver::latest()->get();
 
-            // Manually count ongoing bookings for each passenger
             foreach ($passengers as $passenger) {
                 $passenger->ongoing_bookings_count = Booking::where('passengerID', $passenger->id)
                     ->whereIn('status', [
