@@ -379,8 +379,6 @@ class AdminController extends Controller
 
         try {
             $ongoingBookings = Booking::whereIn('status', [
-                Booking::STATUS_PENDING,
-                Booking::STATUS_ACCEPTED,
                 Booking::STATUS_IN_PROGRESS
             ]);
 
@@ -454,8 +452,6 @@ class AdminController extends Controller
             }
 
             $cancelledBookings = $cancelledBookings->latest()->get();
-
-            // FIX: Remove 'status' from compact()
             return view('admin.view-cancelled-bookings', compact('cancelledBookings', 'title', 'type', 'user'));
 
         } catch (\Exception $e) {
@@ -522,36 +518,27 @@ class AdminController extends Controller
                     'message' => 'No driver assigned to this booking yet'
                 ]);
             }
-
-            // Get fresh driver data - EXACTLY like passenger version
             $freshDriver = Driver::find($driver->id);
             
             if (!$freshDriver) {
                 throw new \Exception("Driver not found with ID: {$driver->id}");
             }
 
-            // Handle coordinates - convert to float if they are strings
             $driverLat = $freshDriver->current_lat;
             $driverLng = $freshDriver->current_lng;
             $isFallback = false;
 
-            // Convert to float if they are strings
             if (is_string($driverLat)) {
                 $driverLat = (float) $driverLat;
             }
             if (is_string($driverLng)) {
                 $driverLng = (float) $driverLng;
             }
-
-            // Check if driver location is valid
             if ($driverLat === null || $driverLng === null || $driverLat == 0 || $driverLng == 0) {
-                // Use pickup location as fallback
                 $driverLat = (float) $booking->pickupLatitude;
                 $driverLng = (float) $booking->pickupLongitude;
                 $isFallback = true;
             }
-
-            // RETURN THE EXACT SAME FORMAT AS PASSENGER VERSION
             $response = [
                 'success' => true,
                 'booking' => [
@@ -588,43 +575,6 @@ class AdminController extends Controller
             ], 500);
         }
     }
-    public function debugDriverLocation($bookingId)
-    {
-        try {
-            $booking = Booking::with(['driver'])->findOrFail($bookingId);
-            
-            $debugInfo = [
-                'booking_id' => $booking->bookingID,
-                'booking_status' => $booking->status,
-                'driver_assigned' => !is_null($booking->driver),
-                'driver_id' => $booking->driverID,
-                'route_working' => true,
-                'response_format' => 'debug'
-            ];
-
-            if ($booking->driver) {
-                $freshDriver = Driver::find($booking->driver->id);
-                $debugInfo['driver'] = [
-                    'id' => $freshDriver->id,
-                    'name' => $freshDriver->fullname,
-                    'current_lat' => $freshDriver->current_lat,
-                    'current_lng' => $freshDriver->current_lng,
-                    'current_lat_type' => gettype($freshDriver->current_lat),
-                    'current_lng_type' => gettype($freshDriver->current_lng),
-                    'location_updated' => $freshDriver->updated_at,
-                ];
-            }
-
-            return response()->json($debugInfo);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'route_working' => false
-            ], 500);
-        }
-    }
-    
     private function calculateDistanceInfo($driverLat, $driverLng, $booking)
     {
         try {
