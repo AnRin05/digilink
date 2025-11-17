@@ -314,148 +314,155 @@ class AdminController extends Controller
     }
 
 
-    public function reports()
-    {
-        if (!Auth::guard('admin')->check()) {
-            return redirect()->route('login')->with('error', 'Please login as admin.');
-        }
+public function reports()
+{
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('login')->with('error', 'Please login as admin.');
+    }
 
-        try {
-            $passengers = Passenger::latest()->get();
+    try {
+        // Get all passengers
+        $passengers = Passenger::latest()->get();
         
-            $drivers = Driver::latest()->get();
+        // Get all drivers
+        $drivers = Driver::latest()->get();
 
-            foreach ($passengers as $passenger) {
-                $passenger->ongoing_bookings_count = Booking::where('passengerID', $passenger->id)
-                    ->whereIn('status', [
-                        Booking::STATUS_PENDING,
-                        Booking::STATUS_ACCEPTED,
-                        Booking::STATUS_IN_PROGRESS
-                    ])->count();
-                
-                // Count completed bookings
-                $passenger->completed_bookings_count = Booking::where('passengerID', $passenger->id)
-                    ->where('status', Booking::STATUS_COMPLETED)->count();
-                
-                // Count cancelled bookings
-                $passenger->cancelled_bookings_count = Booking::where('passengerID', $passenger->id)
-                    ->where('status', Booking::STATUS_CANCELLED)->count();
-            }
-
-            // Manually count ongoing bookings for each driver
-            foreach ($drivers as $driver) {
-                $driver->ongoing_bookings_count = Booking::where('driverID', $driver->id)
-                    ->whereIn('status', [
-                        Booking::STATUS_PENDING,
-                        Booking::STATUS_ACCEPTED,
-                        Booking::STATUS_IN_PROGRESS
-                    ])->count();
-                
-                // Count completed bookings
-                $driver->completed_bookings_count = Booking::where('driverID', $driver->id)
-                    ->where('status', Booking::STATUS_COMPLETED)->count();
-                
-                // Count cancelled bookings
-                $driver->cancelled_bookings_count = Booking::where('driverID', $driver->id)
-                    ->where('status', Booking::STATUS_CANCELLED)->count();
-            }
-
-            return view('admin.reports', compact('passengers', 'drivers'));
-
-        } catch (\Exception $e) {
-            Log::error('Error loading reports: ' . $e->getMessage());
-            return redirect()->route('admin.dashboard')->with('error', 'Error loading reports: ' . $e->getMessage());
+        // Manually count ongoing bookings for each passenger
+        foreach ($passengers as $passenger) {
+            $passenger->ongoing_bookings_count = Booking::where('passengerID', $passenger->id)
+                ->whereIn('status', [
+                    Booking::STATUS_PENDING,
+                    Booking::STATUS_ACCEPTED,
+                    Booking::STATUS_IN_PROGRESS
+                ])->count();
+            
+            // Count completed bookings
+            $passenger->completed_bookings_count = Booking::where('passengerID', $passenger->id)
+                ->where('status', Booking::STATUS_COMPLETED)->count();
+            
+            // Count cancelled bookings
+            $passenger->cancelled_bookings_count = Booking::where('passengerID', $passenger->id)
+                ->where('status', Booking::STATUS_CANCELLED)->count();
         }
+
+        // Manually count ongoing bookings for each driver
+        foreach ($drivers as $driver) {
+            $driver->ongoing_bookings_count = Booking::where('driverID', $driver->id)
+                ->whereIn('status', [
+                    Booking::STATUS_PENDING,
+                    Booking::STATUS_ACCEPTED,
+                    Booking::STATUS_IN_PROGRESS
+                ])->count();
+            
+            // Count completed bookings
+            $driver->completed_bookings_count = Booking::where('driverID', $driver->id)
+                ->where('status', Booking::STATUS_COMPLETED)->count();
+            
+            // Count cancelled bookings
+            $driver->cancelled_bookings_count = Booking::where('driverID', $driver->id)
+                ->where('status', Booking::STATUS_CANCELLED)->count();
+        }
+
+        return view('admin.reports', compact('passengers', 'drivers'));
+
+    } catch (\Exception $e) {
+        Log::error('Error loading reports: ' . $e->getMessage());
+        return redirect()->route('admin.dashboard')->with('error', 'Error loading reports: ' . $e->getMessage());
+    }
+}
+
+public function viewOngoingBookings($type, $id)
+{
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('login')->with('error', 'Please login as admin.');
     }
 
-    public function viewOngoingBookings($type, $id)
-    {
-        if (!Auth::guard('admin')->check()) {
-            return redirect()->route('login')->with('error', 'Please login as admin.');
+    try {
+        $ongoingBookings = Booking::whereIn('status', [
+            Booking::STATUS_PENDING,
+            Booking::STATUS_ACCEPTED,
+            Booking::STATUS_IN_PROGRESS
+        ]);
+
+        if ($type === 'passenger') {
+            $user = Passenger::findOrFail($id);
+            $ongoingBookings->where('passengerID', $id);
+            $title = "Ongoing Bookings - {$user->fullname}";
+        } else {
+            $user = Driver::findOrFail($id);
+            $ongoingBookings->where('driverID', $id);
+            $title = "Assigned Bookings - {$user->fullname}";
         }
 
-        try {
-            $ongoingBookings = Booking::whereIn('status', [
-                Booking::STATUS_IN_PROGRESS
-            ]);
+        $ongoingBookings = $ongoingBookings->latest()->get();
 
-            if ($type === 'passenger') {
-                $user = Passenger::findOrFail($id);
-                $ongoingBookings->where('passengerID', $id);
-                $title = "Ongoing Bookings - {$user->fullname}";
-            } else {
-                $user = Driver::findOrFail($id);
-                $ongoingBookings->where('driverID', $id);
-                $title = "Assigned Bookings - {$user->fullname}";
-            }
+        return view('admin.ongoing-bookings', compact('ongoingBookings', 'title', 'type', 'user'));
 
-            $ongoingBookings = $ongoingBookings->latest()->get();
+    } catch (\Exception $e) {
+        Log::error('Error loading ongoing bookings: ' . $e->getMessage());
+        return redirect()->route('admin.reports')->with('error', 'Error loading bookings: ' . $e->getMessage());
+    }
+}
 
-            return view('admin.ongoing-bookings', compact('ongoingBookings', 'title', 'type', 'user'));
-
-        } catch (\Exception $e) {
-            Log::error('Error loading ongoing bookings: ' . $e->getMessage());
-            return redirect()->route('admin.reports')->with('error', 'Error loading bookings: ' . $e->getMessage());
-        }
+public function viewCompletedBookings($type, $id)
+{
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('login')->with('error', 'Please login as admin.');
     }
 
-    public function viewCompletedBookings($type, $id)
-    {
-        if (!Auth::guard('admin')->check()) {
-            return redirect()->route('login')->with('error', 'Please login as admin.');
+    try {
+        $completedBookings = Booking::where('status', Booking::STATUS_COMPLETED);
+
+        if ($type === 'passenger') {
+            $user = Passenger::findOrFail($id);
+            $completedBookings->where('passengerID', $id);
+            $title = "Completed Bookings - {$user->fullname}";
+        } else {
+            $user = Driver::findOrFail($id);
+            $completedBookings->where('driverID', $id);
+            $title = "Completed Bookings - {$user->fullname}";
         }
 
-        try {
-            $completedBookings = Booking::where('status', Booking::STATUS_COMPLETED);
+        $completedBookings = $completedBookings->latest()->get();
 
-            if ($type === 'passenger') {
-                $user = Passenger::findOrFail($id);
-                $completedBookings->where('passengerID', $id);
-                $title = "Completed Bookings - {$user->fullname}";
-            } else {
-                $user = Driver::findOrFail($id);
-                $completedBookings->where('driverID', $id);
-                $title = "Completed Bookings - {$user->fullname}";
-            }
+        // FIX: Remove 'status' from compact()
+        return view('admin.view-completed-bookings', compact('completedBookings', 'title', 'type', 'user'));
 
-            $completedBookings = $completedBookings->latest()->get();
+    } catch (\Exception $e) {
+        Log::error('Error loading completed bookings: ' . $e->getMessage());
+        return redirect()->route('admin.reports')->with('error', 'Error loading completed bookings: ' . $e->getMessage());
+    }
+}
 
-            // FIX: Remove 'status' from compact()
-            return view('admin.view-completed-bookings', compact('completedBookings', 'title', 'type', 'user'));
-
-        } catch (\Exception $e) {
-            Log::error('Error loading completed bookings: ' . $e->getMessage());
-            return redirect()->route('admin.reports')->with('error', 'Error loading completed bookings: ' . $e->getMessage());
-        }
+public function viewCancelledBookings($type, $id)
+{
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('login')->with('error', 'Please login as admin.');
     }
 
-    public function viewCancelledBookings($type, $id)
-    {
-        if (!Auth::guard('admin')->check()) {
-            return redirect()->route('login')->with('error', 'Please login as admin.');
+    try {
+        $cancelledBookings = Booking::where('status', Booking::STATUS_CANCELLED);
+
+        if ($type === 'passenger') {
+            $user = Passenger::findOrFail($id);
+            $cancelledBookings->where('passengerID', $id);
+            $title = "Cancelled Bookings - {$user->fullname}";
+        } else {
+            $user = Driver::findOrFail($id);
+            $cancelledBookings->where('driverID', $id);
+            $title = "Cancelled Bookings - {$user->fullname}";
         }
 
-        try {
-            $cancelledBookings = Booking::where('status', Booking::STATUS_CANCELLED);
+        $cancelledBookings = $cancelledBookings->latest()->get();
 
-            if ($type === 'passenger') {
-                $user = Passenger::findOrFail($id);
-                $cancelledBookings->where('passengerID', $id);
-                $title = "Cancelled Bookings - {$user->fullname}";
-            } else {
-                $user = Driver::findOrFail($id);
-                $cancelledBookings->where('driverID', $id);
-                $title = "Cancelled Bookings - {$user->fullname}";
-            }
+        // FIX: Remove 'status' from compact()
+        return view('admin.view-cancelled-bookings', compact('cancelledBookings', 'title', 'type', 'user'));
 
-            $cancelledBookings = $cancelledBookings->latest()->get();
-            return view('admin.view-cancelled-bookings', compact('cancelledBookings', 'title', 'type', 'user'));
-
-        } catch (\Exception $e) {
-            Log::error('Error loading cancelled bookings: ' . $e->getMessage());
-            return redirect()->route('admin.reports')->with('error', 'Error loading cancelled bookings: ' . $e->getMessage());
-        }
+    } catch (\Exception $e) {
+        Log::error('Error loading cancelled bookings: ' . $e->getMessage());
+        return redirect()->route('admin.reports')->with('error', 'Error loading cancelled bookings: ' . $e->getMessage());
     }
+}
 
     public function notifications()
     {
@@ -489,66 +496,74 @@ class AdminController extends Controller
         }
     }
 
-    public function getDriverLocation($bookingId)
-    {
-        if (!Auth::guard('admin')->check()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
+/**
+ * Get driver location data for tracking
+ */
+public function getDriverLocation($id)
+{
+    // Check admin authentication
+    if (!Auth::guard('admin')->check()) {
+        return response()->json([
+            'success' => false, 
+            'message' => 'Authentication required. Please login as admin.'
+        ], 401);
+    }
 
-        try {
-            $booking = Booking::where('bookingID', $bookingId)
-                ->with('driver')
-                ->firstOrFail();
+    try {
+        Log::info("Admin accessing driver location for booking: {$id}");
 
-            if (!in_array($booking->status, ['accepted', 'in_progress'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Booking is not active for tracking'
-                ]);
-            }
+        $booking = Booking::with(['passenger', 'driver'])
+            ->findOrFail($id);
 
-            $driver = $booking->driver;
+        $driverData = null;
+        $bookingData = null;
+        $distanceInfo = null;
+
+        // Prepare booking data
+        $bookingData = [
+            'id' => $booking->bookingID,
+            'status' => $booking->status,
+            'pickup_location' => $booking->pickupLocation,
+            'dropoff_location' => $booking->dropoffLocation,
+            'pickup_lat' => (float) $booking->pickupLatitude,
+            'pickup_lng' => (float) $booking->pickupLongitude,
+            'dropoff_lat' => (float) $booking->dropoffLatitude,
+            'dropoff_lng' => (float) $booking->dropoffLongitude,
+            'service_type' => $booking->getServiceTypeDisplay(),
+            'fare' => '₱' . number_format((float) $booking->fare, 2),
+            'created_at' => $booking->created_at->toISOString(),
+            'passenger_name' => $booking->passenger->fullname ?? 'Unknown',
+            'passenger_phone' => $booking->passenger->phone ?? 'N/A'
+        ];
+
+        // Prepare driver data if available
+        if ($booking->driver) {
+            $freshDriver = Driver::find($booking->driver->id);
             
-            if (!$driver) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No driver assigned to this booking yet'
-                ]);
-            }
-            $freshDriver = Driver::find($driver->id);
-            
-            if (!$freshDriver) {
-                throw new \Exception("Driver not found with ID: {$driver->id}");
-            }
+            if ($freshDriver) {
+                // Get driver coordinates with proper validation
+                $driverLat = $freshDriver->current_lat;
+                $driverLng = $freshDriver->current_lng;
+                $isFallback = false;
 
-            $driverLat = $freshDriver->current_lat;
-            $driverLng = $freshDriver->current_lng;
-            $isFallback = false;
+                // Convert to float and validate
+                if (is_string($driverLat)) $driverLat = (float) $driverLat;
+                if (is_string($driverLng)) $driverLng = (float) $driverLng;
 
-            if (is_string($driverLat)) {
-                $driverLat = (float) $driverLat;
-            }
-            if (is_string($driverLng)) {
-                $driverLng = (float) $driverLng;
-            }
-            if ($driverLat === null || $driverLng === null || $driverLat == 0 || $driverLng == 0) {
-                $driverLat = (float) $booking->pickupLatitude;
-                $driverLng = (float) $booking->pickupLongitude;
-                $isFallback = true;
-            }
-            $response = [
-                'success' => true,
-                'booking' => [
-                    'id' => $booking->bookingID,
-                    'status' => $booking->status,
-                    'pickup_location' => $booking->pickupLocation,
-                    'dropoff_location' => $booking->dropoffLocation,
-                    'pickup_lat' => (float) $booking->pickupLatitude,
-                    'pickup_lng' => (float) $booking->pickupLongitude,
-                    'dropoff_lat' => (float) $booking->dropoffLatitude,
-                    'dropoff_lng' => (float) $booking->dropoffLongitude,
-                ],
-                'driver' => [
+                // Check if coordinates are valid
+                $hasValidCoordinates = $driverLat && $driverLng && 
+                                     $driverLat != 0 && $driverLng != 0 &&
+                                     $driverLat >= -90 && $driverLat <= 90 &&
+                                     $driverLng >= -180 && $driverLng <= 180;
+
+                if (!$hasValidCoordinates) {
+                    // Use pickup location as fallback
+                    $driverLat = (float) $booking->pickupLatitude;
+                    $driverLng = (float) $booking->pickupLongitude;
+                    $isFallback = true;
+                }
+
+                $driverData = [
                     'id' => $freshDriver->id,
                     'name' => $freshDriver->fullname,
                     'phone' => $freshDriver->phone,
@@ -556,69 +571,172 @@ class AdminController extends Controller
                     'current_lat' => $driverLat,
                     'current_lng' => $driverLng,
                     'is_fallback' => $isFallback,
-                    'location_updated' => $freshDriver->updated_at
-                ],
-                'distance_info' => $this->calculateDistanceInfo($driverLat, $driverLng, $booking),
-                'timestamp' => now()->toISOString()
-            ];
+                    'location_updated' => $freshDriver->updated_at->toISOString(),
+                    'availStatus' => (bool) $freshDriver->availStatus,
+                    'currentLocation' => $freshDriver->currentLocation
+                ];
 
-            return response()->json($response);
-
-        } catch (\Exception $e) {
-            Log::error('Error getting driver location (Admin): ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error fetching driver location'
-            ], 500);
+                // Calculate distance information
+                $distanceInfo = $this->calculateDistanceInfo($driverLat, $driverLng, $booking);
+            }
         }
+
+        $response = [
+            'success' => true,
+            'booking' => $bookingData,
+            'driver' => $driverData,
+            'distance_info' => $distanceInfo,
+            'timestamp' => now()->toISOString()
+        ];
+
+        Log::info("Driver location data retrieved successfully", [
+            'booking_id' => $booking->bookingID,
+            'has_driver' => !is_null($driverData),
+            'driver_coords' => $driverData ? [$driverData['current_lat'], $driverData['current_lng']] : null
+        ]);
+
+        return response()->json($response);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        Log::error("Booking not found: {$id}");
+        return response()->json([
+            'success' => false,
+            'message' => 'Booking not found.'
+        ], 404);
+    } catch (\Exception $e) {
+        Log::error('Error getting driver location: ' . $e->getMessage(), [
+            'booking_id' => $id,
+            'exception' => $e
+        ]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Error fetching tracking data: ' . $e->getMessage()
+        ], 500);
     }
+}
+
+    /**
+     * Calculate distance information between driver and booking locations
+     */
     private function calculateDistanceInfo($driverLat, $driverLng, $booking)
     {
-        try {
-            $toPickup = $this->calculateDistance(
-                $driverLat, $driverLng, 
-                $booking->pickupLatitude, $booking->pickupLongitude
-            );
-            
-            $toDropoff = $this->calculateDistance(
-                $driverLat, $driverLng,
-                $booking->dropoffLatitude, $booking->dropoffLongitude
-            );
-            
-            $totalDistance = $this->calculateDistance(
-                $booking->pickupLatitude, $booking->pickupLongitude,
-                $booking->dropoffLatitude, $booking->dropoffLongitude
-            );
+        $toPickup = $this->calculateDistance(
+            $driverLat, $driverLng, 
+            $booking->pickupLatitude, $booking->pickupLongitude
+        );
+        
+        $toDropoff = $this->calculateDistance(
+            $driverLat, $driverLng,
+            $booking->dropoffLatitude, $booking->dropoffLongitude
+        );
+        
+        $totalDistance = $this->calculateDistance(
+            $booking->pickupLatitude, $booking->pickupLongitude,
+            $booking->dropoffLatitude, $booking->dropoffLongitude
+        );
 
-            $estimatedTimeToPickup = $toPickup > 0 ? max(1, round($toPickup / 30 * 60)) : 0;
-            $estimatedTimeToDropoff = $toDropoff > 0 ? max(1, round($toDropoff / 30 * 60)) : 0;
+        $estimatedTimeToPickup = $toPickup > 0 ? max(1, round($toPickup / 30 * 60)) : 0;
+        $estimatedTimeToDropoff = $toDropoff > 0 ? max(1, round($toDropoff / 30 * 60)) : 0;
 
-            return [
-                'to_pickup_km' => round($toPickup, 2),
-                'to_dropoff_km' => round($toDropoff, 2),
-                'total_trip_km' => round($totalDistance, 2),
-                'est_time_to_pickup_min' => $estimatedTimeToPickup,
-                'est_time_to_dropoff_min' => $estimatedTimeToDropoff
-            ];
-        } catch (\Exception $e) {
-            Log::error('Error calculating distance info: ' . $e->getMessage());
-            return null;
-        }
+        return [
+            'to_pickup_km' => round($toPickup, 2),
+            'to_dropoff_km' => round($toDropoff, 2),
+            'total_trip_km' => round($totalDistance, 2),
+            'est_time_to_pickup_min' => $estimatedTimeToPickup,
+            'est_time_to_dropoff_min' => $estimatedTimeToDropoff
+        ];
     }
 
-    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    /**
+     * Calculate distance between two coordinates in kilometers using Haversine formula
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371;
+        $earthRadius = 6371; // Earth's radius in kilometers
 
         $dLat = deg2rad($lat2 - $lat1);
-        $dLng = deg2rad($lng2 - $lng1);
+        $dLon = deg2rad($lon2 - $lon1);
 
-        $a = sin($dLat/2) * sin($dLat/2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLng/2) * sin($dLng/2);
-            
+        $a = sin($dLat/2) * sin($dLat/2) + 
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * 
+             sin($dLon/2) * sin($dLon/2);
+             
         $c = 2 * atan2(sqrt($a), sqrt(1-$a));
         
         return $earthRadius * $c;
     }
+
+    /**
+     * Get all active bookings with markers for admin map view
+     */
+    public function getActiveBookingsMarkers()
+    {
+        if (!Auth::guard('admin')->check()) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated']);
+        }
+
+        try {
+            $activeBookings = Booking::with(['passenger', 'driver'])
+                ->whereIn('status', [
+                    Booking::STATUS_PENDING,
+                    Booking::STATUS_ACCEPTED,
+                    Booking::STATUS_IN_PROGRESS
+                ])
+                ->get()
+                ->map(function($booking) {
+                    $driverMarker = null;
+                    
+                    if ($booking->driver && $booking->driver->current_lat && $booking->driver->current_lng) {
+                        $driverMarker = [
+                            'id' => 'driver-' . $booking->driver->id,
+                            'type' => 'driver',
+                            'lat' => (float) $booking->driver->current_lat,
+                            'lng' => (float) $booking->driver->current_lng,
+                            'name' => $booking->driver->fullname,
+                            'vehicle' => $booking->driver->vehicleMake . ' ' . $booking->driver->vehicleModel,
+                            'status' => $booking->status,
+                            'booking_id' => $booking->bookingID
+                        ];
+                    }
+
+                    return [
+                        'booking_id' => $booking->bookingID,
+                        'pickup_marker' => [
+                            'id' => 'pickup-' . $booking->bookingID,
+                            'type' => 'pickup',
+                            'lat' => (float) $booking->pickupLatitude,
+                            'lng' => (float) $booking->pickupLongitude,
+                            'location' => $booking->pickupLocation,
+                            'status' => $booking->status
+                        ],
+                        'dropoff_marker' => [
+                            'id' => 'dropoff-' . $booking->bookingID,
+                            'type' => 'dropoff',
+                            'lat' => (float) $booking->dropoffLatitude,
+                            'lng' => (float) $booking->dropoffLongitude,
+                            'location' => $booking->dropoffLocation,
+                            'status' => $booking->status
+                        ],
+                        'driver_marker' => $driverMarker,
+                        'passenger_name' => $booking->passenger->fullname ?? 'Unknown',
+                        'service_type' => $booking->getServiceTypeDisplay(),
+                        'fare' => '₱' . number_format((float) $booking->fare, 2)
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'bookings' => $activeBookings,
+                'count' => $activeBookings->count()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting active bookings markers: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching booking markers'
+            ], 500);
+        }
+    }
+
 }

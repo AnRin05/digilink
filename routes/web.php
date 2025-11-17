@@ -138,5 +138,4 @@ Route::prefix('admin')->group(function () {
 
     Route::get('/booking-tracking/{id}', [AdminController::class, 'trackBooking'])->name('admin.booking.tracking');
     Route::get('/get-driver-location/{id}', [AdminController::class, 'getDriverLocation'])->name('admin.get-driver-location');
-    Route::get('/debug/driver-location/{bookingId}', [AdminController::class, 'debugDriverLocation']);
 });
