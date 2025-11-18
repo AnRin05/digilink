@@ -5,416 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics Fastlan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Analytics Page Styles - Red, Black & White Theme */
-        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        :root {
-            --primary-red: #dc3545;
-            --dark-red: #c82333;
-            --black: #212529;
-            --white: #ffffff;
-            --light-bg: #f1f1f1;
-            --border-color: rgba(0, 0, 0, 0.08);
-            --hover-bg: rgba(220, 53, 69, 0.1);
-        }
-
-        body {
-            background-color: var(--light-bg);
-            color: var(--black);
-            min-height: 100vh;
-        }
-
-        /* Admin Dashboard Layout */
-        .admin-header {
-            background: linear-gradient(135deg, var(--black) 0%, #343a40 100%);
-            padding: 1.5rem 3rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 3px solid var(--primary-red);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .admin-header h1 {
-            color: var(--primary-red);
-            font-size: 2.2rem;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
-            margin: 0;
-        }
-
-        .admin-nav {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            margin-left: auto;
-        }
-
-        .admin-nav a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 500;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            background: rgba(255, 255, 255, 0.1);
-            white-space: nowrap;
-        }
-
-        .admin-nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 2px;
-            background: var(--primary-red);
-            transition: width 0.3s ease;
-        }
-
-        .admin-nav a:hover::after {
-            width: 80%;
-        }
-
-        .admin-nav a:hover {
-            color: var(--primary-red);
-            background: var(--hover-bg);
-            transform: translateY(-2px);
-        }
-
-        .admin-main {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        /* Analytics Header */
-        .analytics-header {
-            margin-bottom: 2rem;
-        }
-
-        .analytics-header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 0.5rem;
-            position: relative;
-            display: inline-block;
-        }
-
-        .analytics-header h1::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background: var(--primary-red);
-            border-radius: 2px;
-        }
-
-        .analytics-header p {
-            color: #6b7280;
-            font-size: 1.1rem;
-            opacity: 0.8;
-        }
-
-        /* Charts Grid */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Chart Cards */
-        .chart-card {
-            background: var(--white);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border: 2px solid var(--border-color);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chart-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--primary-red);
-        }
-
-        .chart-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary-red);
-        }
-
-        .chart-header {
-            margin-bottom: 1.5rem;
-        }
-
-        .chart-header h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--black);
-            margin-bottom: 0.5rem;
-            position: relative;
-            display: inline-block;
-        }
-
-        .chart-header h3::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 30px;
-            height: 2px;
-            background: var(--primary-red);
-            border-radius: 2px;
-        }
-
-        .chart-header p {
-            color: #6b7280;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-
-        /* Time Period Tabs */
-        .time-period-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            background: var(--hover-bg);
-            padding: 0.5rem;
-            border-radius: 8px;
-        }
-
-        .time-tab {
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            color: var(--black);
-            flex: 1;
-            text-align: center;
-        }
-
-        .time-tab.active {
-            background: var(--primary-red);
-            color: var(--white);
-            border-color: var(--primary-red);
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-        }
-
-        .time-tab:hover:not(.active) {
-            background: rgba(220, 53, 69, 0.1);
-            border-color: var(--primary-red);
-        }
-
-        /* Service Type Breakdown */
-        .service-type-breakdown {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .service-type-item {
-            text-align: center;
-            padding: 1rem;
-            background: var(--hover-bg);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .service-type-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .service-type-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-red);
-            margin-bottom: 0.5rem;
-        }
-
-        .service-type-label {
-            font-size: 0.9rem;
-            color: var(--black);
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .service-type-percentage {
-            font-size: 0.8rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        /* Alert Messages */
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid;
-        }
-
-        .alert-success {
-            background: rgba(40, 167, 69, 0.1);
-            color: #155724;
-            border-left-color: #28a745;
-        }
-
-        .alert-error {
-            background: var(--hover-bg);
-            color: var(--primary-red);
-            border-left-color: var(--primary-red);
-        }
-
-        .alert i {
-            font-size: 1.2rem;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .admin-main {
-                padding: 0 1.5rem;
-            }
-            
-            .charts-grid {
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .admin-header {
-                padding: 1rem 1.5rem;
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .admin-header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .admin-nav {
-                width: 100%;
-                justify-content: flex-start;
-                margin-left: 0;
-                gap: 0.5rem;
-            }
-            
-            .admin-nav a {
-                padding: 8px 12px;
-                font-size: 0.9rem;
-                flex: 1;
-                text-align: center;
-                min-width: 120px;
-            }
-            
-            .admin-main {
-                padding: 0 1rem;
-            }
-            
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .chart-card {
-                padding: 1rem;
-            }
-            
-            .time-period-tabs {
-                flex-direction: column;
-            }
-            
-            .service-type-breakdown {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .service-type-item {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .analytics-header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .chart-header h3 {
-                font-size: 1.1rem;
-            }
-            
-            .chart-container {
-                height: 250px;
-            }
-            
-            .admin-header {
-                padding: 1rem;
-            }
-            
-            .admin-nav {
-                flex-direction: column;
-            }
-            
-            .admin-nav a {
-                width: 100%;
-            }
-        }
-    </style>
+    @vite('resources/css/admin/analytics.css')
 </head>
 <body>
     <header class="admin-header">
         <div class="header-left">
-            <h1>Analytics</h1>
+            <h1>Admin Dashboard</h1>
         </div>
         <nav class="admin-nav">
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
-            <a href="{{ route('admin.analytics') }}" class="active"><i class="fas fa-chart-bar"></i> Analytics</a>
+            
+            <!-- More Menu Trigger -->
+            <div class="more-menu-container">
+                <button class="more-menu-trigger" id="moreMenuTrigger">
+                    <i class="fas fa-ellipsis-h"></i> More
+                </button>
+                
+                <!-- More Menu Dropdown -->
+                <div class="more-menu-dropdown" id="moreMenuDropdown">
+                    <div class="more-menu-header">
+                        <h3>More Options</h3>
+                        <button class="back-btn" id="backButton">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                    
+                    <nav class="vertical-nav">
+                        <a href="{{ route('admin.analytics') }}" class="nav-item">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Analytics</span>
+                        </a>
+                        
+                        <div class="nav-section">
+                            <h4>Booking Management</h4>
+                            <a href="{{ route('admin.bookings.current') }}" class="nav-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Current Bookings</span>
+                            </a>
+                            <a href="{{ route('admin.bookings.completed') }}" class="nav-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Completed Bookings</span>
+                            </a>
+                            <a href="{{ route('admin.bookings.cancelled') }}" class="nav-item">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Cancelled Bookings</span>
+                            </a>
+                        </div>
+                        
+                        <a href="{{ route('admin.reports') }}" class="nav-item">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports / History</span>
+                        </a>
+                        
+                        <a href="{{ route('admin.notifications') }}" class="nav-item">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
         </nav>
     </header>
 
@@ -687,6 +338,42 @@
                 });
             });
         });
+        document.addEventListener('DOMContentLoaded', function() {
+        const moreMenuTrigger = document.getElementById('moreMenuTrigger');
+        const moreMenuDropdown = document.getElementById('moreMenuDropdown');
+        const backButton = document.getElementById('backButton');
+
+        if (!moreMenuTrigger || !moreMenuDropdown || !backButton) {
+            console.error('More menu elements not found');
+            return;
+        }
+
+        moreMenuTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            moreMenuDropdown.classList.toggle('active');
+        });
+
+        backButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            moreMenuDropdown.classList.remove('active');
+        });
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                moreMenuDropdown.classList.remove('active');
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!moreMenuTrigger.contains(e.target) && !moreMenuDropdown.contains(e.target)) {
+                moreMenuDropdown.classList.remove('active');
+            }
+        });
+
+        moreMenuDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
     </script>
 </body>
 </html>

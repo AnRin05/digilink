@@ -7,13 +7,14 @@
     @vite('resources/css/admin/driver-details.css')
 </head>
 <body>
-    <header>
-        <h1>Driver Details</h1>
-        <nav>
+    <header class="admin-header">
+        <div class="header-left">
+            <h1>Admin Dashboard</h1>
+        </div>
+        <nav class="admin-nav">
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
-            <a href="{{ route('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
     </header>
     
