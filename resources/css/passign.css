@@ -15,7 +15,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Background decoration */
 body::before {
     content: '';
     position: fixed;
@@ -65,7 +64,6 @@ body::before {
         0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Red accent bar at the top */
 .form-container::before {
     content: '';
     position: absolute;
@@ -81,7 +79,6 @@ body::before {
 .form-header {
     text-align: center;
     margin-bottom: 40px;
-    position: relative;
 }
 
 .form-header h1 {
@@ -89,19 +86,7 @@ body::before {
     font-size: 2.4rem;
     font-weight: 700;
     margin-bottom: 10px;
-    position: relative;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-header h1::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 3px;
-    border-radius: 2px;
 }
 
 .form-header p {
@@ -113,7 +98,6 @@ body::before {
 
 .form-group {
     margin-bottom: 25px;
-    position: relative;
 }
 
 .form-group label {
@@ -122,7 +106,6 @@ body::before {
     font-weight: 600;
     color: #212529;
     font-size: 0.95rem;
-    letter-spacing: 0.3px;
 }
 
 .form-group input {
@@ -134,18 +117,14 @@ body::before {
     font-weight: 400;
     color: #212529;
     background: #fff;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+    transition: all 0.3s;
 }
 
 .form-group input:focus {
     border-color: #dc3545;
     outline: none;
-    box-shadow: 
-        0 0 0 4px rgba(220, 53, 69, 0.1),
-        0 2px 8px rgba(220, 53, 69, 0.15);
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1), 0 2px 8px rgba(220, 53, 69, 0.15);
     transform: translateY(-1px);
-    background: #fff;
 }
 
 .form-group input:hover:not(:focus) {
@@ -153,23 +132,16 @@ body::before {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* File input styling */
 .form-group input[type="file"] {
     padding: 12px 15px;
     background: #f8f9fa;
     border: 2px dashed #dee2e6;
     cursor: pointer;
-    position: relative;
 }
 
 .form-group input[type="file"]:hover {
     background: #f1f3f4;
     border-color: #dc3545;
-}
-
-.form-group input[type="file"]:focus {
-    background: #fff;
-    border-style: solid;
 }
 
 .error-message {
@@ -231,18 +203,17 @@ body::before {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: white;
-    border: 2px solid transparent;
 }
 
 .btn-primary::before {
@@ -285,7 +256,6 @@ body::before {
     text-decoration: none;
     font-weight: 600;
     position: relative;
-    transition: color 0.3s ease;
 }
 
 .login-link a::after {
@@ -307,85 +277,74 @@ body::before {
     color: #c82333;
 }
 
-/* Responsive Design */
+@media (max-width: 900px) {
+    .form-container {
+        padding: 45px 35px;
+        border-radius: 18px;
+        margin: 20px;
+    }
+    .form-header h1 {
+        font-size: 2.1rem;
+    }
+}
+
 @media (max-width: 768px) {
     .form-container {
         padding: 40px 30px;
-        margin: 20px 10px;
-        border-radius: 16px;
+        margin: 20px 12px;
     }
-    
     .form-header h1 {
-        font-size: 2rem;
-    }
-    
-    .form-group input {
-        padding: 14px 18px;
+        font-size: 1.9rem;
     }
 }
 
 @media (max-width: 480px) {
     .main-container {
-        padding: 20px 10px;
+        padding: 18px 8px;
     }
-    
     .form-container {
-        padding: 30px 20px;
+        padding: 28px 18px;
         margin: 10px 5px;
+        border-radius: 14px;
     }
-    
     .form-header h1 {
-        font-size: 1.8rem;
+        font-size: 1.7rem;
     }
-    
-    .form-group {
-        margin-bottom: 20px;
+    .form-header p {
+        font-size: 1rem;
     }
-    
     .form-group input {
-        padding: 12px 16px;
+        padding: 12px 15px;
         font-size: 15px;
     }
-    
     .btn {
-        padding: 14px 25px;
+        padding: 14px 22px;
         font-size: 15px;
     }
 }
 
-/* Dark theme support (optional) */
 @media (prefers-color-scheme: dark) {
     body {
         background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     }
-    
     .form-container {
         background: #2d2d2d;
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
     .form-header h1 {
         color: #fff;
     }
-    
     .form-header p {
         color: #adb5bd;
     }
-    
     .form-group label {
         color: #fff;
     }
-    
     .form-group input {
         background: #343a40;
         border-color: #495057;
         color: #fff;
     }
-    
-    .form-group input:focus {
-        background: #343a40;
-    }
-    
     .login-link {
         color: #adb5bd;
         border-top-color: #495057;
