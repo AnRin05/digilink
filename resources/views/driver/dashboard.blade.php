@@ -56,46 +56,6 @@
         </div>
     </nav>
 
-      <!-- Filter Toggle Button 
-    <button class="filter-toggle" id="filterToggle">
-        <i class="fas fa-filter"></i>
-    </button>
-    -->
-
-    <!-- Filter Section 
-    <div class="filter-section" id="filterSection">
-        <h2 class="filter-title"><i class="fas fa-filter"></i> Filter Bookings</h2>
-        <div class="filter-grid">
-            <div class="filter-group">
-                <label class="filter-label">Service Type</label>
-                <select class="filter-select" id="serviceTypeFilter">
-                    <option value="all">All Services</option>
-                    <option value="booking_to_go">Ride</option>
-                    <option value="for_delivery">Delivery</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Booking Type</label>
-                <select class="filter-select" id="bookingTypeFilter">
-                    <option value="all">All Bookings</option>
-                    <option value="immediate">Immediate</option>
-                    <option value="scheduled">Scheduled</option>
-                </select>
-            </div>
-        </div>
-        <div class="filter-actions">
-            <button class="btn btn-outline" id="resetFilters">
-                <i class="fas fa-redo"></i>
-                Reset Filters
-            </button>
-            <button class="btn btn-primary" id="applyFilters">
-                <i class="fas fa-check"></i>
-                Apply Filters
-            </button>
-        </div>
-    </div>
-    -->
-
     <div class="dashboard-container">
         <div class="dashboard-header">
             <h1 class="dashboard-title">Driver Dashboard</h1>

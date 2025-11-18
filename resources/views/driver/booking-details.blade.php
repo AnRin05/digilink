@@ -15,7 +15,7 @@
                 <i class="fas fa-arrow-left"></i>
                 Back to Dashboard
             </a>
-            <h1 style="color: white;">Booking Details</h1>
+            <h1 style="color: rgb(20, 19, 19);">Booking Details</h1>
         </div>
 
         @if(isset($booking) && $booking)

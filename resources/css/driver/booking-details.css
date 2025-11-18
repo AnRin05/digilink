@@ -4,17 +4,22 @@
     box-sizing: border-box;
 }
 
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     min-height: 100vh;
-    padding: 20px;
+    padding: 15px;
     position: relative;
-    overflow-x: hidden;
     color: #212529;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Animated background decoration */
 body::before {
     content: '';
     position: fixed;
@@ -55,37 +60,45 @@ body::after {
 .container {
     max-width: 900px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding: 0 5px;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
 }
 
 .back-btn {
     background: linear-gradient(135deg, #212529 0%, #343a40 100%);
     border: none;
     color: white;
-    padding: 12px 24px;
+    padding: 10px 16px;
     border-radius: 12px;
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 8px;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 15px rgba(33, 37, 41, 0.2);
+    min-height: 44px;
+    white-space: nowrap;
 }
 
 .back-btn:hover {
     background: linear-gradient(135deg, #343a40 0%, #495057 100%);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(33, 37, 41, 0.3);
+}
+
+.back-btn:active {
+    transform: scale(0.98);
 }
 
 .back-btn i {
@@ -99,10 +112,11 @@ body::after {
 .header h1 {
     color: #212529;
     font-weight: 700;
-    font-size: 1.8rem;
+    font-size: 1.3rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     position: relative;
     display: inline-block;
+    word-break: break-word;
 }
 
 .header h1::after {
@@ -110,7 +124,7 @@ body::after {
     position: absolute;
     bottom: -6px;
     left: 0;
-    width: 60px;
+    width: 50px;
     height: 3px;
     background: #dc3545;
     border-radius: 2px;
@@ -119,10 +133,10 @@ body::after {
 .booking-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     border-radius: 20px;
-    padding: 35px;
+    padding: 1.5rem;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(0, 0, 0, 0.06);
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
     position: relative;
     overflow: hidden;
 }
@@ -144,27 +158,30 @@ body::after {
 
 .booking-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 25px;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
     border-bottom: 2px solid #e9ecef;
+    align-items: flex-start;
 }
 
 .passenger-info {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 1rem;
+    width: 100%;
 }
 
 .passenger-avatar {
-    width: 75px;
-    height: 75px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #dc3545;
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
     transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
 .passenger-avatar:hover {
@@ -173,15 +190,16 @@ body::after {
 
 .passenger-details h3 {
     color: #212529;
-    margin-bottom: 6px;
-    font-size: 1.5rem;
+    margin-bottom: 4px;
+    font-size: 1.1rem;
     font-weight: 700;
+    word-break: break-word;
 }
 
 .passenger-details p {
     color: #6c757d;
-    margin: 4px 0;
-    font-size: 0.95rem;
+    margin: 3px 0;
+    font-size: 0.85rem;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -189,21 +207,23 @@ body::after {
 
 .passenger-details p i {
     color: #495057;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
 }
 
 .booking-type {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: white;
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 25px;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 600;
     box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .booking-type:hover {
@@ -212,18 +232,18 @@ body::after {
 }
 
 .booking-type i {
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .details-grid {
     display: grid;
-    gap: 25px;
-    margin-bottom: 30px;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
 }
 
 .detail-section {
     background: #ffffff;
-    padding: 25px;
+    padding: 1.2rem;
     border-radius: 15px;
     border-left: 4px solid #dc3545;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
@@ -237,25 +257,25 @@ body::after {
 
 .detail-section h4 {
     color: #212529;
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 .detail-section h4 i {
     color: #dc3545;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .location-row {
     display: flex;
     align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 18px;
-    padding: 12px;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding: 10px;
     border-radius: 12px;
     background: #f8f9fa;
     transition: all 0.3s ease;
@@ -263,7 +283,7 @@ body::after {
 
 .location-row:hover {
     background: rgba(220, 53, 69, 0.03);
-    transform: translateX(5px);
+    transform: translateX(3px);
 }
 
 .location-row:last-child {
@@ -271,14 +291,15 @@ body::after {
 }
 
 .location-icon {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    min-width: 40px;
 }
 
 .pickup-icon {
@@ -293,33 +314,35 @@ body::after {
 
 .location-text {
     flex: 1;
+    min-width: 0;
 }
 
 .location-label {
     font-weight: 600;
     color: #495057;
-    margin-bottom: 6px;
-    font-size: 0.95rem;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .location-address {
     color: #6c757d;
-    line-height: 1.6;
-    font-size: 0.95rem;
+    line-height: 1.5;
+    font-size: 0.9rem;
+    word-break: break-word;
 }
 
 .meta-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 .meta-item {
     text-align: center;
-    padding: 18px 15px;
+    padding: 1rem;
     background: #f8f9fa;
     border-radius: 12px;
     border: 2px solid #e9ecef;
@@ -334,47 +357,51 @@ body::after {
 }
 
 .meta-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #6c757d;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .meta-value {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #212529;
+    word-break: break-word;
 }
 
 .fare {
     color: #dc3545;
-    font-size: 1.6rem;
+    font-size: 1.3rem;
 }
 
 .actions {
     display: flex;
-    gap: 15px;
-    margin-top: 35px;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
 }
 
 .btn {
     flex: 1;
-    padding: 16px 28px;
+    padding: 12px 20px;
     border: none;
     border-radius: 12px;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     text-decoration: none;
     position: relative;
     overflow: hidden;
+    min-height: 44px;
+    white-space: nowrap;
 }
 
 .btn::before {
@@ -410,10 +437,15 @@ body::after {
     transform: scale(1.15);
 }
 
+.btn:active {
+    transform: scale(0.98);
+}
+
 .btn-accept {
     background: linear-gradient(135deg, #28a745, #20c997);
     color: white;
     box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+    width: 100%;
 }
 
 .btn-accept:hover {
@@ -426,6 +458,7 @@ body::after {
     background: linear-gradient(135deg, #212529 0%, #343a40 100%);
     color: white;
     box-shadow: 0 6px 20px rgba(33, 37, 41, 0.25);
+    width: 100%;
 }
 
 .btn-back:hover {
@@ -434,11 +467,10 @@ body::after {
     box-shadow: 0 10px 35px rgba(33, 37, 41, 0.35);
 }
 
-/* Empty State / Error State */
 .booking-card .empty-icon {
-    font-size: 5rem;
+    font-size: 3.5rem;
     color: #dc3545;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     animation: pulse 2s ease-in-out infinite;
 }
 
@@ -449,112 +481,60 @@ body::after {
 
 .booking-card h3 {
     color: #212529;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
     font-weight: 700;
-    font-size: 1.8rem;
+    font-size: 1.3rem;
 }
 
 .booking-card p {
     color: #6c757d;
-    margin-bottom: 2rem;
-    font-size: 1.05rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
     line-height: 1.6;
 }
 
-/* Responsive Design */
-@media (max-width: 992px) {
-    .container {
-        max-width: 100%;
-    }
-}
-
-@media (max-width: 768px) {
+@media (min-width: 768px) {
     body {
-        padding: 15px;
+        padding: 20px;
     }
 
-    .container {
-        padding: 0;
-    }
-    
     .header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
     }
 
     .header h1 {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
     }
 
     .header h1::after {
-        width: 50px;
+        width: 60px;
     }
 
     .back-btn {
-        width: 100%;
-        justify-content: center;
+        padding: 12px 24px;
+        font-size: 0.95rem;
     }
-    
+
     .booking-card {
-        padding: 25px;
+        padding: 2rem;
+        margin-bottom: 2rem;
     }
 
     .booking-header {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .passenger-info {
-        width: 100%;
         flex-direction: row;
-        justify-content: flex-start;
-    }
-
-    .booking-type {
-        align-self: flex-start;
-    }
-    
-    .details-grid {
-        gap: 20px;
-    }
-
-    .detail-section {
-        padding: 20px;
-    }
-    
-    .actions {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .meta-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .location-row {
-        padding: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-
-    .booking-card {
-        padding: 20px;
-        border-radius: 15px;
-    }
-
-    .booking-header {
-        padding-bottom: 20px;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
     }
 
     .passenger-info {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+        gap: 1.5rem;
     }
 
     .passenger-avatar {
@@ -568,51 +548,172 @@ body::after {
 
     .passenger-details p {
         font-size: 0.9rem;
-        justify-content: center;
+        margin: 4px 0;
     }
 
     .booking-type {
-        align-self: center;
-        font-size: 0.85rem;
-        padding: 8px 16px;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+
+    .details-grid {
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-section {
+        padding: 1.8rem;
     }
 
     .detail-section h4 {
         font-size: 1.1rem;
+        margin-bottom: 1.5rem;
     }
 
     .location-row {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+        gap: 1.2rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
 
-    .location-text {
-        width: 100%;
+    .location-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        min-width: 45px;
+    }
+
+    .location-address {
+        font-size: 0.95rem;
     }
 
     .meta-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
     }
 
     .meta-item {
-        padding: 15px;
+        padding: 1.5rem;
+    }
+
+    .meta-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
     }
 
     .meta-value {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
     }
 
     .fare {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
     }
 
-    .btn {
+    .actions {
+        flex-direction: row;
+        gap: 1.2rem;
+        margin-top: 2rem;
+    }
+
+    .actions .btn {
+        flex: 1;
+        padding: 14px 28px;
         font-size: 1rem;
-        padding: 14px 24px;
+    }
+
+    .booking-card .empty-icon {
+        font-size: 4rem;
+    }
+
+    .booking-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .booking-card p {
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 992px) {
+    body {
+        padding: 20px;
+    }
+
+    .header {
+        margin-bottom: 2.5rem;
     }
 
     .header h1 {
-        font-size: 1.3rem;
+        font-size: 2rem;
+    }
+
+    .booking-card {
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .booking-header {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2rem;
+    }
+
+    .passenger-avatar {
+        width: 75px;
+        height: 75px;
+    }
+
+    .passenger-details h3 {
+        font-size: 1.5rem;
+    }
+
+    .details-grid {
+        gap: 2.5rem;
+    }
+
+    .detail-section {
+        padding: 2rem;
+    }
+
+    .location-row {
+        gap: 1.5rem;
+        padding: 1.2rem;
+    }
+
+    .location-icon {
+        width: 45px;
+        height: 45px;
+    }
+
+    .meta-item {
+        padding: 1.8rem;
+    }
+
+    .actions {
+        gap: 1.5rem;
+    }
+
+    .btn {
+        padding: 16px 28px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .back-btn,
+    .btn {
+        min-height: 48px;
+    }
+
+    .passenger-avatar {
+        min-width: 60px;
+    }
+
+    .location-icon {
+        min-width: 40px;
+    }
+
+    .meta-item {
+        padding: 1.2rem;
     }
 }
