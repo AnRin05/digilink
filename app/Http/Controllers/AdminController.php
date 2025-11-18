@@ -331,8 +331,6 @@ public function reports()
         foreach ($passengers as $passenger) {
             $passenger->ongoing_bookings_count = Booking::where('passengerID', $passenger->id)
                 ->whereIn('status', [
-                    Booking::STATUS_PENDING,
-                    Booking::STATUS_ACCEPTED,
                     Booking::STATUS_IN_PROGRESS
                 ])->count();
             
@@ -379,8 +377,6 @@ public function viewOngoingBookings($type, $id)
 
     try {
         $ongoingBookings = Booking::whereIn('status', [
-            Booking::STATUS_PENDING,
-            Booking::STATUS_ACCEPTED,
             Booking::STATUS_IN_PROGRESS
         ]);
 
@@ -614,10 +610,6 @@ public function getDriverLocation($id)
         ], 500);
     }
 }
-
-    /**
-     * Calculate distance information between driver and booking locations
-     */
     private function calculateDistanceInfo($driverLat, $driverLng, $booking)
     {
         $toPickup = $this->calculateDistance(
