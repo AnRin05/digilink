@@ -383,4 +383,16 @@ class Booking extends Model
     {
         return $this->hasOne(BookingHistory::class, 'booking_id', 'bookingID');
     }
+                                                                 // In Booking.php model
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'booking_id', 'bookingID');
+    }
+
+    public function canBeRated()
+    {
+        return $this->status === self::STATUS_COMPLETED && 
+            !$this->review()->exists() &&
+            $this->completion_verified === self::VERIFICATION_BOTH_CONFIRMED;
+    }
 }

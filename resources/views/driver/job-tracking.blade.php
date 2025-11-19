@@ -12,216 +12,335 @@
     @vite('resources/css/driver/job-track.css')
     <style>
         * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    html, body {
-        width: 100%;
-        height: 100%;
-        overflow-x: hidden;
-    }
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #212529;
+    height: 100vh;
+    overflow: hidden;
+}
 
-    body {
-        font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        color: #212529;
-        height: 100vh;
-        overflow: hidden;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+.navbar {
+    background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
 
-    .navbar {
-        background: linear-gradient(135deg, #212529 0%, #343a40 100%);
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
+.nav-brand {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #dc3545;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
 
-    .nav-brand {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #dc3545;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
+.nav-brand:hover {
+    transform: translateY(-2px);
+}
 
-    .nav-brand:hover {
-        transform: translateY(-2px);
-    }
+.nav-brand span {
+    color: white;
+}
 
-    .nav-brand span {
-        color: white;
-    }
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
 
-    .nav-link {
-        color: white;
-        text-decoration: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        font-weight: 500;
-        font-size: 0.9rem;
-        min-height: 44px;
-    }
+.nav-link:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
 
-    .nav-link:hover {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-    }
+.job-tracking-container {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    height: calc(100vh - 80px);
+}
 
+.job-sidebar {
+    background: white;
+    border-right: 1px solid #e9ecef;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.job-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.job-header h1 {
+    font-size: 1.5rem;
+    color: #212529;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+}
+
+.job-header h1 i {
+    color: #dc3545;
+}
+
+.job-header p {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.info-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    border-color: #dc3545;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.info-card h3 {
+    color: #212529;
+    margin-bottom: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-card h3 i {
+    color: #dc3545;
+}
+
+.info-card p {
+    margin: 8px 0;
+    color: #495057;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.info-card p strong {
+    color: #212529;
+    font-weight: 600;
+}
+
+.map-container {
+    position: relative;
+    background: white;
+}
+
+#jobMap {
+    height: 100%;
+    width: 100%;
+}
+
+.tracking-status {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,249,250,0.98) 100%);
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #212529;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.tracking-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #28a745;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.6;
+        transform: scale(1.15);
+    }
+}
+
+.job-actions {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    display: flex;
+    gap: 12px;
+    z-index: 1000;
+}
+
+.btn {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    flex: 1;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e9e8a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(40, 167, 69, 0.35);
+}
+
+.btn-danger {
+    background: transparent;
+    color: #495057;
+    border: 2px solid #e9ecef;
+}
+
+.btn-danger:hover {
+    background: rgba(220, 53, 69, 0.05);
+    color: #dc3545;
+    border-color: #dc3545;
+    transform: translateY(-2px);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.location-status {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #28a745;
+}
+
+.location-status p {
+    margin: 6px 0;
+    font-size: 0.85rem;
+}
+
+.distance-info {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #dc3545;
+    margin-top: 10px;
+}
+
+.distance-info p {
+    margin: 6px 0;
+    font-size: 0.85rem;
+}
+
+.map-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.zoom-control {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #495057;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.zoom-control:hover {
+    background: #f8f9fa;
+    color: #dc3545;
+    border-color: #dc3545;
+    transform: scale(1.05);
+}
+
+.job-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.job-sidebar::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+.job-sidebar::-webkit-scrollbar-thumb {
+    background: #dc3545;
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
     .job-tracking-container {
-        display: grid;
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
-        height: calc(100vh - 70px);
     }
 
     .job-sidebar {
-        background: white;
+        border-right: none;
         border-bottom: 1px solid #e9ecef;
-        padding: 1.5rem;
-        overflow-y: auto;
-        max-height: 35vh;
-    }
-
-    .job-header {
-        margin-bottom: 1.2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f8f9fa;
-    }
-
-    .job-header h1 {
-        font-size: 1.2rem;
-        color: #212529;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 700;
-    }
-
-    .job-header h1 i {
-        color: #dc3545;
-        font-size: 1rem;
-    }
-
-    .job-header p {
-        color: #6c757d;
-        font-size: 0.85rem;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-        margin-top: 0.5rem;
-    }
-
-    .info-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 12px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-    .info-card:hover {
-        border-color: #dc3545;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .info-card h3 {
-        color: #212529;
-        margin-bottom: 1rem;
-        font-size: 1rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .info-card h3 i {
-        color: #dc3545;
-    }
-
-    .info-card p {
-        margin: 6px 0;
-        color: #495057;
-        font-size: 0.85rem;
-        line-height: 1.5;
-        word-break: break-word;
-    }
-
-    .info-card p strong {
-        color: #212529;
-        font-weight: 600;
-    }
-
-    .map-container {
-        position: relative;
-        background: white;
-        height: 100%;
-    }
-
-    #jobMap {
-        height: 100%;
-        width: 100%;
-    }
-
-    .tracking-status {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        right: 10px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.98) 100%);
-        padding: 10px 12px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #212529;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        max-width: calc(100% - 20px);
-    }
-
-    .tracking-indicator {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #28a745;
-        animation: pulse 2s infinite;
-        flex-shrink: 0;
-    }
-
-    @keyframes pulse {
-        0%, 100% { 
-            opacity: 1; 
-            transform: scale(1);
-        }
-        50% { 
-            opacity: 0.6;
-            transform: scale(1.15);
-        }
+        max-height: 40vh;
     }
 
     .job-actions {
@@ -229,516 +348,134 @@
         bottom: 0;
         left: 0;
         right: 0;
-        display: flex;
-        gap: 0.8rem;
-        padding: 1rem;
+        border-radius: 0;
+        padding: 12px;
         background: white;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        z-index: 999;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
     }
 
-    .btn {
-        padding: 11px 16px;
-        border: none;
-        border-radius: 12px;
+    .tracking-status {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        padding: 10px 14px;
         font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        flex: 1;
-        min-height: 44px;
-        white-space: nowrap;
-    }
-
-    .btn i {
-        transition: transform 0.3s ease;
-    }
-
-    .btn:hover i {
-        transform: scale(1.1);
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
-    }
-
-    .btn-success:hover {
-        background: linear-gradient(135deg, #218838 0%, #1e9e8a 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.35);
-    }
-
-    .btn-success:active {
-        transform: scale(0.98);
-    }
-
-    .btn-danger {
-        background: transparent;
-        color: #495057;
-        border: 2px solid #e9ecef;
-    }
-
-    .btn-danger:hover {
-        background: rgba(220, 53, 69, 0.05);
-        color: #dc3545;
-        border-color: #dc3545;
-        transform: translateY(-2px);
-    }
-
-    .btn-danger:active {
-        transform: scale(0.98);
-    }
-
-    .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .location-status {
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 3px solid #28a745;
-    }
-
-    .location-status p {
-        margin: 5px 0;
-        font-size: 0.8rem;
-    }
-
-    .distance-info {
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 3px solid #dc3545;
-        margin-top: 8px;
-    }
-
-    .distance-info p {
-        margin: 5px 0;
-        font-size: 0.8rem;
     }
 
     .map-controls {
-        position: absolute;
-        top: 60px;
+        top: 10px;
         right: 10px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
     }
 
     .zoom-control {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        width: 38px;
-        height: 38px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
+        width: 36px;
+        height: 36px;
         font-size: 1.1rem;
-        font-weight: 600;
-        color: #495057;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        min-height: 44px;
-        min-width: 44px;
     }
+}
 
-    .zoom-control:hover {
-        background: #f8f9fa;
-        color: #dc3545;
-        border-color: #dc3545;
-        transform: scale(1.05);
+/* Cancellation Alert Styles */
+.alert-section {
+    margin-top: 20px;
+}
+
+.alert {
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border: 2px solid #f1b0b7;
+    border-left: 6px solid #dc3545;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.alert-header h3 {
+    color: #721c24;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.alert-header i {
+    color: #dc3545;
+    font-size: 1.5rem;
+}
+
+.alert-body {
+    color: #721c24;
+    margin-bottom: 15px;
+}
+
+.alert-body p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.alert-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Status badge styles */
+.status-badge.cancelled {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+/* Toast Notification */
+.cancellation-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #dc3545;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 400px;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
     }
-
-    .job-sidebar::-webkit-scrollbar {
-        width: 6px;
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
+}
 
-    .job-sidebar::-webkit-scrollbar-track {
-        background: #f8f9fa;
+.cancellation-toast.hiding {
+    animation: slideOutRight 0.3s ease;
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
     }
-
-    .job-sidebar::-webkit-scrollbar-thumb {
-        background: #dc3545;
-        border-radius: 10px;
+    to {
+        transform: translateX(100%);
+        opacity: 0;
     }
-
-    .alert-section {
-        margin-top: 1rem;
-    }
-
-    .alert {
-        border-radius: 12px;
-        padding: 1.2rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .alert-danger {
-        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-        border: 2px solid #f1b0b7;
-        border-left: 6px solid #dc3545;
-    }
-
-    .alert-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 1rem;
-    }
-
-    .alert-header h3 {
-        color: #721c24;
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 700;
-        word-break: break-word;
-    }
-
-    .alert-header i {
-        color: #dc3545;
-        font-size: 1.2rem;
-        flex-shrink: 0;
-    }
-
-    .alert-body {
-        color: #721c24;
-        margin-bottom: 1rem;
-    }
-
-    .alert-body p {
-        margin: 6px 0;
-        line-height: 1.5;
-        font-size: 0.9rem;
-    }
-
-    .alert-actions {
-        display: flex;
-        gap: 0.8rem;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
-    .alert-actions .btn {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        flex: auto;
-        min-width: 100px;
-    }
-
-    .status-badge.cancelled {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        border: 1px solid #dc3545;
-    }
-
-    .cancellation-toast {
-        position: fixed;
-        bottom: 80px;
-        right: 20px;
-        background: #dc3545;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        max-width: 90vw;
-        min-height: 44px;
-        animation: slideInRight 0.3s ease;
-    }
-
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    .cancellation-toast.hiding {
-        animation: slideOutRight 0.3s ease;
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    @media (min-width: 768px) {
-        .navbar {
-            padding: 1.2rem 2rem;
-            flex-wrap: nowrap;
-            gap: 2rem;
-        }
-
-        .nav-brand {
-            font-size: 1.6rem;
-        }
-
-        .nav-link {
-            padding: 10px 16px;
-            font-size: 1rem;
-        }
-
-        .job-tracking-container {
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: auto;
-        }
-
-        .job-sidebar {
-            border-right: 1px solid #e9ecef;
-            border-bottom: none;
-            padding: 1.8rem;
-            max-height: calc(100vh - 70px);
-        }
-
-        .job-header {
-            margin-bottom: 1.8rem;
-            padding-bottom: 1.5rem;
-        }
-
-        .job-header h1 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-        }
-
-        .info-card {
-            padding: 1.5rem;
-            margin-bottom: 1.2rem;
-        }
-
-        .info-card h3 {
-            font-size: 1.05rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-card p {
-            font-size: 0.9rem;
-            margin: 8px 0;
-        }
-
-        .job-actions {
-            position: absolute;
-            bottom: 24px;
-            left: 24px;
-            right: auto;
-            width: auto;
-            padding: 0;
-            background: transparent;
-            box-shadow: none;
-            gap: 12px;
-        }
-
-        .job-actions .btn {
-            padding: 14px 28px;
-            font-size: 1rem;
-            flex: 0 1 auto;
-            width: auto;
-        }
-
-        .tracking-status {
-            top: 20px;
-            left: 20px;
-            right: auto;
-            padding: 14px 18px;
-            font-size: 0.9rem;
-            max-width: none;
-        }
-
-        .map-controls {
-            top: 20px;
-            right: 20px;
-        }
-
-        .zoom-control {
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
-        }
-
-        .alert {
-            padding: 1.8rem;
-        }
-
-        .cancellation-toast {
-            bottom: auto;
-            top: 20px;
-            right: 20px;
-            max-width: 400px;
-            padding: 15px 20px;
-        }
-    }
-
-    @media (min-width: 992px) {
-        .navbar {
-            padding: 1.2rem 3rem;
-        }
-
-        .nav-brand {
-            font-size: 1.8rem;
-        }
-
-        .job-tracking-container {
-            grid-template-columns: 380px 1fr;
-        }
-
-        .job-sidebar {
-            padding: 2rem;
-        }
-
-        .job-header h1 {
-            font-size: 1.5rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .job-actions {
-            flex-direction: column;
-        }
-
-        .job-actions .btn {
-            width: 100%;
-        }
-
-        .alert-actions {
-            flex-direction: column;
-        }
-
-        .alert-actions .btn {
-            width: 100%;
-            flex: 1;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .navbar {
-            padding: 0.8rem;
-        }
-
-        .nav-brand {
-            font-size: 1.2rem;
-        }
-
-        .job-sidebar {
-            padding: 1rem;
-            max-height: 30vh;
-        }
-
-        .job-header {
-            margin-bottom: 1rem;
-            padding-bottom: 0.8rem;
-        }
-
-        .job-header h1 {
-            font-size: 1.1rem;
-        }
-
-        .info-card {
-            padding: 1rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .info-card h3 {
-            font-size: 0.95rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .job-actions {
-            padding: 0.8rem;
-            gap: 0.6rem;
-        }
-
-        .btn {
-            padding: 8px 12px;
-            font-size: 0.75rem;
-            min-height: 40px;
-        }
-
-        .alert {
-            padding: 1rem;
-        }
-
-        .alert-header {
-            gap: 6px;
-            margin-bottom: 0.8rem;
-        }
-
-        .alert-header h3 {
-            font-size: 0.95rem;
-        }
-
-        .alert-header i {
-            font-size: 1rem;
-        }
-
-        .tracking-status {
-            padding: 8px 10px;
-            font-size: 0.8rem;
-        }
-
-        .map-controls {
-            top: 50px;
-            right: 8px;
-            gap: 4px;
-        }
-
-        .zoom-control {
-            width: 36px;
-            height: 36px;
-            font-size: 1rem;
-        }
-
-        .cancellation-toast {
-            bottom: 70px;
-            right: 10px;
-            left: 10px;
-            max-width: none;
-            padding: 10px 12px;
-            font-size: 0.85rem;
-        }
-    }
-
-    @media (hover: none) and (pointer: coarse) {
-        .nav-link,
-        .btn,
-        .zoom-control {
-            min-height: 48px;
-            min-width: 48px;
-        }
-
-        .zoom-control {
-            width: 48px;
-            height: 48px;
-        }
-
-        .map-controls {
-            gap: 8px;
-        }
-    }
+}
     </style>
 </head>
 <body>
@@ -826,6 +563,120 @@
                 </p>
                 @endif
             </div>
+            <!-- Report/Help Section -->
+            <div class="info-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
+                <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Urgent Help Button -->
+                    <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                        <i class="fas fa-life-ring"></i>
+                        Request Urgent Help
+                    </button>
+                    
+                    <!-- Complaint Button -->
+                    <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
+                        <i class="fas fa-flag"></i>
+                        Submit Complaint
+                    </button>
+                </div>
+            </div>
+
+            <!-- Urgent Help Modal -->
+            <div id="urgentHelpModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 style="color: #dc3545; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-life-ring"></i>
+                            Request Urgent Help
+                        </h3>
+                        <p style="color: #6c757d; margin-top: 8px; font-size: 0.9rem;">
+                            This will immediately notify administrators with your current location and booking details.
+                        </p>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Additional Information (Optional)</label>
+                            <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..."></textarea>
+                        </div>
+                        
+                        <div class="data-preview">
+                            <h4>What will be sent to admin:</h4>
+                            <ul>
+                                <li>✓ Your current location and booking route</li>
+                                <li>✓ Driver and vehicle information</li>
+                                <li>✓ Trip details and status</li>
+                                <li>✓ Timestamp of the incident</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button onclick="hideUrgentHelpModal()" class="btn-secondary">
+                            Cancel
+                        </button>
+                        <button onclick="sendUrgentHelp()" class="btn btn-danger" style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Urgent Help Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaint Modal -->
+            <div id="complaintModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 style="color: #ffc107; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-flag"></i>
+                            Submit Complaint
+                        </h3>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Complaint Type</label>
+                            <select id="complaintType">
+                                <option value="passenger_behavior">Passenger Behavior</option>
+                                <option value="service_issue">Service Quality</option>
+                                <option value="safety_concern">Safety Concern</option>
+                                <option value="payment_issue">Payment Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Severity Level</label>
+                            <select id="complaintSeverity">
+                                <option value="low">Low - Minor Issue</option>
+                                <option value="medium">Medium - Concerning</option>
+                                <option value="high">High - Serious Issue</option>
+                                <option value="critical">Critical - Requires Immediate Attention</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="complaintDescription" placeholder="Please describe the issue in detail..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button onclick="hideComplaintModal()" class="btn-secondary">
+                            Cancel
+                        </button>
+                        <button onclick="sendComplaint()" class="btn-warning">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Complaint
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Completion Status -->
             <div class="info-card">
@@ -833,7 +684,7 @@
                 <div id="completionStatus">
                     <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
                 </div>
-                <div id="completionMessage" style="margin-top: 10px;"></div>
+                
             </div>
         </div>
 
@@ -1444,6 +1295,330 @@ function showCompletionMessage(message, type) {
     `;
 }
 
+// ==================== REPORTING FUNCTIONS ====================
+function showUrgentHelpModal() {
+    document.getElementById('urgentHelpModal').style.display = 'flex';
+}
+
+function hideUrgentHelpModal() {
+    document.getElementById('urgentHelpModal').style.display = 'none';
+    document.getElementById('urgentHelpNotes').value = '';
+}
+
+function showComplaintModal() {
+    document.getElementById('complaintModal').style.display = 'flex';
+}
+
+function hideComplaintModal() {
+    document.getElementById('complaintModal').style.display = 'none';
+    document.getElementById('complaintDescription').value = '';
+}
+
+// Safe fetch wrapper for API calls
+async function safeApiCall(url, options = {}) {
+    try {
+        console.log('🔗 Making API call to:', url);
+        
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken,
+                ...options.headers
+            },
+            ...options
+        });
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('❌ Non-JSON response received:', text.substring(0, 200));
+            
+            // If it's HTML, the route probably doesn't exist
+            if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+                throw new Error('API route not found or returns HTML page');
+            }
+            
+            throw new Error('Server returned non-JSON response');
+        }
+
+        const data = await response.json();
+        console.log('✅ API response:', data);
+        return data;
+        
+    } catch (error) {
+        console.error('❌ API call failed:', error);
+        throw error;
+    }
+}
+
+async function sendUrgentHelp() {
+    const notes = document.getElementById('urgentHelpNotes').value;
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
+
+    try {
+        console.log('🚨 Sending urgent help request...');
+        
+        // Try multiple endpoint variations
+        const endpoints = [
+            '/digilink/public/driver/report/urgent-help',
+            '/digilink/public/driver/urgent-help',
+            '/digilink/public/report/urgent-help',
+            '/driver/report/urgent-help'
+        ];
+
+        let lastError = null;
+        
+        for (const endpoint of endpoints) {
+            try {
+                console.log(`🔄 Trying endpoint: ${endpoint}`);
+                
+                const data = await safeApiCall(endpoint, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        booking_id: bookingData.id,
+                        additional_notes: notes,
+                        user_type: 'driver'
+                    })
+                });
+                
+                if (data.success) {
+                    showNotification('success', data.message || 'Help request sent successfully! Administrators have been notified.');
+                    hideUrgentHelpModal();
+                    return; // Success, exit function
+                } else {
+                    lastError = new Error(data.message || 'Request failed');
+                }
+            } catch (error) {
+                console.log(`❌ Endpoint ${endpoint} failed:`, error.message);
+                lastError = error;
+                continue;
+            }
+        }
+        
+        // If all endpoints failed
+        throw lastError || new Error('All API endpoints failed');
+
+    } catch (error) {
+        console.error('❌ Error sending urgent help:', error);
+        
+        let userMessage = 'Failed to send help request. ';
+        
+        if (error.message.includes('route not found') || error.message.includes('HTML page')) {
+            userMessage += 'The reporting system is currently unavailable. Please contact support directly.';
+        } else if (error.message.includes('Network error')) {
+            userMessage += 'Please check your internet connection and try again.';
+        } else {
+            userMessage += 'Please try again or contact support.';
+        }
+        
+        showNotification('error', userMessage);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Send complaint - FIXED VERSION
+async function sendComplaint() {
+    const type = document.getElementById('complaintType').value;
+    const severity = document.getElementById('complaintSeverity').value;
+    const description = document.getElementById('complaintDescription').value;
+
+    if (!description.trim()) {
+        showNotification('error', 'Please provide a description of the issue');
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
+
+    try {
+        console.log('📝 Sending complaint...', {
+            booking_id: bookingData.id,
+            complaint_type: type,
+            severity: severity,
+            description: description
+        });
+
+        // Try multiple endpoint variations
+        const endpoints = [
+            '/digilink/public/driver/report/complaint',
+            '/digilink/public/driver/complaint',
+            '/digilink/public/report/complaint',
+            '/driver/report/complaint'
+        ];
+
+        let lastError = null;
+        
+        for (const endpoint of endpoints) {
+            try {
+                console.log(`🔄 Trying endpoint: ${endpoint}`);
+                
+                const data = await safeApiCall(endpoint, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        booking_id: bookingData.id,
+                        complaint_type: type,
+                        severity: severity,
+                        description: description,
+                        user_type: 'driver'
+                    })
+                });
+                
+                if (data.success) {
+                    showNotification('success', data.message || 'Complaint submitted successfully! We will review it shortly.');
+                    hideComplaintModal();
+                    return; // Success, exit function
+                } else {
+                    lastError = new Error(data.message || 'Submission failed');
+                }
+            } catch (error) {
+                console.log(`❌ Endpoint ${endpoint} failed:`, error.message);
+                lastError = error;
+                continue; // Try next endpoint
+            }
+        }
+        
+        // If all endpoints failed
+        throw lastError || new Error('All API endpoints failed');
+
+    } catch (error) {
+        console.error('❌ Error sending complaint:', error);
+        
+        let userMessage = 'Failed to submit complaint. ';
+        
+        if (error.message.includes('route not found') || error.message.includes('HTML page')) {
+            userMessage += 'The complaint system is currently unavailable. Please contact support directly.';
+        } else if (error.message.includes('Network error')) {
+            userMessage += 'Please check your internet connection and try again.';
+        } else {
+            userMessage += 'Please try again or contact support.';
+        }
+        
+        showNotification('error', userMessage);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Simple fallback - Store reports locally if API fails
+function storeReportLocally(type, data) {
+    try {
+        const reports = JSON.parse(localStorage.getItem('pending_reports') || '[]');
+        reports.push({
+            type: type,
+            data: data,
+            timestamp: new Date().toISOString(),
+            booking_id: bookingData.id
+        });
+        localStorage.setItem('pending_reports', JSON.stringify(reports));
+        console.log('💾 Report stored locally:', type);
+        return true;
+    } catch (error) {
+        console.error('Failed to store report locally:', error);
+        return false;
+    }
+}
+
+// Notification function
+function showNotification(type, message) {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'custom-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10001;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+});
+
+// Notification function
+function showNotification(type, message) {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'custom-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10001;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
 // ==================== UTILITY FUNCTIONS ====================
 function updateBookingStatus(status) {
     const statusBadge = document.querySelector('.status-badge');
@@ -1611,6 +1786,13 @@ function forceLocationUpdate() {
     }
 }
 
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+});
+
 // Clean up when page unloads
 window.addEventListener('beforeunload', stopAllTracking);
 
@@ -1625,12 +1807,131 @@ style.textContent = `
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(100%); opacity: 0; }
     }
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .modal-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        border-top: 1px solid #e9ecef;
+        padding-top: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        resize: vertical;
+    }
+    
+    .form-group textarea {
+        min-height: 100px;
+    }
+    
+    .data-preview {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-top: 15px;
+    }
+    
+    .data-preview h4 {
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    
+    .data-preview ul {
+        font-size: 0.8rem;
+        color: #6c757d;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .btn-secondary {
+        padding: 10px 20px;
+        border: 1px solid #6c757d;
+        background: transparent;
+        color: #6c757d;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    
+    .btn-warning {
+        padding: 10px 20px;
+        background: #ffc107;
+        color: #212529;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
 `;
 document.head.appendChild(style);
 
 // Add manual controls in development
 setTimeout(addManualControls, 2000);
-
-    </script>
+</script>
 </body>
 </html>

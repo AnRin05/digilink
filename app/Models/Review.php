@@ -1,4 +1,5 @@
 <?php
+// app/Models/Review.php
 
 namespace App\Models;
 
@@ -10,12 +11,20 @@ class Review extends Model
     use HasFactory;
 
     protected $fillable = [
+        'booking_id',
         'passenger_id',
         'driver_id',
-        'booking_id',
         'rating',
-        'comment'
     ];
+
+    protected $casts = [
+        'rating' => 'integer'
+    ];
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class, 'booking_id', 'bookingID');
+    }
 
     public function passenger()
     {
@@ -25,10 +34,5 @@ class Review extends Model
     public function driver()
     {
         return $this->belongsTo(Driver::class);
-    }
-
-    public function booking()
-    {
-        return $this->belongsTo(Booking::class);
     }
 }

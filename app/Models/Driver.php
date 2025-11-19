@@ -163,5 +163,10 @@ class Driver extends Authenticatable
     {
         return $this->reviews()->count();
     }
+
+    public function getRatingPercentageAttribute()
+    {
+        return ($this->average_rating / 5) * 100;
+    }
         
 }

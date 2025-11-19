@@ -6,8 +6,9 @@ use App\Http\Controllers\PassengerController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PassengerHistoryController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DriverHistoryController;
-use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\RatingController;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -29,6 +30,10 @@ Route::get('/', function () {
 Route::get('/choice', function () {
     return view('choice'); 
 })->name('choice');
+
+// Report Routes
+Route::post('/report/urgent-help', [ReportController::class, 'sendUrgentHelp'])->name('report.urgent.help');
+Route::post('/report/complaint', [ReportController::class, 'sendComplaint'])->name('report.complaint');
 
 
 // Passenger Signup Routes
@@ -72,6 +77,9 @@ Route::prefix('passenger')->group(function () {
     Route::get('/history', [PassengerHistoryController::class, 'index'])->name('passenger.history');
     Route::get('/get-history', [PassengerHistoryController::class, 'getHistory'])->name('passenger.get.history');
     Route::delete('/delete-history/{id}', [PassengerHistoryController::class, 'deleteFromHistory'])->name('passenger.delete.history');
+
+    Route::post('/submit-rating', [RatingController::class, 'submitRating'])->name('passenger.submit.rating');
+
 });
 
 // Driver Routes
@@ -110,6 +118,7 @@ Route::prefix('driver')->group(function () {
     Route::get('/notifications', [DriverController::class, 'getNotifications'])->name('driver.get.notifications');
     Route::post('/notifications/{id}/read', [DriverController::class, 'markNotificationAsRead'])->name('driver.notifications.read');
     
+    Route::get('/{driver}/stats', [RatingController::class, 'getDriverStats']);
 
 });
 
@@ -130,6 +139,9 @@ Route::prefix('admin')->group(function () {
     Route::get('/bookings-completed', [AdminController::class, 'completedBookings'])->name('admin.bookings.completed');
     Route::get('/bookings-cancelled', [AdminController::class, 'cancelledBookings'])->name('admin.bookings.cancelled');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
+    Route::get('/reports/{id}', [AdminController::class, 'showReport'])->name('admin.reports.show');
+    Route::put('/reports/{id}', [AdminController::class, 'updateReport'])->name('admin.reports.update');
+    Route::get('/reports-count', [AdminController::class, 'getReportsCount'])->name('admin.reports.count');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('admin.notifications');
 
     Route::get('/ongoing-bookings/{type}/{id}', [AdminController::class, 'viewOngoingBookings'])->name('admin.ongoing.bookings');

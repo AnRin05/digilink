@@ -10,716 +10,616 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    html, body {
-        width: 100%;
-        height: 100%;
-        overflow-x: hidden;
-    }
-
-    body {
-        font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        color: #212529;
-        height: 100vh;
-        overflow: hidden;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    .navbar {
-        background: linear-gradient(135deg, #212529 0%, #343a40 100%);
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .nav-brand {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #dc3545;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-
-    .nav-brand:hover {
-        transform: translateY(-2px);
-    }
-
-    .nav-brand span {
-        color: white;
-    }
-
-    .nav-link {
-        color: white;
-        text-decoration: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        font-weight: 500;
-        font-size: 0.9rem;
-        min-height: 44px;
-    }
-
-    .nav-link:hover {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-    }
-
-    .nav-link:active {
-        transform: scale(0.98);
-    }
-
-    .cancel-section {
-        margin-top: 15px;
-        padding: 15px;
-        background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-        border: 2px solid #ffeaa7;
-        border-radius: 12px;
-        border-left: 4px solid #fdcb6e;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .cancel-warning {
-        color: #e17055;
-        font-size: 0.85rem;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-    }
-
-    .cancel-warning i {
-        font-size: 1rem;
-        color: #e74c3c;
-        flex-shrink: 0;
-    }
-
-    .cancel-note {
-        color: #6c757d;
-        font-size: 0.8rem;
-        margin-top: 8px;
-        line-height: 1.4;
-        text-align: center;
-    }
-
-    .btn-warning {
-        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        color: white;
-        border: none;
-        padding: 11px 18px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        width: 100%;
-        box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
-        min-height: 44px;
-    }
-
-    .btn-warning:hover {
-        background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
-    }
-
-    .btn-warning:active {
-        transform: scale(0.98);
-    }
-
-    .btn-warning:disabled {
-        background: #bdc3c7;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-        opacity: 0.7;
-    }
-
-    #cancelMessage {
-        margin-top: 12px;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        text-align: center;
-        font-weight: 500;
-    }
-
-    .cancel-success {
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        color: #155724;
-        border: 1px solid #b8dfc1;
-        box-shadow: 0 2px 5px rgba(21, 87, 36, 0.1);
-    }
-
-    .cancel-error {
-        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-        color: #721c24;
-        border: 1px solid #f1b0b7;
-        box-shadow: 0 2px 5px rgba(114, 28, 36, 0.1);
-    }
-
-    .tracking-container {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        height: calc(100vh - 60px);
-    }
-
-    .tracking-sidebar {
-        background: white;
-        border-bottom: 1px solid #e9ecef;
-        padding: 1rem;
-        overflow-y: auto;
-        max-height: 35vh;
-    }
-
-    .tracking-header {
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f8f9fa;
-    }
-
-    .tracking-header h1 {
-        font-size: 1.2rem;
-        color: #212529;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 700;
-    }
-
-    .tracking-header h1 i {
-        color: #dc3545;
-        font-size: 1rem;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        background: rgba(0, 123, 255, 0.1);
-        color: #007bff;
-    }
-
-    .status-badge.in-progress {
-        background: rgba(40, 167, 69, 0.1);
-        color: #28a745;
-    }
-
-    .status-badge.completed {
-        background: rgba(108, 117, 125, 0.1);
-        color: #6c757d;
-    }
-
-    .status-badge.cancelled {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-    }
-
-    .info-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 0.8rem;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-    .info-card:hover {
-        border-color: #007bff;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .info-card h3 {
-        color: #212529;
-        margin-bottom: 0.8rem;
-        font-size: 0.95rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .info-card h3 i {
-        color: #007bff;
-        font-size: 0.95rem;
-    }
-
-    .info-card p {
-        margin: 6px 0;
-        color: #495057;
-        font-size: 0.85rem;
-        line-height: 1.5;
-        word-break: break-word;
-    }
-
-    .info-card p strong {
-        color: #212529;
-        font-weight: 600;
-    }
-
-    .map-container {
-        position: relative;
-        background: white;
-        height: 100%;
-    }
-
-    #trackingMap {
-        height: 100%;
-        width: 100%;
-    }
-
-    .tracking-status {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        right: 10px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.98) 100%);
-        padding: 10px 12px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #212529;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        max-width: calc(100% - 20px);
-    }
-
-    .tracking-indicator {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #28a745;
-        animation: pulse 2s infinite;
-        flex-shrink: 0;
-    }
-
-    .tracking-indicator.completed {
-        background: #6c757d;
-        animation: none;
-    }
-
-    .tracking-indicator.cancelled {
-        background: #dc3545;
-        animation: none;
-    }
-
-    @keyframes pulse {
-        0%, 100% { 
-            opacity: 1; 
-            transform: scale(1);
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        50% { 
-            opacity: 0.6;
-            transform: scale(1.15);
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            height: 100vh;
+            overflow: hidden;
         }
-    }
 
-    .driver-info {
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 3px solid #007bff;
-        margin-top: 8px;
-    }
-
-    .driver-info p {
-        margin: 5px 0;
-        font-size: 0.8rem;
-    }
-
-    .back-link {
-        color: #6c757d;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        margin-bottom: 1rem;
-        font-size: 0.9rem;
-        min-height: 44px;
-        padding: 0 8px;
-    }
-
-    .back-link:hover {
-        color: #007bff;
-    }
-
-    .back-link:active {
-        transform: scale(0.98);
-    }
-
-    .location-status {
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 3px solid #28a745;
-        margin-top: 8px;
-        font-size: 0.85rem;
-    }
-
-    .distance-info {
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 3px solid #007bff;
-        margin-top: 8px;
-        font-size: 0.85rem;
-    }
-
-    .map-controls {
-        position: absolute;
-        top: 60px;
-        right: 10px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .zoom-control {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 6px;
-        width: 38px;
-        height: 38px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-        min-height: 44px;
-        min-width: 44px;
-    }
-
-    .zoom-control:hover {
-        background: #f8f9fa;
-        transform: translateY(-1px);
-    }
-
-    .zoom-control:active {
-        transform: scale(0.95);
-    }
-
-    .btn {
-        padding: 11px 18px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        min-height: 44px;
-        white-space: nowrap;
-    }
-
-    .btn i {
-        transition: transform 0.3s ease;
-    }
-
-    .btn:hover i {
-        transform: scale(1.1);
-    }
-
-    .btn-success {
-        background: #28a745;
-        color: white;
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
-    }
-
-    .btn-success:hover {
-        background: #218838;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(40, 167, 69, 0.35);
-    }
-
-    .btn-success:active {
-        transform: scale(0.98);
-    }
-
-    .btn-danger {
-        background: #dc3545;
-        color: white;
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
-    }
-
-    .btn-danger:hover {
-        background: #c82333;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(220, 53, 69, 0.35);
-    }
-
-    .btn-danger:active {
-        transform: scale(0.98);
-    }
-
-    .btn:disabled {
-        background: #6c757d;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-        opacity: 0.7;
-    }
-
-    .status-timeline {
-        margin-top: 12px;
-        padding: 12px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border-left: 3px solid #007bff;
-    }
-
-    .status-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-        padding: 6px;
-        border-radius: 6px;
-        background: white;
-        gap: 8px;
-    }
-
-    .status-item.active {
-        background: #e7f3ff;
-        border-left: 3px solid #007bff;
-    }
-
-    .status-icon {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        flex-shrink: 0;
-    }
-
-    .status-icon.pending {
-        background: #ffc107;
-        color: #212529;
-    }
-
-    .status-icon.accepted {
-        background: #17a2b8;
-        color: white;
-    }
-
-    .status-icon.in-progress {
-        background: #28a745;
-        color: white;
-    }
-
-    .status-icon.completed {
-        background: #6c757d;
-        color: white;
-    }
-
-    .status-details {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .status-time {
-        font-size: 0.7rem;
-        color: #6c757d;
-        margin-top: 2px;
-    }
-
-    .tracking-sidebar::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .tracking-sidebar::-webkit-scrollbar-track {
-        background: #f8f9fa;
-    }
-
-    .tracking-sidebar::-webkit-scrollbar-thumb {
-        background: #007bff;
-        border-radius: 10px;
-    }
-
-    @media (min-width: 768px) {
         .navbar {
+            background: linear-gradient(135deg, #212529 0%, #343a40 100%);
             padding: 1.2rem 2rem;
-            flex-wrap: nowrap;
-            gap: 2rem;
-        }
-
-        .nav-brand {
-            font-size: 1.6rem;
-        }
-
-        .nav-link {
-            padding: 10px 18px;
-            font-size: 1rem;
-        }
-
-        .tracking-container {
-            grid-template-columns: 350px 1fr;
-            grid-template-rows: auto;
-            height: calc(100vh - 70px);
-        }
-
-        .tracking-sidebar {
-            border-right: 1px solid #e9ecef;
-            border-bottom: none;
-            padding: 1.5rem;
-            max-height: calc(100vh - 70px);
-        }
-
-        .tracking-header {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-        }
-
-        .tracking-header h1 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-        }
-
-        .info-card {
-            padding: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-card h3 {
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-card p {
-            font-size: 0.9rem;
-            margin: 8px 0;
-        }
-
-        .cancel-section {
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .cancel-warning {
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
-        }
-
-        .btn-warning {
-            padding: 12px 20px;
-            font-size: 0.9rem;
-        }
-
-        .tracking-status {
-            top: 20px;
-            left: 20px;
-            right: auto;
-            padding: 12px 16px;
-            font-size: 0.9rem;
-            max-width: none;
-        }
-
-        .map-controls {
-            top: 80px;
-            right: 20px;
-        }
-
-        .zoom-control {
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            font-size: 0.9rem;
-        }
-    }
-
-    @media (min-width: 992px) {
-        .navbar {
-            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
 
         .nav-brand {
             font-size: 1.8rem;
+            font-weight: 700;
+            color: #dc3545;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-brand:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-brand span {
+            color: white;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .cancel-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border: 2px solid #ffeaa7;
+            border-radius: 12px;
+            border-left: 4px solid #fdcb6e;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .cancel-warning {
+            color: #e17055;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .cancel-warning i {
+            font-size: 1.1rem;
+            color: #e74c3c;
+        }
+
+        .cancel-note {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-warning:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        #cancelMessage {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .cancel-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 1px solid #b8dfc1;
+            box-shadow: 0 2px 5px rgba(21, 87, 36, 0.1);
+        }
+
+        .cancel-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+            box-shadow: 0 2px 5px rgba(114, 28, 36, 0.1);
         }
 
         .tracking-container {
+            display: grid;
             grid-template-columns: 380px 1fr;
+            height: calc(100vh - 80px);
         }
 
         .tracking-sidebar {
-            padding: 1.8rem;
+            background: white;
+            border-right: 1px solid #e9ecef;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .tracking-header {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f8f9fa;
         }
 
         .tracking-header h1 {
             font-size: 1.5rem;
+            color: #212529;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .tracking-header h1 i {
+            color: #dc3545;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 123, 255, 0.1);
+            color: #007bff;
+        }
+
+        .status-badge.in-progress {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-badge.completed {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        .status-badge.cancelled {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
         }
 
         .info-card {
-            padding: 1.5rem;
-            margin-bottom: 1.2rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .rating-section {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #ffc107;
+}
+
+.rating-section h4 {
+    color: #212529;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rating-section p {
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.stars-container {
+    display: flex;
+    gap: 5px;
+    margin: 15px 0;
+    justify-content: center;
+}
+
+.rating-star {
+    font-size: 32px;
+    cursor: pointer;
+    color: #ddd;
+    transition: all 0.2s ease;
+    margin: 0 2px;
+}
+
+.rating-star:hover,
+.rating-star.active {
+    color: #ffc107;
+    transform: scale(1.2);
+}
+
+.rate-btn {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #212529;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.rate-btn:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #c69500 100%);
+    transform: translateY(-2px);
+}
+
+.rate-btn:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.rating-message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.rating-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.rating-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+        .info-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .info-card h3 {
+            color: #212529;
+            margin-bottom: 16px;
             font-size: 1.05rem;
-            margin-bottom: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .cancel-section {
-            margin-top: 2rem;
-            padding: 1.8rem;
+        .info-card h3 i {
+            color: #007bff;
         }
-    }
 
-    @media (hover: none) and (pointer: coarse) {
-        .nav-link {
-            min-height: 48px;
+        .info-card p {
+            margin: 8px 0;
+            color: #495057;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-card p strong {
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .map-container {
+            position: relative;
+            background: white;
+        }
+
+        #trackingMap {
+            height: 100%;
+            width: 100%;
+        }
+
+        .tracking-status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,249,250,0.98) 100%);
+            padding: 14px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #212529;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .tracking-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .tracking-indicator.completed {
+            background: #6c757d;
+            animation: none;
+        }
+
+        .tracking-indicator.cancelled {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.6;
+                transform: scale(1.15);
+            }
+        }
+
+        .driver-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #007bff;
+            margin-top: 10px;
+        }
+
+        .driver-info p {
+            margin: 6px 0;
+            font-size: 0.85rem;
         }
 
         .back-link {
-            min-height: 48px;
+            color: #6c757d;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
 
-        .btn,
-        .btn-warning,
-        .zoom-control {
-            min-height: 48px;
-            min-width: 48px;
+        .back-link:hover {
+            color: #007bff;
         }
-    }
+
+        .location-status {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #28a745;
+            margin-top: 10px;
+        }
+
+        .distance-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #007bff;
+            margin-top: 10px;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-control {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-control:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status-timeline {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #007bff;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .status-item.active {
+            background: #e7f3ff;
+            border-left: 3px solid #007bff;
+        }
+
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.8rem;
+        }
+
+        .status-icon.pending {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .status-icon.accepted {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status-icon.in-progress {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-icon.completed {
+            background: #6c757d;
+            color: white;
+        }
+
+        .status-details {
+            flex: 1;
+        }
+
+        .status-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .tracking-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tracking-sidebar::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+        .tracking-sidebar::-webkit-scrollbar-thumb {
+            background: #007bff;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .tracking-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .tracking-sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+                max-height: 40vh;
+            }
+
+            .tracking-status {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 10px 14px;
+                font-size: 0.85rem;
+            }
+
+            .map-controls {
+                top: 60px;
+                right: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -746,6 +646,120 @@
                 </h1>
                 <span class="status-badge in-progress" id="overallStatusBadge">IN PROGRESS</span>
                 <p style="margin-top: 10px;">Real-time driver location tracking</p>
+            </div>
+                            <!-- Report/Help Section -->
+            <div class="info-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
+                <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Urgent Help Button -->
+                    <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                        <i class="fas fa-life-ring"></i>
+                        Request Urgent Help
+                    </button>
+                    
+                    <!-- Complaint Button -->
+                    <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
+                        <i class="fas fa-flag"></i>
+                        Submit Complaint
+                    </button>
+                </div>
+            </div>
+
+            <!-- Urgent Help Modal -->
+            <div id="urgentHelpModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+                <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <div class="modal-header" style="border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 20px;">
+                        <h3 style="color: #dc3545; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-life-ring"></i>
+                            Request Urgent Help
+                        </h3>
+                        <p style="color: #6c757d; margin-top: 8px; font-size: 0.9rem;">
+                            This will immediately notify administrators with your current location and booking details.
+                        </p>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Additional Information (Optional)</label>
+                            <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..." style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; resize: vertical; min-height: 100px;"></textarea>
+                        </div>
+                        
+                        <div class="data-preview" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: #495057;">What will be sent to admin:</h4>
+                            <ul style="font-size: 0.8rem; color: #6c757d; list-style: none; padding: 0;">
+                                <li>✓ Your current location and booking route</li>
+                                <li>✓ Driver and vehicle information</li>
+                                <li>✓ Trip details and status</li>
+                                <li>✓ Timestamp of the incident</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 20px;">
+                        <button onclick="hideUrgentHelpModal()" class="btn btn-secondary" style="padding: 10px 20px; border: 1px solid #6c757d; background: transparent; color: #6c757d; border-radius: 6px; cursor: pointer;">
+                            Cancel
+                        </button>
+                        <button onclick="sendUrgentHelp()" class="btn btn-danger" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Urgent Help Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+                                                                        <!-- Complaint Modal -->
+            <div id="complaintModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+                <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <div class="modal-header" style="border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 20px;">
+                        <h3 style="color: #ffc107; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-flag"></i>
+                            Submit Complaint
+                        </h3>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Complaint Type</label>
+                            <select id="complaintType" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px;">
+                                <option value="driver_behavior">Driver Behavior</option>
+                                <option value="service_issue">Service Quality</option>
+                                <option value="safety_concern">Safety Concern</option>
+                                <option value="payment_issue">Payment Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Severity Level</label>
+                            <select id="complaintSeverity" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px;">
+                                <option value="low">Low - Minor Issue</option>
+                                <option value="medium">Medium - Concerning</option>
+                                <option value="high">High - Serious Issue</option>
+                                <option value="critical">Critical - Requires Immediate Attention</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description</label>
+                            <textarea id="complaintDescription" placeholder="Please describe the issue in detail..." style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; resize: vertical; min-height: 150px;"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 20px;">
+                        <button onclick="hideComplaintModal()" class="btn btn-secondary" style="padding: 10px 20px; border: 1px solid #6c757d; background: transparent; color: #6c757d; border-radius: 6px; cursor: pointer;">
+                            Cancel
+                        </button>
+                        <button onclick="sendComplaint()" class="btn btn-warning" style="padding: 10px 20px; background: #ffc107; color: #212529; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Complaint
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="info-card">
@@ -783,26 +797,40 @@
                 @endif
             </div>
 
-            <div class="info-card">
-                <h3><i class="fas fa-map-marker-alt"></i> Current Status</h3>
-                <div id="locationStatus">
-                    <p><i class="fas fa-sync-alt fa-spin"></i> Connecting to driver...</p>
-                </div>
-                <div id="distanceInfo"></div>
-            </div>
+<div class="info-card">
+    <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
+    <div id="completionStatus">
+        <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
+    </div>
+    <div id="completionActions" style="margin-top: 15px;">
+        <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
+            <i class="fas fa-check"></i>
+            Confirm Trip Completion
+        </button>
+        <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
+    </div>
 
-            <div class="info-card">
-                <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
-                <div id="completionStatus">
-                    <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
-                </div>
-                <div id="completionActions" style="margin-top: 15px;">
-                    <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
-                        <i class="fas fa-check"></i>
-                        Confirm Trip Completion
-                    </button>
-                    <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
-                </div>
+    <!-- ADD THE RATING SECTION RIGHT HERE -->
+    <div id="ratingSection" style="display: none;">
+        <div class="rating-section">
+            <h4><i class="fas fa-star"></i> Rate Your Driver</h4>
+            <p>How was your experience with {{ $booking->driver->fullname ?? 'the driver' }}?</p>
+            
+            <div class="stars-container">
+                @for($i = 1; $i <= 5; $i++)
+                    <span class="rating-star" data-rating="{{ $i }}">☆</span>
+                @endfor
+            </div>
+            <input type="hidden" id="selectedRating" value="5">
+            
+            <button class="rate-btn" onclick="submitRating()" id="submitRatingBtn">
+                <i class="fas fa-paper-plane"></i>
+                Submit Rating
+            </button>
+            
+            <div id="ratingMessage" class="rating-message"></div>
+        </div>
+    </div>
                 <div class="cancel-section">
                     <div class="cancel-warning">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -834,9 +862,6 @@
             <div id="trackingMap"></div>
         </div>
     </div>
-
-    
-
 <script>
     let map;
     let driverMarker;
@@ -847,6 +872,7 @@
 
     const bookingData = {
         id: {{ $booking->bookingID }},
+        driver_id: {{ $booking->driver->id ?? 0 }},
         pickup: {
             lat: {{ $booking->pickupLatitude }},
             lng: {{ $booking->pickupLongitude }},
@@ -973,8 +999,162 @@
                 </div>
             `);
 
+        // Initialize rating system
+        initRatingSystem();
         startTrackingUpdates();
         startStatusUpdates();
+    }
+
+    // RATING SYSTEM FUNCTIONS
+    function initRatingSystem() {
+        const stars = document.querySelectorAll('.rating-star');
+        const selectedRating = document.getElementById('selectedRating');
+        
+        // Initialize with 5 stars selected
+        if (stars.length > 0) {
+            setRating(5);
+        }
+        
+        // Add click events to stars
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                setRating(rating);
+            });
+        });
+        
+        function setRating(rating) {
+            selectedRating.value = rating;
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                    star.textContent = '★';
+                } else {
+                    star.classList.remove('active');
+                    star.textContent = '☆';
+                }
+            });
+        }
+    }
+
+    function submitRating() {
+        const rating = document.getElementById('selectedRating').value;
+        const bookingId = bookingData.id;
+        const driverId = bookingData.driver_id;
+        const btn = document.getElementById('submitRatingBtn');
+        const messageDiv = document.getElementById('ratingMessage');
+        
+        if (!rating) {
+            messageDiv.innerHTML = '<div class="rating-error">Please select a rating</div>';
+            return;
+        }
+        
+        // Show loading state
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        btn.disabled = true;
+        
+        // Submit rating
+        fetch('/digilink/public/passenger/submit-rating', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                booking_id: bookingId,
+                driver_id: driverId,
+                rating: parseInt(rating)
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                messageDiv.innerHTML = `<div class="rating-success">${data.message}</div>`;
+                btn.style.display = 'none';
+                
+                // Show success message and option to go back
+                setTimeout(() => {
+                    document.getElementById('ratingSection').innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> 
+                            <strong>Thank you for your rating!</strong><br>
+                            You rated: ${'★'.repeat(rating)}${'☆'.repeat(5-rating)} (${rating}/5)
+                        </div>
+                        <button class="btn btn-primary" onclick="goToBookings()" style="width: 100%; margin-top: 10px;">
+                            <i class="fas fa-arrow-left"></i> Back to My Bookings
+                        </button>
+                    `;
+                }, 1500);
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            messageDiv.innerHTML = '<div class="rating-error">Failed to submit rating. Please try again.</div>';
+        })
+        .finally(() => {
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Rating';
+            btn.disabled = false;
+        });
+    }
+
+    function goToBookings() {
+        window.location.href = "{{ route('passenger.pending.bookings') }}";
+    }
+
+    // MODIFIED COMPLETION FUNCTION - Doesn't redirect automatically
+    function confirmCompletion() {
+        if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
+            return;
+        }
+
+        const confirmBtn = document.getElementById('confirmCompletionBtn');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
+        confirmBtn.disabled = true;
+
+        fetch(`/digilink/public/passenger/confirm-completion/${bookingData.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                updateCompletionStatus(data.completion_status, data.is_completed);
+                showCompletionMessage(data.message, 'success');
+                
+                if (data.is_completed) {
+                    stopTracking();
+                    updateStatusDisplay('completed');
+                    
+                    // Show rating section instead of redirecting
+                    document.getElementById('ratingSection').style.display = 'block';
+                    
+                    // Show message about rating
+                    showCompletionMessage('Trip completed! Please rate your driver below.', 'success');
+                }
+            } else {
+                throw new Error(data.message || 'Failed to confirm completion');
+            }
+        })
+        .catch(error => {
+            console.error('Error confirming completion:', error);
+            showCompletionMessage(error.message, 'error');
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
     }
 
     function startTrackingUpdates() {
@@ -998,6 +1178,13 @@
                 console.log('Status update response:', data);
                 if (data.success) {
                     updateStatusDisplay(data.booking.status);
+                    
+                    // Show rating section if booking is completed and not already rated
+                    if (data.booking.status === 'completed' && data.booking.completion_verified === 'both_confirmed') {
+                        document.getElementById('ratingSection').style.display = 'block';
+                        document.getElementById('confirmCompletionBtn').style.display = 'none';
+                    }
+                    
                     if (['completed', 'cancelled'].includes(data.booking.status)) {
                         stopTracking();
                     }
@@ -1087,93 +1274,45 @@
         return icons[status] || 'info-circle';
     }
 
-function updateDriverLocation() {
-    const url = `/digilink/public/passenger/get-driver-location/${bookingData.id}?_t=${Date.now()}`;
-    console.log('Fetching driver location from:', url);
+    function updateDriverLocation() {
+        const url = `/digilink/public/passenger/get-driver-location/${bookingData.id}?_t=${Date.now()}`;
+        console.log('Fetching driver location from:', url);
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Driver location API response:', data);
-            
-            if (data.success) {
-                updateStatusDisplay(data.booking.status);
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Driver location API response:', data);
                 
-                if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
-                    // Ensure coordinates are numbers, not strings
-                    const driverLat = parseFloat(data.driver.current_lat);
-                    const driverLng = parseFloat(data.driver.current_lng);
+                if (data.success) {
+                    updateStatusDisplay(data.booking.status);
                     
-                    console.log('Driver location processed:', {
-                        lat: driverLat,
-                        lng: driverLng,
-                        type_lat: typeof driverLat,
-                        type_lng: typeof driverLng,
-                        is_fallback: data.driver.is_fallback,
-                        source: data.debug?.location_source || 'unknown',
-                        debug: data.debug
-                    });
-                    
-                    // Validate coordinates are valid numbers
-                    if (!isNaN(driverLat) && !isNaN(driverLng) && 
-                        driverLat >= -90 && driverLat <= 90 && 
-                        driverLng >= -180 && driverLng <= 180) {
+                    if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
+                        const driverLat = parseFloat(data.driver.current_lat);
+                        const driverLng = parseFloat(data.driver.current_lng);
                         
-                        updateDriverPosition(driverLat, driverLng);
-                        updateDistanceInfo(data.distance_info);
-                        
-                        const statusMsg = data.driver.is_fallback ? 
-                            'Using approximate location (waiting for driver GPS)' : 
-                            'Live GPS tracking active';
-                        
-                        updateLocationStatus('success', `${statusMsg} - ${data.driver.name}`);
-                        
-                        if (driverMarker) {
-                            driverMarker.setPopupContent(`
-                                <div style="text-align: center; min-width: 200px;">
-                                    <strong>🚗 YOUR DRIVER</strong><br>
-                                    <hr style="margin: 5px 0;">
-                                    ${data.driver.name}<br>
-                                    ${data.driver.vehicle}<br>
-                                    <small>Phone: ${data.driver.phone}</small>
-                                    <br><small>Last update: ${new Date().toLocaleTimeString()}</small>
-                                    ${data.driver.is_fallback ? '<br><small style="color: orange;">⚠️ Using approximate location</small>' : ''}
-                                </div>
-                            `);
+                        if (!isNaN(driverLat) && !isNaN(driverLng)) {
+                            updateDriverPosition(driverLat, driverLng);
+                            updateDistanceInfo(data.distance_info);
+                            updateLocationStatus('success', `Live GPS tracking active - ${data.driver.name}`);
                         }
                     } else {
-                        console.error('Invalid coordinates received:', driverLat, driverLng);
-                        updateLocationStatus('error', 'Received invalid driver coordinates');
+                        updateLocationStatus('waiting', 'Waiting for driver location updates...');
                     }
-                } else {
-                    console.log('No valid driver location in response:', data);
-                    updateLocationStatus('waiting', 'Waiting for driver location updates...');
                 }
-                
-                if (['completed', 'cancelled'].includes(data.booking.status)) {
-                    console.log('Booking completed/cancelled, stopping tracking');
-                    stopTracking();
-                }
-            } else {
-                console.error('API returned error:', data.message);
-                updateLocationStatus('error', data.message || 'Unable to fetch booking data');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching driver location:', error);
-            updateLocationStatus('error', 'Unable to fetch driver location: ' + error.message);
-        });
-}
+            })
+            .catch(error => {
+                console.error('Error fetching driver location:', error);
+                updateLocationStatus('error', 'Unable to fetch driver location');
+            });
+    }
+
     function updateDriverPosition(lat, lng) {
-        console.log('Updating driver position on map:', lat, lng);
-        
         if (!driverMarker) {
-            console.log('Creating new driver marker');
             const driverIcon = L.divIcon({
                 className: 'driver-marker',
                 html: `
@@ -1216,79 +1355,23 @@ function updateDriverLocation() {
             'error': '<i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>'
         };
 
-        let statusHTML = `<p>${statusIcons[type]} ${message}</p>`;
-        
-        if (type === 'success') {
-            statusHTML += `
-                <p style="font-size: 0.8rem; color: #6c757d; margin-top: 5px;">
-                    Last update: ${new Date().toLocaleTimeString()}
-                </p>
-            `;
-        }
-
-        locationStatus.innerHTML = statusHTML;
+        locationStatus.innerHTML = `<p>${statusIcons[type]} ${message}</p>`;
     }
 
     function updateDistanceInfo(distanceInfo) {
         const distanceInfoElement = document.getElementById('distanceInfo');
-        if (distanceInfoElement) {
+        if (distanceInfoElement && distanceInfo) {
             distanceInfoElement.innerHTML = `
                 <div class="location-status">
-                    <p><i class="fas fa-route" style="color: #28a745;"></i> <strong>Driver to Pickup:</strong> ${distanceInfo.to_pickup_km} km</p>
-                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_pickup_min} min</p>
+                    <p><i class="fas fa-route" style="color: #28a745;"></i> <strong>Driver to Pickup:</strong> ${distanceInfo.to_pickup_km || 'N/A'} km</p>
+                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_pickup_min || 'N/A'} min</p>
                 </div>
                 <div class="distance-info">
-                    <p><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> <strong>Driver to Drop-off:</strong> ${distanceInfo.to_dropoff_km} km</p>
-                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_dropoff_min} min</p>
-                    <p><i class="fas fa-road" style="color: #007bff;"></i> <strong>Trip Distance:</strong> ${distanceInfo.total_trip_km} km</p>
+                    <p><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> <strong>Driver to Drop-off:</strong> ${distanceInfo.to_dropoff_km || 'N/A'} km</p>
+                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_dropoff_min || 'N/A'} min</p>
                 </div>
             `;
         }
-    }
-
-    function confirmCompletion() {
-        if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
-            return;
-        }
-
-        const confirmBtn = document.getElementById('confirmCompletionBtn');
-        const originalText = confirmBtn.innerHTML;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
-        confirmBtn.disabled = true;
-
-        fetch(`/digilink/public/passenger/confirm-completion/${bookingData.id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                updateCompletionStatus(data.completion_status, data.is_completed);
-                showCompletionMessage(data.message, 'success');
-                
-                if (data.is_completed) {
-                    stopTracking();
-                    updateStatusDisplay('completed');
-                    setTimeout(() => {
-                        window.location.href = "{{ route('passenger.pending.bookings') }}";
-                    }, 3000);
-                }
-            } else {
-                throw new Error(data.message || 'Failed to confirm completion');
-            }
-        })
-        .catch(error => {
-            console.error('Error confirming completion:', error);
-            showCompletionMessage(error.message, 'error');
-            confirmBtn.innerHTML = originalText;
-            confirmBtn.disabled = false;
-        });
     }
 
     function updateCompletionStatus(status, isCompleted) {
@@ -1296,46 +1379,16 @@ function updateDriverLocation() {
         if (!completionStatus) return;
 
         const statusMessages = {
-            'pending': `
-                <div style="color: #6c757d;">
-                    <i class="fas fa-clock"></i> <strong>Status:</strong> Waiting for completion confirmation...
-                </div>
-            `,
-            'driver_confirmed': `
-                <div style="color: #007bff;">
-                    <i class="fas fa-user-check"></i> <strong>Status:</strong> Driver has confirmed completion
-                </div>
-                <div style="font-size: 0.8rem; color: #6c757d; margin-top: 5px;">
-                    Waiting for your confirmation...
-                </div>
-            `,
-            'passenger_confirmed': `
-                <div style="color: #28a745;">
-                    <i class="fas fa-user-check"></i> <strong>Status:</strong> You have confirmed completion
-                </div>
-                <div style="font-size: 0.8rem; color: #6c757d; margin-top: 5px;">
-                    Waiting for driver confirmation...
-                </div>
-            `,
-            'both_confirmed': `
-                <div style="color: #28a745;">
-                    <i class="fas fa-check-double"></i> <strong>Status:</strong> Trip completed successfully!
-                </div>
-                <div style="font-size: 0.8rem; color: #6c757d; margin-top: 5px;">
-                    Redirecting to bookings...
-                </div>
-            `
+            'pending': `<div style="color: #6c757d;"><i class="fas fa-clock"></i> <strong>Status:</strong> Waiting for completion confirmation...</div>`,
+            'driver_confirmed': `<div style="color: #007bff;"><i class="fas fa-user-check"></i> <strong>Status:</strong> Driver has confirmed completion</div>`,
+            'passenger_confirmed': `<div style="color: #28a745;"><i class="fas fa-user-check"></i> <strong>Status:</strong> You have confirmed completion</div>`,
+            'both_confirmed': `<div style="color: #28a745;"><i class="fas fa-check-double"></i> <strong>Status:</strong> Trip completed successfully!</div>`
         };
 
         completionStatus.innerHTML = statusMessages[status] || statusMessages.pending;
 
-        const confirmBtn = document.getElementById('confirmCompletionBtn');
-        if (confirmBtn) {
-            if (isCompleted || status === 'both_confirmed') {
-                confirmBtn.style.display = 'none';
-            } else if (status === 'passenger_confirmed') {
-                confirmBtn.style.display = 'none';
-            }
+        if (isCompleted || status === 'both_confirmed') {
+            document.getElementById('confirmCompletionBtn').style.display = 'none';
         }
     }
 
@@ -1343,28 +1396,14 @@ function updateDriverLocation() {
         const completionMessage = document.getElementById('completionMessage');
         if (!completionMessage) return;
 
-        const colors = {
-            'success': '#28a745',
-            'error': '#dc3545'
-        };
-        const backgrounds = {
-            'success': '#d4edda',
-            'error': '#f8d7da'
-        };
-        const borders = {
-            'success': '#c3e6cb',
-            'error': '#f5c6cb'
-        };
-
         completionMessage.innerHTML = `
-            <div style="color: ${colors[type]}; font-weight: 600; padding: 10px; background: ${backgrounds[type]}; border-radius: 8px; border: 1px solid ${borders[type]};">
+            <div style="color: ${type === 'success' ? '#28a745' : '#dc3545'}; font-weight: 600; padding: 10px; background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; border-radius: 8px; border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};">
                 <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}
             </div>
         `;
     }
 
     function stopTracking() {
-        console.log('Stopping tracking...');
         if (updateInterval) {
             clearInterval(updateInterval);
             updateInterval = null;
@@ -1392,57 +1431,234 @@ function updateDriverLocation() {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             }
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const cancelMessage = document.getElementById('cancelMessage');
-                if (cancelMessage) {
-                    cancelMessage.innerHTML = `
-                        <div class="cancel-success">
-                            <i class="fas fa-check-circle"></i> ${data.message}
-                        </div>
-                    `;
-                }
-                
+                document.getElementById('cancelMessage').innerHTML = `<div class="cancel-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
                 stopTracking();
                 updateStatusDisplay('cancelled');
-                
-                const confirmBtn = document.getElementById('confirmCompletionBtn');
-                if (confirmBtn) {
-                    confirmBtn.disabled = true;
-                    confirmBtn.innerHTML = '<i class="fas fa-ban"></i> Trip Cancelled';
-                }
-                
-                if (cancelBtn) {
-                    cancelBtn.style.display = 'none';
-                }
-                
-                setTimeout(() => {
-                    window.location.href = "{{ route('passenger.pending.bookings') }}";
-                }, 3000);
+                document.getElementById('confirmCompletionBtn').disabled = true;
+                document.getElementById('cancelBookingBtn').style.display = 'none';
             } else {
                 throw new Error(data.message);
             }
         })
         .catch(error => {
             console.error('Error cancelling booking:', error);
-            const cancelMessage = document.getElementById('cancelMessage');
-            if (cancelMessage) {
-                cancelMessage.innerHTML = `
-                    <div class="cancel-error">
-                        <i class="fas fa-exclamation-triangle"></i> ${error.message}
-                    </div>
-                `;
-            }
-            if (cancelBtn) {
-                cancelBtn.innerHTML = originalText;
-                cancelBtn.disabled = false;
-            }
+            document.getElementById('cancelMessage').innerHTML = `<div class="cancel-error"><i class="fas fa-exclamation-triangle"></i> ${error.message}</div>`;
+            cancelBtn.innerHTML = originalText;
+            cancelBtn.disabled = false;
         });
     }
+
+    // Report/Help Functions
+    function showUrgentHelpModal() {
+        document.getElementById('urgentHelpModal').style.display = 'flex';
+    }
+
+    function hideUrgentHelpModal() {
+        document.getElementById('urgentHelpModal').style.display = 'none';
+        document.getElementById('urgentHelpNotes').value = '';
+    }
+
+    function showComplaintModal() {
+        document.getElementById('complaintModal').style.display = 'flex';
+    }
+
+    function hideComplaintModal() {
+        document.getElementById('complaintModal').style.display = 'none';
+        document.getElementById('complaintType').value = 'driver_behavior';
+        document.getElementById('complaintSeverity').value = 'medium';
+        document.getElementById('complaintDescription').value = '';
+    }
+
+    function sendUrgentHelp() {
+        const notes = document.getElementById('urgentHelpNotes').value;
+        
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+
+        fetch('{{ route("report.urgent.help") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                booking_id: {{ $booking->bookingID }},
+                additional_notes: notes
+            })
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showNotification('success', data.message || 'Help request sent successfully!');
+                hideUrgentHelpModal();
+            } else {
+                throw new Error(data.message || 'Failed to send help request');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending urgent help:', error);
+            showNotification('error', error.message || 'Failed to send help request. Please try again.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    function sendComplaint() {
+        const type = document.getElementById('complaintType').value;
+        const severity = document.getElementById('complaintSeverity').value;
+        const description = document.getElementById('complaintDescription').value;
+
+        if (!description.trim()) {
+            showNotification('error', 'Please provide a description of the issue');
+            return;
+        }
+
+        if (description.trim().length < 10) {
+            showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
+            return;
+        }
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        btn.disabled = true;
+
+        fetch('{{ route("report.complaint") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                booking_id: {{ $booking->bookingID }},
+                complaint_type: type,
+                severity: severity,
+                description: description
+            })
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showNotification('success', data.message || 'Complaint submitted successfully!');
+                hideComplaintModal();
+            } else {
+                throw new Error(data.message || 'Failed to submit complaint');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting complaint:', error);
+            showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    function showNotification(type, message, duration = 5000) {
+        const existingNotifications = document.querySelectorAll('.custom-notification');
+        existingNotifications.forEach(notification => notification.remove());
+
+        const notification = document.createElement('div');
+        notification.className = 'custom-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10001;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: auto; padding: 0; font-size: 1rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
 
     window.addEventListener('beforeunload', stopTracking);
 
@@ -1450,6 +1666,8 @@ function updateDriverLocation() {
         console.log('DOM loaded, initializing tracking...');
         initMap();
         updateBookingStatus();
+        
+        console.log('Report system initialized for booking:', {{ $booking->bookingID }});
     });
 </script>
 </body>

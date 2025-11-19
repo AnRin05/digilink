@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Passenger;
 use App\Models\Driver;
 use App\Models\Booking;
+use App\Models\Report;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ReportResponseNotification;
 use App\Notifications\DriverApprovedNotification;
 use App\Notifications\DriverRejectedNotification;
 
@@ -321,29 +323,21 @@ public function reports()
     }
 
     try {
-        // Get all passengers
         $passengers = Passenger::latest()->get();
-        
-        // Get all drivers
-        $drivers = Driver::latest()->get();
-
-        // Manually count ongoing bookings for each passenger
         foreach ($passengers as $passenger) {
             $passenger->ongoing_bookings_count = Booking::where('passengerID', $passenger->id)
                 ->whereIn('status', [
                     Booking::STATUS_IN_PROGRESS
                 ])->count();
             
-            // Count completed bookings
             $passenger->completed_bookings_count = Booking::where('passengerID', $passenger->id)
                 ->where('status', Booking::STATUS_COMPLETED)->count();
             
-            // Count cancelled bookings
             $passenger->cancelled_bookings_count = Booking::where('passengerID', $passenger->id)
                 ->where('status', Booking::STATUS_CANCELLED)->count();
         }
 
-        // Manually count ongoing bookings for each driver
+        $drivers = Driver::latest()->get();
         foreach ($drivers as $driver) {
             $driver->ongoing_bookings_count = Booking::where('driverID', $driver->id)
                 ->whereIn('status', [
@@ -352,22 +346,121 @@ public function reports()
                     Booking::STATUS_IN_PROGRESS
                 ])->count();
             
-            // Count completed bookings
             $driver->completed_bookings_count = Booking::where('driverID', $driver->id)
                 ->where('status', Booking::STATUS_COMPLETED)->count();
             
-            // Count cancelled bookings
             $driver->cancelled_bookings_count = Booking::where('driverID', $driver->id)
                 ->where('status', Booking::STATUS_CANCELLED)->count();
         }
 
-        return view('admin.reports', compact('passengers', 'drivers'));
+        $reports = Report::with(['booking', 'reporter'])
+            ->latest()
+            ->get();
+
+        // Count reports by status
+        $pendingReportsCount = Report::where('status', Report::STATUS_PENDING)->count();
+        $reviewedReportsCount = Report::where('status', Report::STATUS_REVIEWED)->count();
+        $resolvedReportsCount = Report::where('status', Report::STATUS_RESOLVED)->count();
+
+        return view('admin.reports', compact(
+            'passengers',
+            'drivers',
+            'reports',
+            'pendingReportsCount',
+            'reviewedReportsCount',
+            'resolvedReportsCount'
+        ));
 
     } catch (\Exception $e) {
         Log::error('Error loading reports: ' . $e->getMessage());
         return redirect()->route('admin.dashboard')->with('error', 'Error loading reports: ' . $e->getMessage());
     }
 }
+
+    public function showReport($id)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('login')->with('error', 'Please login as admin.');
+        }
+
+        try {
+            $report = Report::with(['booking.passenger', 'booking.driver', 'reporter'])
+                ->findOrFail($id);
+
+            return view('admin.report-show', compact('report'));
+
+        } catch (\Exception $e) {
+            Log::error('Error loading report: ' . $e->getMessage());
+            return redirect()->route('admin.reports')->with('error', 'Error loading report: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update report status and add admin response
+     */
+    public function updateReport(Request $request, $id)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('login')->with('error', 'Please login as admin.');
+        }
+
+        try {
+            $request->validate([
+                'status' => 'required|in:pending,reviewed,resolved',
+                'admin_notes' => 'nullable|string|max:2000',
+                'send_email_response' => 'nullable|boolean',
+                'email_response' => 'nullable|string|max:2000',
+            ]);
+
+            $report = Report::with(['reporter'])->findOrFail($id);
+
+            // Update report
+            $report->update([
+                'status' => $request->status,
+                'admin_notes' => $request->admin_notes,
+            ]);
+
+            // Send email response if requested
+            if ($request->send_email_response && $request->email_response) {
+                try {
+                    $report->reporter->notify(new ReportResponseNotification($report, $request->email_response));
+                    $emailStatus = 'Response email sent.';
+                } catch (\Exception $e) {
+                    Log::error('Failed to send report response email: ' . $e->getMessage());
+                    $emailStatus = 'Report updated but email notification failed.';
+                }
+            } else {
+                $emailStatus = 'Report updated successfully.';
+            }
+
+            return redirect()->route('admin.reports.show', $id)
+                ->with('success', 'Report updated successfully! ' . $emailStatus);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating report: ' . $e->getMessage());
+            return redirect()->route('admin.reports.show', $id)
+                ->with('error', 'Error updating report: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get reports count for notifications
+     */
+    public function getReportsCount()
+    {
+        if (!Auth::guard('admin')->check()) {
+            return response()->json(['count' => 0]);
+        }
+
+        try {
+            $pendingCount = Report::where('status', Report::STATUS_PENDING)->count();
+            return response()->json(['count' => $pendingCount]);
+        } catch (\Exception $e) {
+            Log::error('Error getting reports count: ' . $e->getMessage());
+            return response()->json(['count' => 0]);
+        }
+    }
+
 
 public function viewOngoingBookings($type, $id)
 {
