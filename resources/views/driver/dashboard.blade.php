@@ -84,6 +84,14 @@
                         <div class="stat-value" id="totalEarnings">₱0.00</div>
                         <div class="stat-label">Total Earnings</div>
                     </div>
+                    <div class="stat-item">
+                    </div>
+                    <div class="stat-item">
+                        <a href="{{ route('driver.rating') }}" class="dropdown-item">
+                            <i class="fa-regular fa-star"></i>
+                            See Your Ratings!
+                        </a>
+                    </div>
                 </div>
                 <div class="location-update">
                     <label for="driverLocation">Current Location:</label>
@@ -106,9 +114,9 @@
                     </label>
                 </div>
             </div>
-    <!-- Dashboard Layout -->
+                                                    <!-- Dashboard Layout -->
     <div class="dashboard-layout">
-        <!-- Left Sidebar - Accepted Bookings -->
+                                                    <!-- Left Sidebar - Accepted Bookings -->
         <div class="accepted-bookings-sidebar">
             <div class="sidebar-header">
                 <h3><i class="fas fa-clipboard-check"></i> Accepted Bookings</h3>
@@ -124,9 +132,9 @@
                 </div>
             </div>
         </div>
-        <!-- Right Side Content -->
+                                                    <!-- Right Side Content -->
         <div class="dashboard-main">
-            <!-- Driver Status Card -->
+                                                    <!-- Driver Status Card -->
             <div class="bookings-section">
             <div class="section-header">
                 <h2 class="section-title">Available Bookings</h2>
@@ -176,7 +184,7 @@ function fetchTodayStats() {
         .catch(err => console.error('Error fetching stats:', err));
 }
 
-// Load stats immediately and refresh every 10s
+
 fetchTodayStats();
 setInterval(fetchTodayStats, 10000);
 

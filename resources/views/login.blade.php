@@ -57,24 +57,7 @@
                 
                 <button type="submit" class="login-btn">Login</button>
             </form>
-            
-            <div class="divider">
-                <span>Or continue with</span>
-            </div>
-            
-            <div class="social-login">
-                <button class="social-btn facebook">
-                    <i class="fab fa-facebook-f"></i>
-                </button>
-                <button class="social-btn google">
-                    <i class="fab fa-google"></i>
-                </button>
-            </div>
-            
-            <div class="signup-link">
-                Don't have an account? <a href="choice">Sign up now</a>
-            </div>
-        </div>
+        
     </section>
 
                                                             <!-- Footer -->

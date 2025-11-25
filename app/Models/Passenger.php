@@ -28,4 +28,21 @@ class Passenger extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+    public function systemFeedbacks()
+    {
+        return $this->hasMany(SystemFeedback::class);
+    }
+
+    public function hasGivenFeedbackRecently($days = 7)
+    {
+        return $this->systemFeedbacks()
+            ->where('created_at', '>=', now()->subDays($days))
+            ->exists();
+    }
+
+    public function getAverageSatisfactionRating()
+    {
+        return $this->systemFeedbacks()->avg('satisfaction_rating') ?: 0;
+    }
+
 }

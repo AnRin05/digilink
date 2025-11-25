@@ -7,6 +7,8 @@ use App\Models\Booking;
 use App\Models\Review;
 use App\Models\Driver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 
 class RatingController extends Controller
@@ -74,4 +76,39 @@ class RatingController extends Controller
             ], 500);
         }
     }
+        public function getRatings()
+    {
+        try {
+            $driver = Auth::guard('driver')->user();
+            
+            // Using the accessors
+            $averageRating = $driver->average_rating;
+            $totalReviews = $driver->total_reviews;
+
+            // Get rating breakdown
+            $ratingBreakdown = [];
+            for ($i = 5; $i >= 1; $i--) {
+                $count = Review::where('driver_id', $driver->id)->where('rating', $i)->count();
+                $percentage = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
+                $ratingBreakdown[$i] = [
+                    'count' => $count,
+                    'percentage' => round($percentage, 1)
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'average_rating' => round($averageRating, 1),
+                'total_reviews' => $totalReviews,
+                'rating_breakdown' => $ratingBreakdown
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch ratings: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch ratings'
+            ], 500);
+        }
+    }
+
 }

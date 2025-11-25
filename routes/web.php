@@ -9,6 +9,7 @@ use App\Http\Controllers\PassengerHistoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DriverHistoryController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\SystemFeedbackController;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -35,7 +36,11 @@ Route::get('/choice', function () {
 Route::post('/report/urgent-help', [ReportController::class, 'sendUrgentHelp'])->name('report.urgent.help');
 Route::post('/report/complaint', [ReportController::class, 'sendComplaint'])->name('report.complaint');
 
-
+Route::middleware(['auth:passenger,driver'])->group(function () {
+    Route::get('/feedback', [SystemFeedbackController::class, 'create'])->name('feedback.create');
+    Route::post('/feedback', [SystemFeedbackController::class, 'store'])->name('feedback.store');
+    Route::get('/feedback/thank-you', [SystemFeedbackController::class, 'thankYou'])->name('feedback.thank-you');
+});
 // Passenger Signup Routes
 Route::get('/passign', [PassengerController::class, 'create'])->name('passign');
 Route::post('/passenger/signup', [PassengerController::class, 'store'])->name('passenger.signup');
@@ -77,9 +82,7 @@ Route::prefix('passenger')->group(function () {
     Route::get('/history', [PassengerHistoryController::class, 'index'])->name('passenger.history');
     Route::get('/get-history', [PassengerHistoryController::class, 'getHistory'])->name('passenger.get.history');
     Route::delete('/delete-history/{id}', [PassengerHistoryController::class, 'deleteFromHistory'])->name('passenger.delete.history');
-
     Route::post('/submit-rating', [RatingController::class, 'submitRating'])->name('passenger.submit.rating');
-
 });
 
 // Driver Routes
@@ -118,8 +121,8 @@ Route::prefix('driver')->group(function () {
     Route::get('/notifications', [DriverController::class, 'getNotifications'])->name('driver.get.notifications');
     Route::post('/notifications/{id}/read', [DriverController::class, 'markNotificationAsRead'])->name('driver.notifications.read');
     
-    Route::get('/{driver}/stats', [RatingController::class, 'getDriverStats']);
-
+    Route::get('/rating', [DriverController::class, 'seeRating'])->name('driver.rating');
+    Route::get('/rating-data', [DriverController::class, 'seeRatingData'])->name('driver.rating.data');
 });
 
 // Admin Routes
@@ -150,4 +153,7 @@ Route::prefix('admin')->group(function () {
 
     Route::get('/booking-tracking/{id}', [AdminController::class, 'trackBooking'])->name('admin.booking.tracking');
     Route::get('/get-driver-location/{id}', [AdminController::class, 'getDriverLocation'])->name('admin.get-driver-location');
+    Route::get('/feedback', [SystemFeedbackController::class, 'index'])->name('admin.feedback.index');
+    Route::get('/feedback/{feedback}', [SystemFeedbackController::class, 'show'])->name('admin.feedback.show');
+    Route::get('/feedback-analytics', [SystemFeedbackController::class, 'analytics'])->name('admin.feedback.analytics');
 });

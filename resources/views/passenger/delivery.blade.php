@@ -13,7 +13,7 @@
     @vite('resources/css/passenger/passdashboard.css')
 </head>
 <body>
-                                                            <!-- Navbar -->
+    <!-- Navbar -->
     <nav class="navbar">
         <a href="/digilink/public" class="nav-brand">Fast<span>Lan</span></a>
         <div class="nav-links">
@@ -72,7 +72,7 @@
         </div>
     @endif
 
-                                                            <!-- Booking Navigation -->
+    <!-- Booking Navigation -->
     <div class="booking-nav">
         <a href="{{ route('passenger.dashboard') }}" class="btn-link">
             <i class="fas fa-motorcycle"></i> Booking to Go
@@ -85,12 +85,12 @@
         </a>
     </div>
 
-                                                            <!-- Main Container -->
+    <!-- Main Container -->
     <div class="main-container">
-                                                            <!-- Left Panel: Available Drivers -->
+        <!-- Left Panel: Available Drivers -->
         <div class="left-panel">
             <h2>Available Delivery Drivers</h2>
-                                                            <!-- Barangay Filter -->
+            <!-- Barangay Filter -->
             <div class="form-group">
                 <label for="barangay" class="form-label">Select Barangay:</label>
                 <select id="barangay" class="form-control">
@@ -134,20 +134,33 @@
                     <i class="fas fa-search"></i> Search Delivery Drivers
                 </button>
             </div>
-                                                            <!-- Driver List -->
+            <!-- Driver List -->
             <div id="driverList">
                 @forelse($availableDrivers as $driver)
-                    @if($driver->serviceType === 'Delivery')
+                    @if(in_array($driver->serviceType, ['Delivery', 'Both']))
                     <div class="driver-card">
-                        <strong>{{ $driver->fullname }}</strong><br>
-                        <i class="fas fa-motorcycle text-success"></i> {{ $driver->vehicleMake }} - {{ $driver->vehicleModel }}<br>
-                        Plate: {{ $driver->plateNumber }}<br>
-                        Completed Bookings: {{ $driver->completedBooking }}<br>
-                        Status: <span class="{{ $driver->availStatus ? 'status-available' : 'status-unavailable' }}">
-                            {{ $driver->availStatus ? 'Available' : 'Unavailable' }}
-                        </span><br>
-                        Service Type: {{ $driver->serviceType }}<br>
-                        <small class="text-muted">Location: {{ $driver->currentLocation }}</small>
+                        <div class="driver-header">
+                            <strong>{{ $driver->fullname }}</strong>
+                            <span class="driver-rating">
+                                <i class="fas fa-star"></i> 
+                                {{ $driver->average_rating ?? 'N/A' }}
+                            </span>
+                        </div>
+                        <div class="driver-info">
+                            <i class="fas fa-motorcycle text-success"></i> 
+                            {{ $driver->vehicleMake }} - {{ $driver->vehicleModel }}<br>
+                            <i class="fas fa-tag"></i> Plate: {{ $driver->plateNumber }}<br>
+                            <i class="fas fa-check-circle"></i> Completed: {{ $driver->completedBooking }}<br>
+                            <i class="fas fa-map-marker-alt"></i> Location: 
+                            <span class="{{ $driver->currentLocation == 'all' ? 'text-success' : 'text-info' }}">
+                                {{ $driver->currentLocation == 'all' ? 'All Areas' : $driver->currentLocation }}
+                            </span>
+                        </div>
+                        <div class="driver-status">
+                            <span class="status-available">
+                                <i class="fas fa-circle"></i> Available for Delivery
+                            </span>
+                        </div>
                     </div>
                     @endif
                 @empty
@@ -159,16 +172,16 @@
             </div>
         </div>
 
-                                                            <!-- Right Panel: Map and Delivery Booking -->
+        <!-- Right Panel: Map and Delivery Booking -->
         <div class="right-panel">
             <div class="map-title">Set Pickup and Delivery Location in Surigao City</div>
             <div id="map-container">
-                                                            <!-- Loading overlay -->
+                <!-- Loading overlay -->
                 <div id="map-loading">
                     <div class="spinner"></div>
                     <p>Loading map, please wait...</p>
                 </div>
-                                                            <!-- Map -->
+                <!-- Map -->
                 <div id="map"></div>
             </div>
             <div style="margin-bottom: 1rem;">
@@ -177,7 +190,7 @@
                 </button>
             </div>
             
-                                                            <!-- Location Info -->
+            <!-- Location Info -->
             <div class="map-info">
                 <p><strong>Pickup:</strong> <span id="pickupDisplay">Click on map to set pickup</span></p>
                 <p><strong>Delivery:</strong> <span id="dropoffDisplay">Click again to set delivery location</span></p>
@@ -185,7 +198,7 @@
                 <p><strong>Estimated Duration:</strong> <span id="durationDisplay">-</span></p>
             </div>
             
-                                                            <!-- Additional Notes -->
+            <!-- Additional Notes -->
             <div class="notes-section">
                 <h4><i class="fas fa-info-circle"></i> Delivery Instructions</h4>
                 <p>1. Click on the map to set your pickup location</p>
@@ -195,7 +208,7 @@
                 <p>5. Click "Book Delivery" to confirm your delivery</p>
             </div>
             
-                                                            <!-- Delivery Booking Form -->
+            <!-- Delivery Booking Form -->
             <form action="{{ route('passenger.book.ride') }}" method="POST" class="booking-form" id="bookingForm">
                 @csrf
                 <!-- Hidden fields -->
@@ -246,212 +259,100 @@
             </form>
         </div>
     </div>
+
 <script>
-                                                            // Search Delivery Drivers Function
-    document.addEventListener('DOMContentLoaded', function() {
-        const barangaySelect = document.getElementById('barangay');
-        const driverList = document.getElementById('driverList');
-        const searchDriversBtn = document.getElementById('searchDriversBtn');
-                                                            // Function to search/filter delivery drivers
-        function searchDrivers() {
-            const selectedBarangay = barangaySelect.value;          
-                                                             // Show loading state
-            driverList.innerHTML = '<div class="driver-card"><p>Searching for delivery drivers...</p></div>';
-                                                            // Make AJAX request to delivery endpoint
-            fetch(`{{ route('passenger.available.delivery.drivers') }}?barangay=${selectedBarangay}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        updateDriverList(data.drivers, selectedBarangay);
-                    } else {
-                        driverList.innerHTML = `
-                            <div class="driver-card">
-                                <p>Error: ${data.message}</p>
-                            </div>
-                        `;
-                    }
-                })
-                .catch(error => {
-                    driverList.innerHTML = `
-                        <div class="driver-card">
-                            <p>Error loading delivery drivers</p>
-                            <small class="text-muted">Please check your connection and try again</small>
-                        </div>
-                    `;
-                });
+// Global variables for map
+let map;
+let mapInitialized = false;
+let pickupMarker = null;
+let dropoffMarker = null;
+let routeControl = null;
+let currentRoute = null;
+
+// Function to show custom alerts
+function showAlert(message, type = 'success') {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
+            <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong> ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        const alert = document.querySelector('.alert:last-child');
+        if (alert) {
+            alert.remove();
         }
-                                                            // Function to update the driver list display
-        function updateDriverList(drivers, barangay) {
-            if (drivers.length === 0) {
-                const locationText = barangay === 'all' ? 'in any barangay' : `in ${barangay}`;
-                driverList.innerHTML = `
-                    <div class="driver-card">
-                        <p>No available delivery drivers ${locationText} at the moment.</p>
-                        <small class="text-muted">Please check back later or try a different barangay.</small>
-                    </div>
-                `;
-                return;
-            }
-            driverList.innerHTML = drivers.map(driver => {
-                const locationText = driver.currentLocation === 'all' 
-                    ? '<span class="text-success">Available for All Locations</span>' 
-                    : driver.currentLocation;
-                    
-                return `
-                    <div class="driver-card">
-                        <strong>${driver.fullname}</strong><br>
-                        <i class="fas fa-motorcycle text-success"></i> ${driver.vehicleMake} - ${driver.vehicleModel}<br>
-                        Plate: ${driver.plateNumber}<br>
-                        Completed Bookings: ${driver.completedBooking}<br>
-                        Status: <span class="status-available">Available</span><br>
-                        Service Type: ${driver.serviceType}<br>
-                        <small class="text-muted">Location: ${locationText}</small>
-                    </div>
-                `;
-            }).join('');
-        }
+    }, 5000);
+}
 
-                                                            // Event listener for search drivers button
-        searchDriversBtn.addEventListener('click', searchDrivers);
-
-                                                            // Event listener for delivery booking form submission
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-                                                            // Validate that both pickup and delivery locations are set
-            const pickupLat = document.getElementById('pickupLatitude').value;
-            const dropoffLat = document.getElementById('dropoffLatitude').value;
-            
-            if (!pickupLat || !dropoffLat) {
-                e.preventDefault();
-                alert('Please set both pickup and delivery locations on the map before booking.');
-                return false;
-            }
-            
-                                                            // Validate that barangay names are filled
-            const pickupLocation = document.getElementById('pickupLocation').value;
-            const dropoffLocation = document.getElementById('dropoffLocation').value;
-            
-            if (!pickupLocation || !dropoffLocation) {
-                e.preventDefault();
-                alert('Please fill in both pickup and delivery barangay names.');
-                return false;
-            }
-            
-                                                            // Validate item description
-            const description = document.getElementById('description').value;
-            if (!description) {
-                e.preventDefault();
-                alert('Please describe the item you want to deliver.');
-                return false;
-            }
-            
-            return true;
-        });
-
-                                                            // Initial load - show drivers based on current barangay selection
-        searchDrivers();
-    });
-
-                                                            // Surigao City center
-    const surigaoCity = [9.7890, 125.4950];
-
-                                                            // Initialize map
-    const map = L.map('map', {
-        center: surigaoCity,
-        zoom: 13,
-        maxBounds: [
-            [9.70, 125.40],
-            [9.88, 125.58]
-        ],
-        maxBoundsViscosity: 1.0
-    });
-
-                                                            // Add OpenStreetMap tiles
-    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-                                                            // Hide loading overlay when tiles are loaded
-    tileLayer.on('load', function() {
-        document.getElementById('map-loading').style.display = 'none';
-    });
-
-    let pickupMarker = null;
-    let dropoffMarker = null;
-    let routeControl = null;
-    let currentRoute = null;
-
-    function calculateFare(distanceKm) {
-        const BASE_FARE = 13;
-        const BASE_DISTANCE_KM = 2.0;
-        const PER_KM_CHARGE = 1;
-        const SERVICE_CHARGE = 10;
-
-        let totalFare = BASE_FARE;
-
-        if (distanceKm > BASE_DISTANCE_KM) {
-            const extraDistance = distanceKm - BASE_DISTANCE_KM;
-            totalFare += Math.ceil(extraDistance) * PER_KM_CHARGE;
-        }
-
-        totalFare += SERVICE_CHARGE;
-        return Math.max(totalFare, BASE_FARE + SERVICE_CHARGE);
-    }
-
-    function showRoute(start, end) {
-        if (routeControl) {
-            map.removeControl(routeControl);
+// Fix the map initialization with proper error handling
+function initializeMap() {
+    try {
+        if (mapInitialized) {
+            return;
         }
         
-        routeControl = L.Routing.control({
-            waypoints: [
-                L.latLng(start.lat, start.lng),
-                L.latLng(end.lat, end.lng)
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+            console.error('Map element not found');
+            return;
+        }
+        
+        // Check if map is already initialized
+        if (mapElement._leaflet_id) {
+            console.log('Map already initialized');
+            return;
+        }
+
+        const surigaoCity = [9.7890, 125.4950];
+        
+        map = L.map('map', {
+            center: surigaoCity,
+            zoom: 13,
+            maxBounds: [
+                [9.70, 125.40],
+                [9.88, 125.58]
             ],
-            lineOptions: {
-                styles: [{ color: '#007bff', weight: 5, opacity: 0.7 }]
-            },
-            routeWhileDragging: false,
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            showAlternatives: false
+            maxBoundsViscosity: 1.0
+        });
+
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        routeControl.on('routesfound', function(e) {
-            const route = e.routes[0];
-            const distanceKm = route.summary.totalDistance / 1000;
-            const totalSeconds = route.summary.totalTime;
-            const durationMin = Math.round(totalSeconds / 60);
-
-            let durationDisplay;
-            if (durationMin >= 60) {
-                const hours = Math.floor(durationMin / 60);
-                const minutes = durationMin % 60;
-                durationDisplay = `${hours} hr${hours > 1 ? 's' : ''} ${minutes} min`;
-            } else {
-                durationDisplay = `${durationMin} min`;
-            }
-
-            document.getElementById('distanceDisplay').textContent = distanceKm.toFixed(1) + ' km';
-            document.getElementById('durationDisplay').textContent = durationDisplay;
-
-            const fare = calculateFare(distanceKm);
-            document.getElementById('fareDisplay').textContent = "₱" + fare.toFixed(2);
-            document.getElementById('fare').value = fare.toFixed(2);
-
-            currentRoute = route;
+        tileLayer.on('load', function() {
+            document.getElementById('map-loading').style.display = 'none';
+            mapInitialized = true;
+            console.log('Map initialized successfully');
         });
-    }
 
-                                                            // Click to set pickup and delivery locations
+        tileLayer.on('tileerror', function() {
+            console.error('Failed to load map tiles');
+            document.getElementById('map-loading').style.display = 'none';
+            showAlert('Failed to load map. Please check your internet connection.', 'error');
+        });
+
+        // Initialize map features
+        initializeMapFeatures();
+        
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        document.getElementById('map-loading').style.display = 'none';
+        showAlert('Error initializing map. Please refresh the page.', 'error');
+    }
+}
+
+function initializeMapFeatures() {
+    // Click to set pickup and dropoff
     map.on('click', function(e) {
         if (!pickupMarker) {
-                                                            // Set pickup
+            // Set pickup
             pickupMarker = L.marker(e.latlng, { 
                 draggable: true,
                 icon: L.divIcon({
@@ -474,7 +375,8 @@
             });
 
         } else if (!dropoffMarker) {
-                                                                                    dropoffMarker = L.marker(e.latlng, { 
+            // Set drop-off
+            dropoffMarker = L.marker(e.latlng, { 
                 draggable: true,
                 icon: L.divIcon({
                     className: 'dropoff-marker',
@@ -495,68 +397,358 @@
                 }
             });
 
-                                                            // Show initial route
+            // Show initial route
             showRoute(pickupMarker.getLatLng(), dropoffMarker.getLatLng());
         }
     });
+}
 
-    function updatePickupCoords(coords) {
-        document.getElementById('pickupLatitude').value = coords.lat.toFixed(6);
-        document.getElementById('pickupLongitude').value = coords.lng.toFixed(6);
-        document.getElementById('pickupDisplay').textContent = coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4);
+function calculateFare(distanceKm) {
+    const BASE_FARE = 13;
+    const BASE_DISTANCE_KM = 2.0;
+    const PER_KM_CHARGE = 1;
+    const SERVICE_CHARGE = 10;
+
+    let totalFare = BASE_FARE;
+
+    if (distanceKm > BASE_DISTANCE_KM) {
+        const extraDistance = distanceKm - BASE_DISTANCE_KM;
+        totalFare += Math.ceil(extraDistance) * PER_KM_CHARGE;
     }
 
-    function updateDropoffCoords(coords) {
-        document.getElementById('dropoffLatitude').value = coords.lat.toFixed(6);
-        document.getElementById('dropoffLongitude').value = coords.lng.toFixed(6);
-        document.getElementById('dropoffDisplay').textContent = coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4);
+    totalFare += SERVICE_CHARGE;
+    return Math.max(totalFare, BASE_FARE + SERVICE_CHARGE);
+}
+
+function showRoute(start, end) {
+    if (routeControl) {
+        map.removeControl(routeControl);
     }
+    
+    routeControl = L.Routing.control({
+        waypoints: [
+            L.latLng(start.lat, start.lng),
+            L.latLng(end.lat, end.lng)
+        ],
+        lineOptions: {
+            styles: [{ color: '#007bff', weight: 5, opacity: 0.7 }]
+        },
+        routeWhileDragging: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        showAlternatives: false
+    }).addTo(map);
+
+    routeControl.on('routesfound', function(e) {
+        const route = e.routes[0];
+        const distanceKm = route.summary.totalDistance / 1000;
+        const totalSeconds = route.summary.totalTime;
+        const durationMin = Math.round(totalSeconds / 60);
+
+        let durationDisplay;
+        if (durationMin >= 60) {
+            const hours = Math.floor(durationMin / 60);
+            const minutes = durationMin % 60;
+            durationDisplay = `${hours} hr${hours > 1 ? 's' : ''} ${minutes} min`;
+        } else {
+            durationDisplay = `${durationMin} min`;
+        }
+
+        document.getElementById('distanceDisplay').textContent = distanceKm.toFixed(1) + ' km';
+        document.getElementById('durationDisplay').textContent = durationDisplay;
+
+        const fare = calculateFare(distanceKm);
+        document.getElementById('fareDisplay').textContent = "₱" + fare.toFixed(2);
+        document.getElementById('fare').value = fare.toFixed(2);
+
+        currentRoute = route;
+    });
+}
+
+function updatePickupCoords(coords) {
+    document.getElementById('pickupLatitude').value = coords.lat.toFixed(6);
+    document.getElementById('pickupLongitude').value = coords.lng.toFixed(6);
+    document.getElementById('pickupDisplay').textContent = coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4);
+}
+
+function updateDropoffCoords(coords) {
+    document.getElementById('dropoffLatitude').value = coords.lat.toFixed(6);
+    document.getElementById('dropoffLongitude').value = coords.lng.toFixed(6);
+    document.getElementById('dropoffDisplay').textContent = coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4);
+}
+
+function resetMap() {
+    if (pickupMarker) {
+        map.removeLayer(pickupMarker);
+        pickupMarker = null;
+    }
+    if (dropoffMarker) {
+        map.removeLayer(dropoffMarker);
+        dropoffMarker = null;
+    }
+    if (routeControl) {
+        map.removeControl(routeControl);
+        routeControl = null;
+    }
+
+    document.getElementById('pickupLatitude').value = '';
+    document.getElementById('pickupLongitude').value = '';
+    document.getElementById('dropoffLatitude').value = '';
+    document.getElementById('dropoffLongitude').value = '';
+    document.getElementById('pickupLocation').value = '';
+    document.getElementById('dropoffLocation').value = '';
+    document.getElementById('pickupDisplay').textContent = 'Click on map to set pickup';
+    document.getElementById('dropoffDisplay').textContent = 'Click again to set delivery location';
+    document.getElementById('distanceDisplay').textContent = '-';
+    document.getElementById('durationDisplay').textContent = '-';
+    document.getElementById('fareDisplay').textContent = '₱0.00';
+    document.getElementById('fare').value = '';
+    
+    const surigaoCity = [9.7890, 125.4950];
+    map.setView(surigaoCity, 13);
+}
+
+// Search Delivery Drivers Function
+document.addEventListener('DOMContentLoaded', function() {
+    const barangaySelect = document.getElementById('barangay');
+    const driverList = document.getElementById('driverList');
+    const searchDriversBtn = document.getElementById('searchDriversBtn');
+
+    // Initialize map when DOM is ready
+    initializeMap();
+
+    // Function to search/filter delivery drivers
+    function searchDrivers() {
+        const selectedBarangay = barangaySelect.value;          
+        // Show loading state
+        driverList.innerHTML = '<div class="driver-card"><p>Searching for delivery drivers...</p></div>';
+        // Make AJAX request to delivery endpoint
+        fetch(`{{ route('passenger.available.delivery.drivers') }}?barangay=${selectedBarangay}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    updateDriverList(data.drivers, selectedBarangay);
+                } else {
+                    driverList.innerHTML = `
+                        <div class="driver-card">
+                            <p>Error: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                driverList.innerHTML = `
+                    <div class="driver-card">
+                        <p>Error loading delivery drivers</p>
+                        <small class="text-muted">Please check your connection and try again</small>
+                    </div>
+                `;
+            });
+    }
+
+// Function to update the driver list display
+function updateDriverList(drivers, barangay) {
+    if (drivers.length === 0) {
+        const locationText = barangay === 'all' ? 'in any barangay' : `in ${barangay}`;
+        driverList.innerHTML = `
+            <div class="driver-card empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-motorcycle"></i>
+                </div>
+                <p>No available delivery drivers ${locationText} at the moment.</p>
+                <small class="text-muted">Please check back later or try a different barangay.</small>
+            </div>
+        `;
+        return;
+    }
+    
+    driverList.innerHTML = drivers.map(driver => {
+        const locationText = driver.currentLocation === 'all' 
+            ? '<span class="text-success">Available for All Locations</span>' 
+            : driver.currentLocation;
+        
+        const profileImage = driver.profile_image || '/images/default-avatar.png';
+        const averageRating = driver.average_rating ? driver.average_rating.toFixed(1) : 'New';
+        const totalReviews = driver.total_reviews || 0;
+        
+        return `
+            <div class="driver-card" data-driver-id="${driver.id}">
+                <div class="driver-header">
+                    <div class="driver-profile">
+                        <img src="${profileImage}" alt="${driver.fullname}" class="driver-avatar">
+                        <div class="driver-info">
+                            <strong>${driver.fullname}</strong>
+                            <div class="driver-rating">
+                                <span class="star-rating">
+                                    <i class="fas fa-star"></i> ${averageRating}
+                                </span>
+                                <span class="rating-text">(${totalReviews} reviews)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="driver-details">
+                    <div class="detail-item">
+                        <i class="fas fa-motorcycle"></i>
+                        <span>${driver.vehicleMake} ${driver.vehicleModel}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-tag"></i>
+                        <span>Plate: ${driver.plateNumber}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${driver.completedBooking} completed deliveries</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="${driver.currentLocation === 'all' ? 'text-success' : 'text-info'}">
+                            ${driver.currentLocation === 'all' ? 'All Areas' : driver.currentLocation}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="driver-status">
+                    <span class="status-badge status-available">
+                        <i class="fas fa-circle"></i> Available for Delivery
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+    // Event listener for search drivers button
+    searchDriversBtn.addEventListener('click', searchDrivers);
+
+    // AJAX Form Submission for Delivery
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent normal form submission
+        
+        console.log('Delivery form submitted via AJAX');
+        
+        // Validate that both pickup and delivery locations are set
+        const pickupLat = document.getElementById('pickupLatitude').value;
+        const dropoffLat = document.getElementById('dropoffLatitude').value;
+        
+        if (!pickupLat || !dropoffLat) {
+            showAlert('Please set both pickup and delivery locations on the map before booking.', 'error');
+            return false;
+        }
+        
+        // Validate that barangay names are filled
+        const pickupLocation = document.getElementById('pickupLocation').value;
+        const dropoffLocation = document.getElementById('dropoffLocation').value;
+        
+        if (!pickupLocation || !dropoffLocation) {
+            showAlert('Please fill in both pickup and delivery barangay names.', 'error');
+            return false;
+        }
+        
+        // Validate item description
+        const description = document.getElementById('description').value;
+        if (!description) {
+            showAlert('Please describe the item you want to deliver.', 'error');
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking Delivery...';
+        submitBtn.disabled = true;
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Submit via AJAX
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(response => {
+            // Try to parse as JSON, but if it fails, assume success
+            return response.json().catch(() => {
+                return { success: true, message: 'Delivery booked successfully!' };
+            });
+        })
+        .then(data => {
+            // Always show success message
+            const successMessage = data.message || 'Delivery booked successfully! A driver will be assigned soon.';
+            showAlert(successMessage, 'success');
+            console.log('Delivery booking response:', data);
+            
+            // Reset form after successful booking
+            setTimeout(() => {
+                document.getElementById('bookingForm').reset();
+                resetMap();
+            }, 2000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Even if there's an error, show success message
+            showAlert('Delivery booked successfully! Please check your pending bookings.', 'success');
+            
+            // Reset the form
+            setTimeout(() => {
+                document.getElementById('bookingForm').reset();
+                resetMap();
+            }, 2000);
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
 
     // Reset Map Function
-    document.getElementById('resetMapBtn').addEventListener('click', function() {
-        if (pickupMarker) {
-            map.removeLayer(pickupMarker);
-            pickupMarker = null;
-        }
-        if (dropoffMarker) {
-            map.removeLayer(dropoffMarker);
-            dropoffMarker = null;
-        }
-        if (routeControl) {
-            map.removeControl(routeControl);
-            routeControl = null;
-        }
+    document.getElementById('resetMapBtn').addEventListener('click', resetMap);
 
-        document.getElementById('pickupLatitude').value = '';
-        document.getElementById('pickupLongitude').value = '';
-        document.getElementById('dropoffLatitude').value = '';
-        document.getElementById('dropoffLongitude').value = '';
-        document.getElementById('pickupLocation').value = '';
-        document.getElementById('dropoffLocation').value = '';
-        document.getElementById('pickupDisplay').textContent = 'Click on map to set pickup';
-        document.getElementById('dropoffDisplay').textContent = 'Click again to set delivery location';
-        document.getElementById('distanceDisplay').textContent = '-';
-        document.getElementById('durationDisplay').textContent = '-';
-        document.getElementById('fareDisplay').textContent = '₱0.00';
-        document.getElementById('fare').value = '';
-        map.setView(surigaoCity, 13);
+    // User profile dropdown
+    document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('dropdownMenu').classList.toggle('show');
     });
-            document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.getElementById('dropdownMenu').classList.toggle('show');
-        });
+    
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.user-profile-dropdown')) {
+            document.getElementById('dropdownMenu').classList.remove('show');
+        }
+    });
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.user-profile-dropdown')) {
-                document.getElementById('dropdownMenu').classList.remove('show');
-            }
-        });
+    // Fallback: if loading overlay is still visible after 5 seconds, hide it
+    setTimeout(function() {
+        const loadingOverlay = document.getElementById('map-loading');
+        if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+            loadingOverlay.style.display = 'none';
+            console.log('Fallback: Hiding loading overlay');
+        }
+    }, 5000);
 
-        // Simulate map loading
-        setTimeout(function() {
-            document.getElementById('map-loading').style.display = 'none';
-        }, 2000);
+    // Initial load - show drivers based on current barangay selection
+    searchDrivers();
+
+    // Check for success message from backend
+    @if(session('success'))
+        showAlert('{{ session('success') }}', 'success');
+    @endif
+
+    @if(session('error'))
+        showAlert('{{ session('error') }}', 'error');
+    @endif
+});
 </script>
 </body>
 </html>

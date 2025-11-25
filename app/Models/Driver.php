@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Log;
 
 class Driver extends Authenticatable
 {
@@ -92,11 +93,11 @@ class Driver extends Authenticatable
         ];
     }
 
-    // Scope for available drivers
+    // Scope for available drivers - FIXED: changed 'approved' to 'is_approved'
     public function scopeAvailable($query)
     {
         return $query->where('availStatus', true)
-                    ->where('approved', true)
+                    ->where('is_approved', true) // FIXED THIS LINE
                     ->where('currentLocation', '!=', 'all');
     }
 
@@ -140,13 +141,18 @@ class Driver extends Authenticatable
         $this->update(['availStatus' => false]);
     }
 
-    // Get profile image URL
+    // Get profile image URL with error handling
     public function getProfileImageUrl()
     {
-        if ($this->profile_image) {
-            return asset('storage/' . $this->profile_image);
+        try {
+            if ($this->profile_image) {
+                return asset('storage/' . $this->profile_image);
+            }
+            return asset('images/fastlan.png');
+        } catch (\Exception $e) {
+            Log::error('Error getting profile image URL: ' . $e->getMessage());
+            return asset('images/fastlan.png');
         }
-        return asset('images/fastlan.png');
     }
 
     public function reviews()
@@ -154,19 +160,50 @@ class Driver extends Authenticatable
         return $this->hasMany(Review::class);
     }
 
+    // Add error handling to accessors
     public function getAverageRatingAttribute()
     {
-        return $this->reviews()->avg('rating') ?: 0;
+        try {
+            return $this->reviews()->avg('rating') ?: 0;
+        } catch (\Exception $e) {
+            Log::error('Error calculating average rating: ' . $e->getMessage());
+            return 0;
+        }
     }
 
     public function getTotalReviewsAttribute()
     {
-        return $this->reviews()->count();
+        try {
+            return $this->reviews()->count();
+        } catch (\Exception $e) {
+            Log::error('Error counting reviews: ' . $e->getMessage());
+            return 0;
+        }
     }
 
     public function getRatingPercentageAttribute()
     {
-        return ($this->average_rating / 5) * 100;
+        try {
+            return ($this->average_rating / 5) * 100;
+        } catch (\Exception $e) {
+            Log::error('Error calculating rating percentage: ' . $e->getMessage());
+            return 0;
+        }
     }
-        
+    public function systemFeedbacks()
+    {
+        return $this->hasMany(SystemFeedback::class);
+    }
+
+    public function hasGivenFeedbackRecently($days = 7)
+    {
+        return $this->systemFeedbacks()
+            ->where('created_at', '>=', now()->subDays($days))
+            ->exists();
+    }
+
+    public function getAverageSatisfactionRating()
+    {
+        return $this->systemFeedbacks()->avg('satisfaction_rating') ?: 0;
+    }
 }

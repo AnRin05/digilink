@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Driver;
 use App\Models\Booking;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -370,7 +371,6 @@ class DriverController extends Controller
 
         $booking = Booking::with('passenger')->findOrFail($id);
 
-        // Check if booking is still available
         if ($booking->status !== 'pending') {
             return redirect()->route('driver.availableBookings')->with('error', 'This booking is no longer available.');
         }
@@ -422,7 +422,6 @@ class DriverController extends Controller
         return view('driver.available-bookings', compact('driver'));
     }
 
-    // Get accepted bookings for the driver
     public function getAcceptedBookings()
     {
         if (!Auth::guard('driver')->check()) {
@@ -457,9 +456,6 @@ class DriverController extends Controller
         ]);
     }
 
-    
-
-    // Start job and update status to in_progress
     public function canStartJob($id)
     {
         if (!Auth::guard('driver')->check()) {
@@ -470,7 +466,6 @@ class DriverController extends Controller
             $driver = Auth::guard('driver')->user();
             $booking = Booking::findOrFail($id);
 
-            // Verify the booking belongs to this driver and is accepted
             if ($booking->driverID !== $driver->id || $booking->status !== 'accepted') {
                 return response()->json([
                     'success' => false, 
@@ -478,7 +473,6 @@ class DriverController extends Controller
                 ]);
             }
 
-            // Check if it's a scheduled booking and if it's the same day
             if ($booking->isScheduled()) {
                 $scheduleDate = Carbon::parse($booking->scheduleTime)->startOfDay();
                 $today = Carbon::today();
@@ -505,9 +499,6 @@ class DriverController extends Controller
         }
     }
 
-    /**
-     * Cancel accepted booking and return to pending status
-     */
     public function cancelAcceptedBooking($id)
     {
         if (!Auth::guard('driver')->check()) {
@@ -518,15 +509,12 @@ class DriverController extends Controller
             $driver = Auth::guard('driver')->user();
             $booking = Booking::findOrFail($id);
 
-            // Verify the booking belongs to this driver and is accepted
             if ($booking->driverID !== $driver->id || $booking->status !== 'accepted') {
                 return response()->json([
                     'success' => false, 
                     'message' => 'You cannot cancel this booking.'
                 ]);
             }
-
-            // Release the booking back to pending status
             $booking->update([
                 'driverID' => null,
                 'status' => 'pending'
@@ -545,7 +533,6 @@ class DriverController extends Controller
         }
     }
 
-    // Update the startJob method to include date validation
     public function startJob($id)
     {
         if (!Auth::guard('driver')->check()) {
@@ -564,7 +551,6 @@ class DriverController extends Controller
                 ]);
             }
 
-            // Check if it's a scheduled booking and if it's the same day
             if ($booking->isScheduled()) {
                 $scheduleDate = Carbon::parse($booking->scheduleTime)->startOfDay();
                 $today = Carbon::today();
@@ -578,7 +564,6 @@ class DriverController extends Controller
                 }
             }
 
-            // Update status to in_progress
             $booking->update([
                 'status' => 'in_progress'
             ]);
@@ -595,10 +580,6 @@ class DriverController extends Controller
             ]);
         }
     }
-
-    /**
-     * Enhanced location update with better validation and logging
-     */
     public function updateLocation(Request $request)
     {
         if (!Auth::guard('driver')->check()) {
@@ -641,7 +622,6 @@ class DriverController extends Controller
                 ], 400);
             }
 
-            // Update driver location
             $updateData = [
                 'current_lat' => $latitude,
                 'current_lng' => $longitude
@@ -663,7 +643,6 @@ class DriverController extends Controller
              /** @var \App\Models\driver $driver */
             $driver->update($updateData);
 
-            // Refresh to get updated data
             $driver->refresh();
 
             Log::info("Driver location updated successfully", [
@@ -676,7 +655,6 @@ class DriverController extends Controller
                 'source' => $source
             ]);
 
-            // Broadcast to passenger if needed
             $this->broadcastLocationUpdate($request->booking_id, $latitude, $longitude);
 
             return response()->json([
@@ -704,23 +682,15 @@ class DriverController extends Controller
         }
     }
 
-    /**
-     * Validate coordinates are reasonable
-     */
     private function areValidCoordinates($latitude, $longitude)
     {
-        // Check if coordinates are within reasonable bounds
         if (abs($latitude) > 90 || abs($longitude) > 180) {
             return false;
         }
 
-        // Check if coordinates are not exactly zero (common error)
         if ($latitude == 0 && $longitude == 0) {
             return false;
         }
-
-        // Add more specific validation for your area if needed
-        // Example: Check if coordinates are within your country/region
         
         return true;
     }
@@ -744,18 +714,12 @@ class DriverController extends Controller
         return $earthRadius * $c;
     }
 
-    /**
-     * Get location name from coordinates (simplified version)
-     * In a real app, you'd use a geocoding service like Google Maps Geocoding API
-     */
     private function getLocationName($latitude, $longitude)
     {
-        // This is a simplified version - in production, use a proper geocoding service
+
         $locations = Driver::getAvailableLocations();
-        
-        // For now, return a generic location or use the closest barangay
-        // You could implement reverse geocoding here
-        return 'Lipata'; // Default location
+
+        return 'Lipata';
     }
 
     public function jobTracking($id)
@@ -775,18 +739,11 @@ class DriverController extends Controller
         return view('driver.job-tracking', compact('booking', 'driver'));
     }
 
-    /**
-     * Broadcast location update to passenger
-     */
     private function broadcastLocationUpdate($bookingId, $lat, $lng)
     {
         try {
             Log::info("Driver location updated for booking {$bookingId}: {$lat}, {$lng}");
             
-            // You can implement WebSocket broadcasting here
-            // For now, we'll just log it
-            // Example with Pusher:
-            // broadcast(new DriverLocationUpdated($bookingId, $lat, $lng));
             
         } catch (\Exception $e) {
             Log::error('Error broadcasting location update: ' . $e->getMessage());
@@ -846,7 +803,6 @@ class DriverController extends Controller
             $driver = Auth::guard('driver')->user();
             $booking = Booking::findOrFail($id);
 
-            // Verify the booking belongs to this driver
             if ($booking->driverID !== $driver->id) {
                 return response()->json([
                     'success' => false, 
@@ -934,4 +890,108 @@ class DriverController extends Controller
             ]);
         }
     }
+public function seeRating()
+{
+    if (!Auth::guard('driver')->check()) {
+        return redirect()->route('login')->with('error', 'Please login first.');
+    }
+    
+    $driver = Auth::guard('driver')->user();
+    
+    // Use the accessors for average rating and total reviews
+    $averageRating = $driver->average_rating;
+    $totalReviews = $driver->total_reviews;
+    
+    // Get reviews with proper relationships and error handling
+    try {
+        $reviews = Review::where('driver_id', $driver->id)
+            ->with([
+                'passenger', 
+                'booking' => function($query) {
+                    $query->select('bookingID', 'driver_completed_at', 'passenger_completed_at');
+                }
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($review) {
+                // Debug info
+                Log::info('Review data:', [
+                    'review_id' => $review->id,
+                    'passenger' => $review->passenger ? $review->passenger->toArray() : 'No passenger',
+                    'booking' => $review->booking ? $review->booking->toArray() : 'No booking'
+                ]);
+
+                return [
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'passenger_name' => $review->passenger->fullname ?? 'Unknown Passenger',
+                    'booking_id' => $review->booking->bookingID ?? 'N/A',
+                    'booking_date' => $this->getBookingDate($review),
+                    'profile_image' => $review->passenger->profile_image ?? null,
+                    'comment' => $review->comment ?? null
+                ];
+            });
+
+    } catch (\Exception $e) {
+        Log::error('Error loading reviews in seeRating: ' . $e->getMessage());
+        $reviews = collect(); // Empty collection if there's an error
+    }
+
+    // Debug output
+    Log::info('Final reviews data:', [
+        'driver_id' => $driver->id,
+        'average_rating' => $averageRating,
+        'total_reviews' => $totalReviews,
+        'reviews_count' => $reviews->count(),
+        'reviews' => $reviews->toArray()
+    ]);
+
+    return view('driver.rating', compact('driver', 'averageRating', 'totalReviews', 'reviews'));
+}
+
+// Helper method to get booking date
+private function getBookingDate($review)
+{
+    if ($review->booking) {
+        if ($review->booking->driver_completed_at) {
+            return $review->booking->driver_completed_at->format('M d, Y');
+        } elseif ($review->booking->passenger_completed_at) {
+            return $review->booking->passenger_completed_at->format('M d, Y');
+        } else {
+            return $review->created_at->format('M d, Y');
+        }
+    }
+    return $review->created_at->format('M d, Y');
+}
+    public function getRatings()
+    {
+        if (!Auth::guard('driver')->check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        $driver = Auth::guard('driver')->user();
+        
+        $reviews = Review::where('driver_id', $driver->id)
+            ->with(['passenger', 'booking'])
+            ->orderBy('driver_completed_at', 'desc')
+            ->get()
+            ->map(function($review) {
+                return [
+                    'rating' => $review->rating,
+                    'passenger_name' => $review->passenger->fullname ?? 'Unknown',
+                    'booking_id' => $review->booking->booking_id,
+                    'booking_date' => $review->booking->driver_completed_at->format('M d, Y') ?? 'N/A',
+                ];
+            });
+        
+        $averageRating = $driver->average_rating;
+        $totalReviews = $driver->total_reviews;
+        
+        return response()->json([
+            'average_rating' => $averageRating,
+            'total_reviews' => $totalReviews,
+            'reviews' => $reviews
+        ]);
+    }
+    
 }
