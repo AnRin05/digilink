@@ -11,6 +11,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     @vite('resources/css/passenger/pending.css')
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
                                                             <!-- Navbar -->

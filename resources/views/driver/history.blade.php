@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 @vite('resources/css/driver/history.css')
+<link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <div class="bg-decoration"></div>
         <nav class="navbar">

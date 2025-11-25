@@ -14,6 +14,92 @@ body {
     overflow-x: hidden;
 }
 
+/* Global Error Message Styles - Outside Login Box */
+.global-error,
+.global-success {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 480px;
+    z-index: 1000;
+    animation: slideDown 0.5s ease-out;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.global-error {
+    background: linear-gradient(135deg, #fee 0%, #f8d7da 100%);
+    border: 2px solid #f5c6cb;
+    color: #721c24;
+}
+
+.global-success {
+    background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+    border: 2px solid #c3e6cb;
+    color: #155724;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Enhanced error animation */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(-50%); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(calc(-50% - 5px)); }
+    20%, 40%, 60%, 80% { transform: translateX(calc(-50% + 5px)); }
+}
+
+.global-error {
+    animation: 
+        slideDown 0.5s ease-out,
+        shakeError 0.5s ease-in-out 0.5s;
+}
+
+.global-success {
+    animation: slideDown 0.5s ease-out;
+}
+
+/* Adjust login container for error messages */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    padding: 60px 20px;
+    position: relative;
+    background: 
+        linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(33, 37, 41, 0.8) 100%),
+        url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center center/cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+/* Adjust login box position when error is present */
+.login-container:has(.global-error) .login-box,
+.login-container:has(.global-success) .login-box {
+    margin-top: 40px;
+}
+
+/* Alternative method for browsers that don't support :has() */
+.login-container.with-error .login-box {
+    margin-top: 40px;
+}
+
 /* Animated background decoration */
 body::before {
     content: '';
@@ -53,21 +139,6 @@ body::after {
         opacity: 1;
     }
 }
-
-/* Login Section */
-.login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-grow: 1;
-    padding: 60px 20px;
-    position: relative;
-    background: 
-        linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(33, 37, 41, 0.8) 100%),
-        url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center center/cover;
-    background-attachment: fixed;
-}
-
 .login-container::before {
     content: '';
     position: absolute;
@@ -143,9 +214,16 @@ body::after {
     margin-bottom: 25px;
     font-weight: 700;
     position: relative;
-    animation: logoGlow 3s ease-in-out infinite;
 }
 
+@keyframes logoGlow {
+    0%, 100% { 
+        text-shadow: 0 0 20px rgba(220, 53, 69, 0.3);
+    }
+    50% { 
+        text-shadow: 0 0 30px rgba(220, 53, 69, 0.6), 0 0 40px rgba(220, 53, 69, 0.3);
+    }
+}
 
 .login-logo span {
     color: #212529;
@@ -219,6 +297,50 @@ body::after {
 .input-group input:hover:not(:focus) {
     border-color: #ced4da;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Error Message Styles inside form */
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-error {
+    background-color: #fee;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #e8f5e8;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.alert i {
+    font-size: 16px;
+}
+
+.error-text {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Style input fields when there's an error */
+.input-group input:invalid {
+    border-color: #dc3545;
+}
+
+.input-group input:focus:invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
 }
 
 /* Enhanced Button */
@@ -445,6 +567,21 @@ body::after {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .global-error,
+    .global-success {
+        top: 15px;
+        width: 95%;
+        max-width: 400px;
+        font-size: 0.9rem;
+        padding: 10px 14px;
+    }
+    
+    .login-container:has(.global-error) .login-box,
+    .login-container:has(.global-success) .login-box,
+    .login-container.with-error .login-box {
+        margin-top: 30px;
+    }
+    
     .login-container {
         padding: 40px 15px;
     }
@@ -486,6 +623,21 @@ body::after {
 }
 
 @media (max-width: 480px) {
+    .global-error,
+    .global-success {
+        top: 10px;
+        width: 90%;
+        max-width: 350px;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .login-container:has(.global-error) .login-box,
+    .login-container:has(.global-success) .login-box,
+    .login-container.with-error .login-box {
+        margin-top: 25px;
+    }
+    
     .login-box {
         padding: 30px 20px;
         margin: 0 5px;
@@ -619,4 +771,26 @@ body::after {
     content: '⚠';
     margin-right: 6px;
     font-size: 0.9rem;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ensure error messages are visible on top of everything */
+.global-error,
+.global-success {
+    pointer-events: none;
+}
+
+.global-error *,
+.global-success * {
+    pointer-events: auto;
 }

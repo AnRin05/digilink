@@ -6,6 +6,7 @@
     <title>{{ $title }} - Admin Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="{{ asset('css/admin-bookings.css') }}" rel="stylesheet">
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

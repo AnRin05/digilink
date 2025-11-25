@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Details - Admin</title>
     @vite('resources/css/admin/report-show.css')
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
     <header class="admin-header">

@@ -9,6 +9,7 @@
 </head>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @vite('resources/css/passenger/history.css')
+<link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <div class="bg-decoration"></div>
         <nav class="navbar">

@@ -11,6 +11,7 @@
 </head>
     @vite('resources/js/driver/dashbaord.js')
     @vite('resources/css/driver/dashboard.css')
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <nav class="navbar">
         <a href="/" class="nav-brand">Fast<span>Lan</span></a>

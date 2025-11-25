@@ -12,39 +12,54 @@
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
-                                                            <!-- Navigation -->
+                                                  <!-- Navigation -->
     <nav>
         <div class="nav-left">
             <a class="nav-brand">Fast<span>Lan</span></a>
         </div>
         <div class="nav-middle">
-                                                            <!-- Empty for balance -->
         </div>
         <div class="nav-right">
             <ul>
-                <li><a href="/digilink/public">Home</a></li>
+                <li><a href="{{ route(name: 'home') }}">Home</a></li>
                 <li><a href="#" class="active">Login</a></li>
                 <li><a href="#">Contact</a></li>
             </ul>
         </div>
     </nav>
-
-                                                            <!-- Login Section -->
+                                                   <!-- Login Section -->
     <section class="login-container">
+        @if ($errors->any())
+            <div class="alert alert-error global-error">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ $errors->first('email') }}
+            </div>
+        @endif
+
+        @if (session('status'))
+            <div class="alert alert-success global-success">
+                <i class="fas fa-check-circle"></i>
+                {{ session('status') }}
+            </div>
+        @endif
+
         <div class="login-box">
             <div class="login-logo">Fast<span style="color: #1b1b1b;">Lan</span></div>
             <h2>Login to Your Account</h2>
             
-            <form id="login-form"  method="POST" action="">
+            <form id="login-form" method="POST" action="{{ route('login') }}">
                 @csrf
                 <div class="input-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="Enter your email" required>
                 </div>
                 
                 <div class="input-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    @error('password')
+                        <span class="error-text">{{ $message }}</span>
+                    @enderror
                 </div>
                 
                 <div class="login-options">
@@ -56,17 +71,21 @@
                 </div>
                 
                 <button type="submit" class="login-btn">Login</button>
+                <div class="signup-link">
+                    Don't have an account? <a href="choice">Sign up now</a>
+                </div>
+            </div>
             </form>
-        
+        </div>
     </section>
 
-                                                            <!-- Footer -->
+                                                  <!-- Footer -->
     <footer>
         @include('footer')
     </footer>
     
     <script>
-         document.querySelector('.social-btn.facebook').addEventListener('click', function() {
+        document.querySelector('.social-btn.facebook').addEventListener('click', function() {
             alert('Facebook login not implemented yet');
         });
         

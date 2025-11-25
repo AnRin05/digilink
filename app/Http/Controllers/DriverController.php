@@ -934,7 +934,7 @@ public function seeRating()
 
     } catch (\Exception $e) {
         Log::error('Error loading reviews in seeRating: ' . $e->getMessage());
-        $reviews = collect(); // Empty collection if there's an error
+        $reviews = collect(); 
     }
 
     // Debug output

@@ -6,6 +6,7 @@
     <title>Admin Dashboard</title>
 </head>
     @vite('resources/css/admin/dashboard.css')
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <header class="admin-header">
         <div class="header-left">

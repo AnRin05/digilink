@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     @vite('resources/js/passdash.js')
     @vite('resources/css/passenger/passdashboard.css')
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
                                                             <!-- Navbar -->

@@ -6,6 +6,7 @@
     <title>Analytics Fastlan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @vite('resources/css/admin/analytics.css')
+    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
     <header class="admin-header">
