@@ -128,17 +128,13 @@
             const expandedContent = document.getElementById('expanded-content');
             const descriptionSection = document.getElementById('description-section');
             
-            // Learn More button functionality
             learnMoreBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // Add expanded class to section
                 descriptionSection.classList.add('expanded');
                 
-                // Show expanded content
                 expandedContent.classList.add('show');
                 
-                // Hide the learn more button
                 learnMoreBtn.style.opacity = '0';
                 learnMoreBtn.style.transform = 'translateY(-20px)';
                 
@@ -146,7 +142,6 @@
                     learnMoreBtn.style.display = 'none';
                 }, 300);
                 
-                // Animate expanded features
                 setTimeout(() => {
                     const expandedFeatures = document.querySelectorAll('.expanded-feature');
                     expandedFeatures.forEach((feature, index) => {
@@ -155,8 +150,7 @@
                         }, index * 150);
                     });
                 }, 400);
-                
-                // Smooth scroll to show expanded content
+
                 setTimeout(() => {
                     const expandedContent = document.getElementById('expanded-content');
                     expandedContent.scrollIntoView({
@@ -166,15 +160,12 @@
                 }, 800);
             });
             
-            // Show Less button functionality
             showLessBtn.addEventListener('click', function() {
-                // Smooth scroll to top of description section first
                 descriptionSection.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
                 });
                 
-                // Then collapse after scroll completes
                 setTimeout(() => {
                     expandedContent.classList.remove('show');
                     descriptionSection.classList.remove('expanded');
@@ -194,7 +185,6 @@
                 }, 500);
             });
             
-            // Close button functionality (immediate close)
             closeBtn.addEventListener('click', function() {
                 expandedContent.classList.remove('show');
                 descriptionSection.classList.remove('expanded');
@@ -212,8 +202,7 @@
                     feature.classList.remove('animate');
                 });
             });
-            
-            // Enhanced button hover effects with ripple
+
             function createRipple(event, button) {
                 const ripple = document.createElement('span');
                 const rect = button.getBoundingClientRect();
@@ -234,7 +223,6 @@
                 }, 600);
             }
             
-            // Add ripple effect to buttons
             const buttons = document.querySelectorAll('.btn-dark, .action-btn');
             buttons.forEach(button => {
                 button.addEventListener('click', function(e) {
@@ -250,12 +238,10 @@
                 });
             });
             
-            // Floating icons animation enhancement
             const floatingIcons = document.querySelectorAll('.floating-icon');
             floatingIcons.forEach((icon, index) => {
                 icon.style.animationDelay = `${index * 2}s`;
                 
-                // Add random movement on hover
                 icon.addEventListener('mouseenter', function() {
                     this.style.animation = 'none';
                     this.style.transform = `translateY(-30px) rotate(15deg) scale(1.2)`;
@@ -268,7 +254,6 @@
                 });
             });
             
-            // Scroll-triggered animations for description section
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -281,11 +266,10 @@
             
             observer.observe(descriptionSection);
         });
-        // Animation for feature items
+
         document.addEventListener('DOMContentLoaded', function() {
             const featureItems = document.querySelectorAll('.feature-item');
-            
-            // Function to check if element is in viewport
+
             function isInViewport(element) {
                 const rect = element.getBoundingClientRect();
                 return (
@@ -296,7 +280,6 @@
                 );
             }
             
-            // Function to handle scroll event
             function checkScroll() {
                 featureItems.forEach(item => {
                     if (isInViewport(item)) {
@@ -305,13 +288,10 @@
                 });
             }
             
-            // Initial check
             checkScroll();
-            
-            // Listen for scroll events
+
             window.addEventListener('scroll', checkScroll);
             
-            // Button hover effects
             const buttons = document.querySelectorAll('.btn-red, .btn-dark');
             
             buttons.forEach(button => {

@@ -83,6 +83,9 @@ Route::prefix('passenger')->group(function () {
     Route::get('/get-history', [PassengerHistoryController::class, 'getHistory'])->name('passenger.get.history');
     Route::delete('/delete-history/{id}', [PassengerHistoryController::class, 'deleteFromHistory'])->name('passenger.delete.history');
     Route::post('/submit-rating', [RatingController::class, 'submitRating'])->name('passenger.submit.rating');
+    Route::get('/check-rating-eligibility/{id}', [RatingController::class, 'checkRatingEligibility'])
+    ->name('passenger.check-rating-eligibility');
+    Route::get('/trip-completed/{id}', [PassengerController::class, 'tripCompleted'])->name('passenger.trip.completed');
 });
 
 // Driver Routes

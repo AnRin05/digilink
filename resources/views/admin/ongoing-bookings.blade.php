@@ -46,7 +46,7 @@
             </div>
         @endif
 
-        <!-- User Information -->
+                                                            <!-- User Information -->
         <div class="user-info-card">
             <div class="user-avatar">
                 {{ substr($user->fullname, 0, 1) }}

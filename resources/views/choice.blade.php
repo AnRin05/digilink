@@ -48,7 +48,7 @@
     </div>
 </div>
 
-<!-- Footer -->
+                                                            <!-- Footer -->
 <footer>
     @include('footer')
 </footer>

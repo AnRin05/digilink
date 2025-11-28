@@ -124,21 +124,21 @@
             </div>
         </section>
 
-        <section>
+        <section class="driver-actions-section">
             <h3>Driver Actions</h3>
             <div class="actions-container">
                 <div class="actions-grid">
                     @if(!$driver->is_approved)
                         <form action="{{ route('admin.driver.approve', $driver->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-approve">
-                                <i class="fas fa-check"></i> Approve Driver
+                            <button type="submit" class="btn btn-approve" onclick="return confirmApprove()">
+                                <i class="fas fa-check-circle"></i> Approve Driver
                             </button>
                         </form>
                         <form action="{{ route('admin.driver.reject', $driver->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-reject">
-                                <i class="fas fa-times"></i> Reject Driver
+                            <button type="submit" class="btn btn-reject" onclick="return confirmReject()">
+                                <i class="fas fa-times-circle"></i> Reject Driver
                             </button>
                         </form>
                     @endif
@@ -146,7 +146,7 @@
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-delete" onclick="return confirmDelete()">
-                            <i class="fas fa-trash"></i> Delete Driver
+                            <i class="fas fa-trash-alt"></i> Delete Driver
                         </button>
                     </form>
                     <a href="{{ route('admin.drivers') }}" class="btn btn-secondary">

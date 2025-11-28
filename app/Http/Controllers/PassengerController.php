@@ -760,75 +760,78 @@ public function confirmCompletion($id)
             ->where('passengerID', $passenger->id)
             ->firstOrFail();
 
+        // Allow completion confirmation for in_progress status
         if ($booking->status !== Booking::STATUS_IN_PROGRESS) {
             return response()->json([
                 'success' => false, 
-                'message' => 'This booking cannot be completed.'
+                'message' => 'This booking cannot be completed. Current status: ' . $booking->status
             ]);
         }
 
         DB::beginTransaction();
 
+        // Mark passenger as completed
         $booking->markPassengerCompleted();
 
-        // Check if both passenger and driver have completed
-        if ($booking->isBothCompleted()) {
-            // Update booking status to completed
-            $booking->update([
-                'status' => Booking::STATUS_COMPLETED,
-                'completed_at' => now()
-            ]);
+        // Get updated completion status
+        $completionStatus = $booking->getCompletionStatus();
+        $isBothCompleted = $booking->isBothCompleted();
 
-            // Create booking history for COMPLETED booking
-            \App\Models\BookingHistory::create([
-                'booking_id' => $booking->bookingID,
-                'passenger_id' => $booking->passengerID,
-                'driver_id' => $booking->driverID,
-                'pickup_location' => $booking->pickupLocation,
-                'dropoff_location' => $booking->dropoffLocation,
-                'pickup_latitude' => $booking->pickupLatitude,
-                'pickup_longitude' => $booking->pickupLongitude,
-                'dropoff_latitude' => $booking->dropoffLatitude,
-                'dropoff_longitude' => $booking->dropoffLongitude,
-                'fare' => $booking->fare,
-                'status' => Booking::STATUS_COMPLETED,
-                'service_type' => $booking->serviceType,
-                'payment_method' => $booking->paymentMethod,
-                'description' => $booking->description,
-                'schedule_time' => $booking->scheduleTime,
-                'driver_completed_at' => $booking->driver_completed_at,
-                'passenger_completed_at' => $booking->passenger_completed_at,
-                'completion_verified' => true,
-                'completed_at' => now()
-            ]);
+        // Update booking status to completed immediately after passenger confirmation
+        $booking->update([
+            'status' => Booking::STATUS_COMPLETED,
+            'completed_at' => now()
+        ]);
+
+        // Create booking history for COMPLETED booking
+        \App\Models\BookingHistory::create([
+            'booking_id' => $booking->bookingID,
+            'passenger_id' => $booking->passengerID,
+            'driver_id' => $booking->driverID,
+            'pickup_location' => $booking->pickupLocation,
+            'dropoff_location' => $booking->dropoffLocation,
+            'pickup_latitude' => $booking->pickupLatitude,
+            'pickup_longitude' => $booking->pickupLongitude,
+            'dropoff_latitude' => $booking->dropoffLatitude,
+            'dropoff_longitude' => $booking->dropoffLongitude,
+            'fare' => $booking->fare,
+            'status' => Booking::STATUS_COMPLETED,
+            'service_type' => $booking->serviceType,
+            'payment_method' => $booking->paymentMethod,
+            'description' => $booking->description,
+            'schedule_time' => $booking->scheduleTime,
+            'driver_completed_at' => $booking->driver_completed_at,
+            'passenger_completed_at' => $booking->passenger_completed_at,
+            'completion_verified' => $booking->completion_verified,
+            'completed_at' => now()
+        ]);
+
+        // Increment driver's completed bookings
+        if ($booking->driver) {
+            $booking->driver->increment('completedBooking');
         }
 
         DB::commit();
 
-        $message = 'Completion confirmed! ';
-        if ($booking->isBothCompleted()) {
-            $message .= 'Trip completed successfully!';
-        } else {
-            $message .= 'Waiting for driver confirmation...';
-        }
+        $message = 'Trip completed successfully! Thank you for your confirmation.';
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'completion_status' => $booking->getCompletionStatus(),
-            'is_completed' => $booking->isBothCompleted()
+            'completion_status' => $completionStatus,
+            'is_completed' => true, // Always true now since we mark as completed immediately
+            'booking_status' => Booking::STATUS_COMPLETED
         ]);
 
     } catch (\Exception $e) {
         DB::rollBack();
+        Log::error('Error confirming completion: ' . $e->getMessage());
         return response()->json([
             'success' => false,
             'message' => 'Error confirming completion: ' . $e->getMessage()
         ]);
     }
-}
-
-    public function cancelOngoingBooking($id)
+}    public function cancelOngoingBooking($id)
     {
         if (!Auth::guard('passenger')->check()) {
             return response()->json(['success' => false, 'message' => 'Not authenticated']);
@@ -932,4 +935,19 @@ public function confirmCompletion($id)
             return redirect()->back()->with('error', 'Driver profile not found.');
         }
     }
+    public function tripCompleted($id)
+{
+    $booking = Booking::with('driver')->findOrFail($id);
+    
+    if ($booking->passengerID != auth('passenger')->id()) {
+        abort(403, 'Unauthorized');
+    }
+    
+    if ($booking->status !== 'completed') {
+        return redirect()->route('passenger.track.booking', $id)
+            ->with('error', 'This trip is not yet completed.');
+    }
+    
+    return view('passenger.trip-completed', compact('booking'));
+}
 }

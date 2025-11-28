@@ -17,6 +17,85 @@
     --border-color: rgba(0, 0, 0, 0.08);
     --hover-bg: rgba(220, 53, 69, 0.1);
 }
+/* Logout Form Styling */
+.logout-form {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+}
+
+/* Admin Nav Layout */
+.admin-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Responsive Design for Logout */
+@media (max-width: 768px) {
+    .logout-form {
+        margin-left: 0;
+        width: 100%;
+        order: 3;
+    }
+    
+    .logout-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+    }
+    
+    .admin-nav {
+        gap: 10px;
+    }
+}
+
+/* Alternative placement if you want logout in the dropdown */
+.more-menu-dropdown .logout-form {
+    margin: 10px 0;
+    padding: 0 15px;
+}
+
+.more-menu-dropdown .logout-btn {
+    width: 100%;
+    justify-content: flex-start;
+    background: transparent;
+    color: #dc3545;
+    padding: 12px 15px;
+    border: 1px solid #dc3545;
+}
+
+.more-menu-dropdown .logout-btn:hover {
+    background: #dc3545;
+    color: white;
+}
 
 body {
     background-color: var(--light-bg);

@@ -14,6 +14,12 @@
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
+            <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
         </nav>
     </header>
 
@@ -74,7 +80,6 @@
     </main>
 
     <script>
-        // Simple confirmation for actions
         function confirmAction(message) {
             return confirm(message || 'Are you sure?');
         }

@@ -323,7 +323,6 @@
             }
         }
 
-        /* Custom marker styles with labels */
         .driver-marker, .pickup-marker, .dropoff-marker {
             z-index: 1000 !important;
         }
@@ -332,7 +331,6 @@
             z-index: 1000 !important;
         }
 
-        /* Hide routing machine controls */
         .leaflet-routing-container {
             display: none;
         }
@@ -435,453 +433,396 @@
     </div>
 
     <script>
-// Global variables
-let map;
-let driverMarker;
-let pickupMarker;
-let dropoffMarker;
-let routingControl;
-let updateInterval;
-let currentTarget = 'pickup'; // 'pickup' or 'dropoff'
-const PROXIMITY_THRESHOLD = 0.1; // 100 meters in kilometers
 
-// Base URL helper
-function getBaseUrl() {
-    return window.location.origin + '/digilink/public';
-}
+        let map;
+        let driverMarker;
+        let pickupMarker;
+        let dropoffMarker;
+        let routingControl;
+        let updateInterval;
+        let currentTarget = 'pickup';
+        const PROXIMITY_THRESHOLD = 0.1; 
 
-// Calculate distance between two coordinates in kilometers
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-}
+        function getBaseUrl() {
+            return window.location.origin + '/digilink/public';
+        }
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
 
-// Initialize the map
-function initMap() {
-    // Default center (Surigao City coordinates)
-    const defaultCenter = [9.7869, 125.4920];
-    
-    // Initialize map
-    map = L.map('trackingMap').setView(defaultCenter, 13);
-    
-    // Add tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+        function initMap() {
+            const defaultCenter = [9.7869, 125.4920];
+            
+            map = L.map('trackingMap').setView(defaultCenter, 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-    // Add booking markers
-    addBookingMarkers();
-    
-    // Start live tracking
-    startLiveTracking();
-}
+            addBookingMarkers();
+            
+            startLiveTracking();
+        }
+        function createMarker(lat, lng, color, label, className) {
+            return L.marker([lat, lng], {
+                icon: L.divIcon({
+                    html: `
+                        <div style="position: relative;">
+                            <div style="background-color: ${color}; border: 3px solid white; border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>
+                            <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: ${color}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; white-space: nowrap; border: 1px solid white;">
+                                ${label}
+                            </div>
+                        </div>
+                    `,
+                    className: className,
+                    iconSize: [20, 45],
+                    iconAnchor: [10, 20]
+                })
+            });
+        }
 
-// Create marker with label
-function createMarker(lat, lng, color, label, className) {
-    return L.marker([lat, lng], {
-        icon: L.divIcon({
-            html: `
-                <div style="position: relative;">
-                    <div style="background-color: ${color}; border: 3px solid white; border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>
-                    <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: ${color}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; white-space: nowrap; border: 1px solid white;">
-                        ${label}
+        function addBookingMarkers() {
+            const bookingData = @json($booking);
+            
+            if (bookingData.pickupLatitude && bookingData.pickupLongitude) {
+                const passengerName = bookingData.passenger?.fullname ? bookingData.passenger.fullname.split(' ')[0] : 'Pickup';
+                pickupMarker = createMarker(
+                    bookingData.pickupLatitude, 
+                    bookingData.pickupLongitude, 
+                    '#dc3545', 
+                    `PICKUP - ${passengerName}`,
+                    'pickup-marker'
+                ).addTo(map);
+                
+                pickupMarker.bindPopup(`
+                    <div style="text-align: center; min-width: 200px;">
+                        <strong style="color: #dc3545;">📍 PICKUP LOCATION</strong><br>
+                        <hr style="margin: 5px 0;">
+                        <strong>Passenger:</strong> ${bookingData.passenger?.fullname || 'N/A'}<br>
+                        <strong>Address:</strong> ${bookingData.pickupLocation}<br>
+                        <small>Booking: ${bookingData.bookingID}</small>
                     </div>
+                `);
+            }
+
+            if (bookingData.dropoffLatitude && bookingData.dropoffLongitude) {
+                const locationName = bookingData.dropoffLocation.split(',')[0].substring(0, 15) + '...';
+                dropoffMarker = createMarker(
+                    bookingData.dropoffLatitude, 
+                    bookingData.dropoffLongitude, 
+                    '#212529', 
+                    `DROPOFF - ${locationName}`,
+                    'dropoff-marker'
+                ).addTo(map);
+                
+                dropoffMarker.bindPopup(`
+                    <div style="text-align: center; min-width: 200px;">
+                        <strong style="color: #212529;">🏁 DROP-OFF LOCATION</strong><br>
+                        <hr style="margin: 5px 0;">
+                        <strong>Address:</strong> ${bookingData.dropoffLocation}<br>
+                        <small>Booking: ${bookingData.bookingID}</small>
+                    </div>
+                `);
+                
+                dropoffMarker.setOpacity(0.3);
+            }
+        }
+
+        function startLiveTracking() {
+            updateDriverLocation();
+            
+            updateInterval = setInterval(updateDriverLocation, 10000);
+        }
+
+        async function updateDriverLocation() {
+            const bookingId = @json($booking->bookingID);
+            
+            try {
+                const url = `${getBaseUrl()}/admin/get-driver-location/${bookingId}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    credentials: 'same-origin'
+                });
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    showError('Unable to fetch driver location. Please try again.');
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateDriverMarker(data);
+                    updateRouteAndTarget(data);
+                    updateSidebarInfo(data);
+                } else {
+                    showError(data.message || 'Failed to get driver location');
+                }
+            } catch (error) {
+                showError('Network error. Please check your connection.');
+            }
+        }
+
+        function createDriverMarker(lat, lng, driverName) {
+            const shortName = driverName ? driverName.split(' ')[0] : 'Driver';
+            return L.marker([lat, lng], {
+                icon: L.divIcon({
+                    html: `
+                        <div style="position: relative;">
+                            <div style="background-color: white; border: 3px solid #dc3545; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>
+                            <div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); background: #dc3545; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: bold; white-space: nowrap; border: 1px solid white;">
+                                ${shortName}
+                            </div>
+                        </div>
+                    `,
+                    className: 'driver-marker',
+                    iconSize: [16, 38],
+                    iconAnchor: [8, 16]
+                })
+            });
+        }
+        function updateDriverMarker(data) {
+            const driver = data.driver;
+            
+            if (!driver || !driver.current_lat || !driver.current_lng) {
+                return;
+            }
+
+            if (driverMarker) {
+                map.removeLayer(driverMarker);
+            }
+
+            driverMarker = createDriverMarker(driver.current_lat, driver.current_lng, driver.name);
+            driverMarker.addTo(map);
+            
+            driverMarker.bindPopup(`
+                <div style="text-align: center; min-width: 200px;">
+                    <strong style="color: #dc3545;">🚗 DRIVER LOCATION</strong><br>
+                    <hr style="margin: 5px 0;">
+                    <strong>Name:</strong> ${driver.name}<br>
+                    <strong>Vehicle:</strong> ${driver.vehicle}<br>
+                    <strong>Phone:</strong> ${driver.phone || 'N/A'}<br>
+                    <strong>Status:</strong> ${data.booking.status}<br>
+                    <small>Last update: ${new Date().toLocaleTimeString()}</small>
                 </div>
-            `,
-            className: className,
-            iconSize: [20, 45],
-            iconAnchor: [10, 20]
-        })
-    });
-}
+            `);
+        }
 
-// Add booking markers to map
-function addBookingMarkers() {
-    const bookingData = @json($booking);
-    
-    // Add pickup marker (red) with passenger name
-    if (bookingData.pickupLatitude && bookingData.pickupLongitude) {
-        const passengerName = bookingData.passenger?.fullname ? bookingData.passenger.fullname.split(' ')[0] : 'Pickup';
-        pickupMarker = createMarker(
-            bookingData.pickupLatitude, 
-            bookingData.pickupLongitude, 
-            '#dc3545', 
-            `PICKUP - ${passengerName}`,
-            'pickup-marker'
-        ).addTo(map);
-        
-        pickupMarker.bindPopup(`
-            <div style="text-align: center; min-width: 200px;">
-                <strong style="color: #dc3545;">📍 PICKUP LOCATION</strong><br>
-                <hr style="margin: 5px 0;">
-                <strong>Passenger:</strong> ${bookingData.passenger?.fullname || 'N/A'}<br>
-                <strong>Address:</strong> ${bookingData.pickupLocation}<br>
-                <small>Booking: ${bookingData.bookingID}</small>
-            </div>
-        `);
-    }
+        function updateRoute(startLatLng, endLatLng) {
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
 
-    // Add dropoff marker (black) with location name
-    if (bookingData.dropoffLatitude && bookingData.dropoffLongitude) {
-        // Extract location name from dropoff address (first few words)
-        const locationName = bookingData.dropoffLocation.split(',')[0].substring(0, 15) + '...';
-        dropoffMarker = createMarker(
-            bookingData.dropoffLatitude, 
-            bookingData.dropoffLongitude, 
-            '#212529', 
-            `DROPOFF - ${locationName}`,
-            'dropoff-marker'
-        ).addTo(map);
-        
-        dropoffMarker.bindPopup(`
-            <div style="text-align: center; min-width: 200px;">
-                <strong style="color: #212529;">🏁 DROP-OFF LOCATION</strong><br>
-                <hr style="margin: 5px 0;">
-                <strong>Address:</strong> ${bookingData.dropoffLocation}<br>
-                <small>Booking: ${bookingData.bookingID}</small>
-            </div>
-        `);
-        
-        // Initially hide dropoff marker
-        dropoffMarker.setOpacity(0.3);
-    }
-}
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(startLatLng[0], startLatLng[1]),
+                    L.latLng(endLatLng[0], endLatLng[1])
+                ],
+                routeWhileDragging: false,
+                showAlternatives: false,
+                fitSelectedRoutes: false,
+                show: false, 
+                createMarker: function() { return null; },
+                lineOptions: {
+                    styles: [
+                        {
+                            color: '#dc3545',
+                            opacity: 0.8,
+                            weight: 6
+                        }
+                    ],
+                    missingRouteTolerance: 0
+                },
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                })
+            }).addTo(map);
 
-// Start live tracking of driver location
-function startLiveTracking() {
-    // Initial update
-    updateDriverLocation();
-    
-    // Set up interval for updates (every 10 seconds)
-    updateInterval = setInterval(updateDriverLocation, 10000);
-}
+            routingControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                if (routes && routes.length > 0) {
+                    const route = routes[0];
+                    const distance = (route.summary.totalDistance / 1000).toFixed(2); 
+                    const time = Math.ceil(route.summary.totalTime / 60); 
+                
+                    document.getElementById('etaToTarget').innerHTML = 
+                        `<i class="fas fa-clock"></i> <strong>ETA:</strong> ${time} minutes`;
+                        
+                    document.getElementById('distanceToTarget').innerHTML = 
+                        `<i class="fas fa-route"></i> <strong>Distance:</strong> ${distance} km`;
+                }
+            });
+        }
 
-// Update driver location from API
-async function updateDriverLocation() {
-    const bookingId = @json($booking->bookingID);
-    
-    try {
-        // Use the correct URL with base path
-        const url = `${getBaseUrl()}/admin/get-driver-location/${bookingId}`;
-        
-        const response = await fetch(url, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            credentials: 'same-origin'
+        function updateRouteAndTarget(data) {
+            const driver = data.driver;
+            const booking = data.booking;
+            
+            if (!driver || !pickupMarker || !dropoffMarker) return;
+
+            const driverLatLng = [driver.current_lat, driver.current_lng];
+            const pickupLatLng = [booking.pickup_lat, booking.pickup_lng];
+            const dropoffLatLng = [booking.dropoff_lat, booking.dropoff_lng];
+
+            const distanceToPickup = calculateDistance(
+                driver.current_lat, driver.current_lng,
+                booking.pickup_lat, booking.pickup_longitude
+            );
+            
+            const distanceToDropoff = calculateDistance(
+                driver.current_lat, driver.current_lng,
+                booking.dropoff_lat, booking.dropoff_longitude
+            );
+
+            if (currentTarget === 'pickup' && distanceToPickup <= PROXIMITY_THRESHOLD) {
+                currentTarget = 'dropoff';
+                updateTargetDisplay();
+                hidePickupMarker();
+                showDropoffMarker();
+                
+                updateRoute(driverLatLng, dropoffLatLng);
+            } else if (currentTarget === 'dropoff' && distanceToDropoff <= PROXIMITY_THRESHOLD) {
+                updateTargetDisplay(true);
+                if (routingControl) {
+                    map.removeControl(routingControl);
+                }
+            } else {
+                const targetLatLng = currentTarget === 'pickup' ? pickupLatLng : dropoffLatLng;
+                updateRoute(driverLatLng, targetLatLng);
+            }
+        }
+
+        function hidePickupMarker() {
+            if (pickupMarker) {
+                pickupMarker.setOpacity(0.3);
+            }
+        }
+
+        function showDropoffMarker() {
+            if (dropoffMarker) {
+                dropoffMarker.setOpacity(1);
+            }
+        }
+
+        function updateTargetDisplay(reached = false) {
+            const targetText = document.getElementById('targetText');
+            const targetContainer = document.getElementById('currentTarget');
+            
+            if (reached) {
+                targetText.textContent = 'Destination Reached!';
+                targetContainer.style.background = '#d4edda';
+                targetContainer.style.borderLeftColor = '#28a745';
+                document.getElementById('distanceToTarget').innerHTML = 
+                    '<i class="fas fa-check-circle"></i> <strong>Status:</strong> Trip completed';
+                document.getElementById('etaToTarget').innerHTML = 
+                    '<i class="fas fa-check-circle"></i> <strong>ETA:</strong> Arrived';
+            } else {
+                targetText.textContent = currentTarget === 'pickup' ? 'Pickup Location' : 'Drop-off Location';
+                targetContainer.style.background = '#fff3cd';
+                targetContainer.style.borderLeftColor = '#ffc107';
+            }
+        }
+
+        function fitToRoute() {
+            if (routingControl) {
+                routingControl.getPlan().fire('routesfound');
+            } else {
+
+                const bounds = L.latLngBounds();
+                if (pickupMarker) bounds.extend(pickupMarker.getLatLng());
+                if (dropoffMarker) bounds.extend(dropoffMarker.getLatLng());
+                if (driverMarker) bounds.extend(driverMarker.getLatLng());
+                
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, { padding: [20, 20] });
+                }
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('locationStatus').innerHTML = `
+                <div style="color: #dc3545; background: #f8d7da; padding: 8px; border-radius: 4px; font-size: 0.8rem;">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${message}
+                </div>
+            `;
+            
+            document.getElementById('trackingStatusText').textContent = 'Tracking Error';
+            document.getElementById('trackingIndicator').style.background = '#dc3545';
+        }
+
+        function updateSidebarInfo(data) {
+            const driver = data.driver;
+            const booking = data.booking;
+
+            if (driver) {
+                document.getElementById('locationStatus').innerHTML = `
+                    <p><strong>Current Location:</strong> ${driver.currentLocation || 'Unknown'}</p>
+                    <p><strong>Vehicle:</strong> ${driver.vehicle}</p>
+                    <p><strong>Status:</strong> ${driver.availStatus ? 'Online' : 'Offline'}</p>
+                `;
+            }
+
+  
+            document.getElementById('lastUpdate').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+
+            updateStatusDisplay(booking.status);
+        }
+
+        function updateStatusDisplay(status) {
+            const statusBadge = document.getElementById('statusBadge');
+            const statusText = document.getElementById('statusText');
+            const trackingIndicator = document.getElementById('trackingIndicator');
+            const trackingStatusText = document.getElementById('trackingStatusText');
+
+            const statusDisplay = status.replace('_', ' ').toUpperCase();
+            
+            statusBadge.textContent = statusDisplay;
+            statusText.textContent = statusDisplay;
+            
+            statusBadge.className = `status-badge ${status.replace('_', '-')}`;
+            trackingIndicator.className = `tracking-indicator ${status.replace('_', '-')}`;
+            
+            trackingStatusText.textContent = getStatusMessage(status);
+        }
+
+        function getStatusMessage(status) {
+            const messages = {
+                'pending': 'Waiting for driver assignment',
+                'accepted': 'Driver assigned - en route to pickup',
+                'in_progress': 'Trip in progress - tracking active',
+                'completed': 'Trip completed',
+                'cancelled': 'Trip cancelled'
+            };
+            return messages[status] || 'Tracking active';
+        }
+
+        function refreshTracking() {
+            updateDriverLocation();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
         });
 
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            showError('Unable to fetch driver location. Please try again.');
-            return;
-        }
-
-        const data = await response.json();
-        
-        if (data.success) {
-            updateDriverMarker(data);
-            updateRouteAndTarget(data);
-            updateSidebarInfo(data);
-        } else {
-            showError(data.message || 'Failed to get driver location');
-        }
-    } catch (error) {
-        showError('Network error. Please check your connection.');
-    }
-}
-
-// Create driver marker with name
-function createDriverMarker(lat, lng, driverName) {
-    const shortName = driverName ? driverName.split(' ')[0] : 'Driver';
-    return L.marker([lat, lng], {
-        icon: L.divIcon({
-            html: `
-                <div style="position: relative;">
-                    <div style="background-color: white; border: 3px solid #dc3545; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>
-                    <div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); background: #dc3545; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: bold; white-space: nowrap; border: 1px solid white;">
-                        ${shortName}
-                    </div>
-                </div>
-            `,
-            className: 'driver-marker',
-            iconSize: [16, 38],
-            iconAnchor: [8, 16]
-        })
-    });
-}
-
-// Update driver marker
-function updateDriverMarker(data) {
-    const driver = data.driver;
-    
-    if (!driver || !driver.current_lat || !driver.current_lng) {
-        return;
-    }
-
-    // Remove existing driver marker
-    if (driverMarker) {
-        map.removeLayer(driverMarker);
-    }
-
-    // Create new driver marker with name
-    driverMarker = createDriverMarker(driver.current_lat, driver.current_lng, driver.name);
-    driverMarker.addTo(map);
-    
-    driverMarker.bindPopup(`
-        <div style="text-align: center; min-width: 200px;">
-            <strong style="color: #dc3545;">🚗 DRIVER LOCATION</strong><br>
-            <hr style="margin: 5px 0;">
-            <strong>Name:</strong> ${driver.name}<br>
-            <strong>Vehicle:</strong> ${driver.vehicle}<br>
-            <strong>Phone:</strong> ${driver.phone || 'N/A'}<br>
-            <strong>Status:</strong> ${data.booking.status}<br>
-            <small>Last update: ${new Date().toLocaleTimeString()}</small>
-        </div>
-    `);
-}
-
-// Update route using OSRM for road-following
-function updateRoute(startLatLng, endLatLng) {
-    // Remove existing route
-    if (routingControl) {
-        map.removeControl(routingControl);
-    }
-
-    // Create new route with road-following
-    routingControl = L.Routing.control({
-        waypoints: [
-            L.latLng(startLatLng[0], startLatLng[1]),
-            L.latLng(endLatLng[0], endLatLng[1])
-        ],
-        routeWhileDragging: false,
-        showAlternatives: false,
-        fitSelectedRoutes: false,
-        show: false, // Hide the routing instructions panel
-        createMarker: function() { return null; }, // Don't create default markers
-        lineOptions: {
-            styles: [
-                {
-                    color: '#dc3545',
-                    opacity: 0.8,
-                    weight: 6
-                }
-            ],
-            missingRouteTolerance: 0
-        },
-        router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1'
-        })
-    }).addTo(map);
-
-    // Listen for route found event
-    routingControl.on('routesfound', function(e) {
-        const routes = e.routes;
-        if (routes && routes.length > 0) {
-            const route = routes[0];
-            const distance = (route.summary.totalDistance / 1000).toFixed(2); // Convert to km
-            const time = Math.ceil(route.summary.totalTime / 60); // Convert to minutes
-            
-            // Update ETA display
-            document.getElementById('etaToTarget').innerHTML = 
-                `<i class="fas fa-clock"></i> <strong>ETA:</strong> ${time} minutes`;
-                
-            document.getElementById('distanceToTarget').innerHTML = 
-                `<i class="fas fa-route"></i> <strong>Distance:</strong> ${distance} km`;
-        }
-    });
-}
-
-// Update route and check target proximity
-function updateRouteAndTarget(data) {
-    const driver = data.driver;
-    const booking = data.booking;
-    
-    if (!driver || !pickupMarker || !dropoffMarker) return;
-
-    const driverLatLng = [driver.current_lat, driver.current_lng];
-    const pickupLatLng = [booking.pickup_lat, booking.pickup_lng];
-    const dropoffLatLng = [booking.dropoff_lat, booking.dropoff_lng];
-
-    // Calculate straight-line distances for proximity check
-    const distanceToPickup = calculateDistance(
-        driver.current_lat, driver.current_lng,
-        booking.pickup_lat, booking.pickup_longitude
-    );
-    
-    const distanceToDropoff = calculateDistance(
-        driver.current_lat, driver.current_lng,
-        booking.dropoff_lat, booking.dropoff_longitude
-    );
-
-    // Check if driver is close to current target
-    if (currentTarget === 'pickup' && distanceToPickup <= PROXIMITY_THRESHOLD) {
-        // Driver reached pickup, switch to dropoff
-        currentTarget = 'dropoff';
-        updateTargetDisplay();
-        hidePickupMarker();
-        showDropoffMarker();
-        
-        // Update route to dropoff
-        updateRoute(driverLatLng, dropoffLatLng);
-    } else if (currentTarget === 'dropoff' && distanceToDropoff <= PROXIMITY_THRESHOLD) {
-        // Driver reached dropoff
-        updateTargetDisplay(true);
-        if (routingControl) {
-            map.removeControl(routingControl);
-        }
-    } else {
-        // Update route to current target
-        const targetLatLng = currentTarget === 'pickup' ? pickupLatLng : dropoffLatLng;
-        updateRoute(driverLatLng, targetLatLng);
-    }
-}
-
-// Hide pickup marker
-function hidePickupMarker() {
-    if (pickupMarker) {
-        pickupMarker.setOpacity(0.3);
-    }
-}
-
-// Show dropoff marker
-function showDropoffMarker() {
-    if (dropoffMarker) {
-        dropoffMarker.setOpacity(1);
-    }
-}
-
-// Update target display
-function updateTargetDisplay(reached = false) {
-    const targetText = document.getElementById('targetText');
-    const targetContainer = document.getElementById('currentTarget');
-    
-    if (reached) {
-        targetText.textContent = 'Destination Reached!';
-        targetContainer.style.background = '#d4edda';
-        targetContainer.style.borderLeftColor = '#28a745';
-        document.getElementById('distanceToTarget').innerHTML = 
-            '<i class="fas fa-check-circle"></i> <strong>Status:</strong> Trip completed';
-        document.getElementById('etaToTarget').innerHTML = 
-            '<i class="fas fa-check-circle"></i> <strong>ETA:</strong> Arrived';
-    } else {
-        targetText.textContent = currentTarget === 'pickup' ? 'Pickup Location' : 'Drop-off Location';
-        targetContainer.style.background = '#fff3cd';
-        targetContainer.style.borderLeftColor = '#ffc107';
-    }
-}
-
-// Fit map to show the entire route
-function fitToRoute() {
-    if (routingControl) {
-        routingControl.getPlan().fire('routesfound');
-    } else {
-        // Fallback to fitting all markers
-        const bounds = L.latLngBounds();
-        if (pickupMarker) bounds.extend(pickupMarker.getLatLng());
-        if (dropoffMarker) bounds.extend(dropoffMarker.getLatLng());
-        if (driverMarker) bounds.extend(driverMarker.getLatLng());
-        
-        if (bounds.isValid()) {
-            map.fitBounds(bounds, { padding: [20, 20] });
-        }
-    }
-}
-
-// Show error message to user
-function showError(message) {
-    // Update location status with error
-    document.getElementById('locationStatus').innerHTML = `
-        <div style="color: #dc3545; background: #f8d7da; padding: 8px; border-radius: 4px; font-size: 0.8rem;">
-            <i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${message}
-        </div>
-    `;
-    
-    // Update tracking status
-    document.getElementById('trackingStatusText').textContent = 'Tracking Error';
-    document.getElementById('trackingIndicator').style.background = '#dc3545';
-}
-
-// Update sidebar information
-function updateSidebarInfo(data) {
-    const driver = data.driver;
-    const booking = data.booking;
-
-    // Update location status
-    if (driver) {
-        document.getElementById('locationStatus').innerHTML = `
-            <p><strong>Current Location:</strong> ${driver.currentLocation || 'Unknown'}</p>
-            <p><strong>Vehicle:</strong> ${driver.vehicle}</p>
-            <p><strong>Status:</strong> ${driver.availStatus ? 'Online' : 'Offline'}</p>
-        `;
-    }
-
-    // Update last update time
-    document.getElementById('lastUpdate').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
-
-    // Update status badge and indicator
-    updateStatusDisplay(booking.status);
-}
-
-// Update status display
-function updateStatusDisplay(status) {
-    const statusBadge = document.getElementById('statusBadge');
-    const statusText = document.getElementById('statusText');
-    const trackingIndicator = document.getElementById('trackingIndicator');
-    const trackingStatusText = document.getElementById('trackingStatusText');
-
-    const statusDisplay = status.replace('_', ' ').toUpperCase();
-    
-    statusBadge.textContent = statusDisplay;
-    statusText.textContent = statusDisplay;
-    
-    // Update classes
-    statusBadge.className = `status-badge ${status.replace('_', '-')}`;
-    trackingIndicator.className = `tracking-indicator ${status.replace('_', '-')}`;
-    
-    // Update status text
-    trackingStatusText.textContent = getStatusMessage(status);
-}
-
-// Get status message
-function getStatusMessage(status) {
-    const messages = {
-        'pending': 'Waiting for driver assignment',
-        'accepted': 'Driver assigned - en route to pickup',
-        'in_progress': 'Trip in progress - tracking active',
-        'completed': 'Trip completed',
-        'cancelled': 'Trip cancelled'
-    };
-    return messages[status] || 'Tracking active';
-}
-
-// Refresh tracking
-function refreshTracking() {
-    updateDriverLocation();
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initMap();
-});
-
-// Clean up on page unload
-window.addEventListener('beforeunload', function() {
-    if (updateInterval) {
-        clearInterval(updateInterval);
-    }
-});
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
     </script>
 </body>
 </html>

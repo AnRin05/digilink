@@ -31,7 +31,6 @@ class SystemFeedbackController extends Controller
     {
         Log::info('Feedback submission started', $request->all());
 
-        // Basic validation
         $request->validate([
             'satisfaction_rating' => 'required|integer|between:1,5',
             'feedback_type' => 'required|in:general,booking,payment,driver,passenger,technical',
@@ -40,14 +39,12 @@ class SystemFeedbackController extends Controller
             'positive_feedback' => 'nullable|string|max:1000',
         ]);
 
-        // Add manual validation for reason when rating is low
         if ($request->satisfaction_rating <= 2 && empty($request->reason)) {
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['reason' => 'Please provide a reason for your low rating.']);
         }
 
-        // Get user info
         if (Auth::guard('passenger')->check()) {
             $user = Auth::guard('passenger')->user();
             $userType = 'passenger';
@@ -59,7 +56,6 @@ class SystemFeedbackController extends Controller
         }
 
         try {
-            // Prepare feedback data
             $feedbackData = [
                 'user_type' => $userType,
                 'satisfaction_rating' => $request->satisfaction_rating,
@@ -73,7 +69,6 @@ class SystemFeedbackController extends Controller
                 'contact_email' => $request->contact_email,
             ];
 
-            // Add user ID if not anonymous
             if (!$request->has('is_anonymous')) {
                 if ($userType === 'passenger') {
                     $feedbackData['passenger_id'] = $user->id;
@@ -84,7 +79,6 @@ class SystemFeedbackController extends Controller
 
             Log::info('Creating feedback with data:', $feedbackData);
 
-            // Create the feedback
             $feedback = SystemFeedback::create($feedbackData);
 
             Log::info('Feedback created successfully', ['id' => $feedback->id]);
@@ -118,7 +112,6 @@ class SystemFeedbackController extends Controller
         return view('system-feedback.thank-you');
     }
 
-    // Admin methods
     public function index(Request $request)
     {
         $feedbacks = SystemFeedback::with(['passenger', 'driver'])
@@ -131,10 +124,23 @@ class SystemFeedbackController extends Controller
             ->when($request->user_type, function($query, $userType) {
                 return $query->where('user_type', $userType);
             })
+            ->when($request->date_from, function($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
+            })
             ->latest()
             ->paginate(20);
 
-        return view('admin.feedback.index', compact('feedbacks'));
+        $stats = [
+            'totalFeedbacks' => SystemFeedback::count(),
+            'averageRating' => SystemFeedback::avg('satisfaction_rating'),
+            'passengerFeedbacks' => SystemFeedback::where('user_type', 'passenger')->count(),
+            'driverFeedbacks' => SystemFeedback::where('user_type', 'driver')->count(),
+        ];
+
+        return view('admin.feedback.index', array_merge(compact('feedbacks'), $stats));
     }
 
     public function show(SystemFeedback $feedback)
@@ -142,22 +148,31 @@ class SystemFeedbackController extends Controller
         return view('admin.feedback.show', compact('feedback'));
     }
 
-    public function analytics()
-    {
-        $totalFeedbacks = SystemFeedback::count();
-        $averageRating = SystemFeedback::avg('satisfaction_rating');
-        $feedbackByType = SystemFeedback::groupBy('feedback_type')
-            ->selectRaw('feedback_type, count(*) as count')
-            ->get();
-        $feedbackByRating = SystemFeedback::groupBy('satisfaction_rating')
-            ->selectRaw('satisfaction_rating, count(*) as count')
-            ->get();
+public function analytics()
+{
+    $totalFeedbacks = SystemFeedback::count();
+    $averageRating = SystemFeedback::avg('satisfaction_rating') ?? 0;
+    
+    $passengerFeedbacks = SystemFeedback::where('user_type', 'passenger')->count();
+    $driverFeedbacks = SystemFeedback::where('user_type', 'driver')->count();
+    
+    $feedbackByType = SystemFeedback::groupBy('feedback_type')
+        ->selectRaw('feedback_type, count(*) as count')
+        ->orderBy('count', 'desc')
+        ->get();
+    
+    $feedbackByRating = SystemFeedback::groupBy('satisfaction_rating')
+        ->selectRaw('satisfaction_rating, count(*) as count')
+        ->orderBy('satisfaction_rating')
+        ->get();
 
-        return view('admin.feedback.analytics', compact(
-            'totalFeedbacks',
-            'averageRating',
-            'feedbackByType',
-            'feedbackByRating'
-        ));
-    }
+    return view('admin.feedback.analytics', compact(
+        'totalFeedbacks',
+        'averageRating',
+        'passengerFeedbacks',
+        'driverFeedbacks',
+        'feedbackByType',
+        'feedbackByRating'
+    ));
+}
 }

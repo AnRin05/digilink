@@ -14,6 +14,12 @@
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
+            <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
         </nav>
     </header>
     <main>
@@ -98,7 +104,6 @@
 @endif
 
 <script>
-// Enhanced confirmation for actions
 function confirmAction(action, name) {
     const messages = {
         'delete': `Are you sure you want to delete ${name}? This action cannot be undone.`,
@@ -109,7 +114,6 @@ function confirmAction(action, name) {
     return confirm(messages[action] || 'Are you sure?');
 }
 
-// Add event listeners for confirmation
 document.addEventListener('DOMContentLoaded', function() {
     const deleteButtons = document.querySelectorAll('.btn-delete');
     const approveButtons = document.querySelectorAll('.btn-approve');

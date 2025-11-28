@@ -16,8 +16,13 @@
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
-            
-            <!-- More Menu Trigger -->
+            <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
+                                                            <!-- More Menu Trigger -->
             <div class="more-menu-container">
                 <button class="more-menu-trigger" id="moreMenuTrigger">
                     <i class="fas fa-ellipsis-h"></i> More
@@ -59,10 +64,6 @@
                             <span>Reports / History</span>
                         </a>
                         
-                        <a href="{{ route('admin.notifications') }}" class="nav-item">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
-                        </a>
                     </nav>
                 </div>
             </div>
@@ -99,7 +100,7 @@
                     <h3>Pending Driver Approvals</h3>
                     <p>{{ $pendingDrivers->count() }}</p>
                 </div>
-                <!-- Add Booking Statistics -->
+                                                            <!-- Add Booking Statistics -->
                 <div class="stat-card">
                     <h3>Current Bookings</h3>
                     <p>{{ $currentBookingsCount }}</p>
@@ -120,7 +121,7 @@
             </div>
         </section>
 
-        <!-- Rest of your existing sections remain the same -->
+                                                            <!-- Rest of your existing sections remain the same -->
         <section class="admin-table-section">
             <div class="section-header">
                 <h2 class="section-title">Pending Driver Approvals</h2>
@@ -150,7 +151,7 @@
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                         
-                                        <!-- Approve Form -->
+                                                            <!-- Approve Form -->
                                         <form action="{{ route('admin.driver.approve', $driver->id) }}" method="POST" style="display: inline;">
                                             @csrf
                                             <button type="submit" class="admin-btn admin-btn-approve" onclick="return confirm('Approve this driver?')">
@@ -158,7 +159,7 @@
                                             </button>
                                         </form>
                                         
-                                        <!-- Reject Form -->
+                                                            <!-- Reject Form -->
                                         <form action="{{ route('admin.driver.reject', $driver->id) }}" method="POST" style="display: inline;">
                                             @csrf
                                             <button type="submit" class="admin-btn admin-btn-reject" onclick="return confirm('Reject this driver?')">
@@ -203,7 +204,7 @@
                         <tbody>
                             @foreach($passengers->take(5) as $passenger)
                             <tr>
-                                <td>{{ $passenger->name }}</td>
+                                <td>{{ $passenger->fullname }}</td>
                                 <td>{{ $passenger->email }}</td>
                                 <td>{{ $passenger->phone }}</td>
                                 <td>
@@ -229,38 +230,32 @@
     </main>
 
     <script>
-        // More Menu Functionality
         document.addEventListener('DOMContentLoaded', function() {
             const moreMenuTrigger = document.getElementById('moreMenuTrigger');
             const moreMenuDropdown = document.getElementById('moreMenuDropdown');
             const backButton = document.getElementById('backButton');
             
-            // Toggle more menu
             moreMenuTrigger.addEventListener('click', function(e) {
                 e.stopPropagation();
                 moreMenuDropdown.classList.toggle('active');
             });
-            
-            // Back button functionality
+
             backButton.addEventListener('click', function(e) {
                 e.stopPropagation();
                 moreMenuDropdown.classList.remove('active');
             });
-            
-            // Close menu when clicking outside
+
             document.addEventListener('click', function(e) {
                 if (!moreMenuDropdown.contains(e.target) && !moreMenuTrigger.contains(e.target)) {
                     moreMenuDropdown.classList.remove('active');
                 }
             });
             
-            // Prevent menu close when clicking inside
             moreMenuDropdown.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
         });
         
-        // Simple confirmation for actions
         function confirmAction(message) {
             return confirm(message || 'Are you sure?');
         }

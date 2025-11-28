@@ -18,18 +18,16 @@
 </head>
 <body>
     <div class="bookings-container">
-        <!-- Back Button -->
+                                                            <!-- Back Button -->
         <a href="{{ route('admin.reports') }}" class="back-button">
             <i class="fas fa-arrow-left"></i>
             Back to Reports
         </a>
-
-        <!-- Header -->
+                                                            <!-- Header -->
         <div class="bookings-header">
             <h1 class="header-title">{{ $title }}</h1>
         </div>
-
-        <!-- User Information -->
+                                                             <!-- User Information -->
         <div class="user-info-card">
             <h3>
                 <i class="fas fa-user"></i>
@@ -57,7 +55,7 @@
             </div>
         </div>
 
-        <!-- Bookings List -->
+                                                            <!-- Bookings List -->
         @if($completedBookings->count() > 0 || $cancelledBookings->count() > 0)
             <div class="bookings-grid">
                 @foreach(isset($completedBookings) ? $completedBookings : $cancelledBookings as $booking)
@@ -70,7 +68,7 @@
                     </div>
 
                     <div class="booking-details">
-                        <!-- Service Type -->
+                                                            <!-- Service Type -->
                         <div class="detail-row">
                             <span class="detail-label">
                                 <i class="fas fa-tasks"></i>
@@ -82,8 +80,7 @@
                                 </span>
                             </span>
                         </div>
-
-                        <!-- Route Information -->
+                                                            <!-- Route Information -->
                         <div class="route-info">
                             <div class="route-point">
                                 <div class="point-marker"></div>
@@ -97,8 +94,7 @@
                                 <span class="detail-value">{{ $booking->destinationLocation }}</span>
                             </div>
                         </div>
-
-                        <!-- Associated User -->
+                                                            <!-- Associated User -->
                         <div class="detail-row">
                             <span class="detail-label">
                                 <i class="fas {{ $type === 'passenger' ? 'fa-id-badge' : 'fa-user' }}"></i>
@@ -115,7 +111,7 @@
                             </span>
                         </div>
 
-                        <!-- Date & Time -->
+                                                            <!-- Date & Time -->
                         <div class="detail-row">
                             <span class="detail-label">
                                 <i class="fas fa-calendar"></i>

@@ -25,7 +25,6 @@ class RatingController extends Controller
             $booking = Booking::findOrFail($validated['booking_id']);
             $passengerId = auth('passenger')->id();
             
-            // Check if passenger owns this booking
             if ($booking->passengerID != $passengerId) {
                 return response()->json([
                     'success' => false,
@@ -33,7 +32,6 @@ class RatingController extends Controller
                 ], 403);
             }
             
-            // Check if booking is completed
             if ($booking->status !== 'completed') {
                 return response()->json([
                     'success' => false,
@@ -41,7 +39,6 @@ class RatingController extends Controller
                 ], 400);
             }
 
-            // Check if already rated
             if ($booking->review()->exists()) {
                 return response()->json([
                     'success' => false,
@@ -49,7 +46,6 @@ class RatingController extends Controller
                 ], 400);
             }
 
-            // Create review
             $review = Review::create([
                 'booking_id' => $validated['booking_id'],
                 'passenger_id' => $passengerId,
@@ -57,7 +53,6 @@ class RatingController extends Controller
                 'rating' => $validated['rating']
             ]);
 
-            // Calculate new average rating
             $driver = $review->driver;
             $averageRating = $driver->reviews()->avg('rating') ?? 0;
             $totalReviews = $driver->reviews()->count();
@@ -107,6 +102,41 @@ class RatingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch ratings'
+            ], 500);
+        }
+    }
+        public function checkRatingEligibility($id): JsonResponse
+    {
+        try {
+            $booking = Booking::findOrFail($id);
+            $passengerId = auth('passenger')->id();
+            
+            if ($booking->passengerID != $passengerId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            // Show rating section if booking is completed OR if passenger has confirmed
+            $canShowRating = $booking->status === 'completed' || $booking->completion_verified === 'passenger_confirmed';
+            $canSubmitRating = $booking->canBeRated();
+            $hasRated = $booking->review()->exists();
+
+            return response()->json([
+                'success' => true,
+                'can_show_rating' => $canShowRating,
+                'can_submit_rating' => $canSubmitRating,
+                'has_rated' => $hasRated,
+                'completion_status' => $booking->completion_verified,
+                'booking_status' => $booking->status
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error checking rating eligibility: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error checking rating eligibility'
             ], 500);
         }
     }

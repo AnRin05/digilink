@@ -481,7 +481,239 @@ section h3::after {
   font-size: 1rem;
   margin-bottom: 1rem;
 }
+/* Driver Actions Section - Fixed CSS */
+.actions-container {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    border: 2px solid var(--border-color);
+    margin-top: 2rem;
+}
 
+.actions-container h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--black);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.actions-container h3::before {
+    content: '⚡';
+    font-size: 1.2rem;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    width: 100%;
+}
+
+.actions-grid form {
+    display: flex;
+    width: 100%;
+}
+
+.actions-grid .btn {
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    width: 100%;
+    min-height: 54px;
+    position: relative;
+    overflow: hidden;
+}
+
+.actions-grid .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.actions-grid .btn:hover::before {
+    left: 100%;
+}
+
+/* Approve Button */
+.btn-approve {
+    background: linear-gradient(135deg, var(--success-green) 0%, #218838 100%);
+    color: white;
+    border: 2px solid var(--success-green);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-approve:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    border-color: #218838;
+}
+
+/* Reject Button */
+.btn-reject {
+    background: linear-gradient(135deg, var(--warning-orange) 0%, #e0a800 100%);
+    color: white;
+    border: 2px solid var(--warning-orange);
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.btn-reject:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+    border-color: #e0a800;
+}
+
+/* Delete Button */
+.btn-delete {
+    background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
+    color: white;
+    border: 2px solid var(--primary-red);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, var(--dark-red) 0%, #a71e2a 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+    border-color: var(--dark-red);
+}
+
+/* Secondary Button */
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    border: 2px solid #6c757d;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+    border-color: #5a6268;
+}
+
+/* Button Icons */
+.btn i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.btn:hover i {
+    transform: scale(1.2);
+}
+
+/* Status-specific styling for approved drivers */
+.driver-approved .btn-approve,
+.driver-approved .btn-reject {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.driver-approved .btn-approve:hover,
+.driver-approved .btn-reject:hover {
+    background: linear-gradient(135deg, var(--success-green) 0%, #218838 100%);
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+/* Responsive Design for Actions */
+@media (max-width: 768px) {
+    .actions-container {
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+    
+    .actions-grid .btn {
+        padding: 12px 16px;
+        min-height: 50px;
+        font-size: 0.85rem;
+    }
+    
+    .actions-container h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .actions-container {
+        padding: 1rem;
+        border-radius: 15px;
+    }
+    
+    .actions-grid .btn {
+        padding: 10px 14px;
+        min-height: 46px;
+        font-size: 0.8rem;
+    }
+    
+    .btn i {
+        font-size: 1rem;
+    }
+}
+
+/* Animation for button clicks */
+.btn:active {
+    transform: translateY(-1px) !important;
+    transition: transform 0.1s ease;
+}
+
+/* Focus states for accessibility */
+.btn:focus-visible {
+    outline: 3px solid rgba(220, 53, 69, 0.5);
+    outline-offset: 2px;
+}
+
+/* Loading state for forms */
+.btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
 .driver-stats {
   display: flex;
   justify-content: space-around;

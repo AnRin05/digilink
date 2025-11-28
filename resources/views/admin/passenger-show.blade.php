@@ -64,12 +64,10 @@
     </main>
 
     <script>
-        // Enhanced confirmation for delete action
         function confirmDelete() {
             return confirm('Are you sure you want to delete this passenger? This action cannot be undone.');
         }
         
-        // Add event listener for delete button
         document.addEventListener('DOMContentLoaded', function() {
             const deleteBtn = document.querySelector('.btn-danger');
             if (deleteBtn) {

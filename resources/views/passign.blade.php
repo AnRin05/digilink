@@ -11,12 +11,12 @@
     <title>FastLan - Passenger Signup</title>
 </head>
 <body>
-    <!-- Navigation -->
+                                                  <!-- Navigation -->
     <nav>
         @include('nav')
     </nav>
     
-    <!-- Signup Form -->
+                                                  <!-- Signup Form -->
     <div class="main-container">
         <div class="form-container">
             <div class="form-header">
@@ -105,7 +105,7 @@
         </div>
     </div>
 
-    <!-- Footer -->
+                                                  <!-- Footer -->
     <footer>
         @include('footer')
     </footer>
@@ -120,14 +120,13 @@
         function checkPasswordStrength(pass) {
             const hasUpper = /[A-Z]/.test(pass);
             const hasSymbolOrNumber = /[\d\W]/.test(pass);
-            const longEnough = pass.length >= 8; // Changed to 8 characters
+            const longEnough = pass.length >= 8;
             return hasUpper && hasSymbolOrNumber && longEnough;
         }
 
         form.addEventListener("submit", function(e) {
             let valid = true;
 
-            // Check strength
             if (!checkPasswordStrength(password.value)) {
                 passwordHelp.style.display = "block";
                 password.value = "";
@@ -137,7 +136,6 @@
                 passwordHelp.style.display = "none";
             }
 
-            // Check match
             if (password.value !== confirmPassword.value) {
                 confirmHelp.style.display = "block";
                 confirmPassword.value = "";
@@ -151,7 +149,6 @@
             }
         });
 
-        // Real-time password validation
         password.addEventListener('input', function() {
             if (password.value.length > 0 && !checkPasswordStrength(password.value)) {
                 passwordHelp.style.display = "block";
@@ -160,7 +157,6 @@
             }
         });
 
-        // Real-time confirm password validation
         confirmPassword.addEventListener('input', function() {
             if (confirmPassword.value.length > 0 && password.value !== confirmPassword.value) {
                 confirmHelp.style.display = "block";

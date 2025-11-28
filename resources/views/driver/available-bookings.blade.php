@@ -64,7 +64,6 @@
             const countElement = document.getElementById('bookingsCount');
             const emptyState = document.getElementById('emptyState');
             
-            // Show loading state
             grid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -174,11 +173,9 @@
                 });
         }
 
-        // Load bookings when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadAvailableBookings();
             
-            // Auto-refresh every 30 seconds
             setInterval(loadAvailableBookings, 30000);
         });
     </script>

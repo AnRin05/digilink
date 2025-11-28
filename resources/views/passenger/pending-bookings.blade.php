@@ -74,17 +74,14 @@
         </div>
 
         <div class="bookings-grid" id="bookingsList">
-            <!-- Bookings will be loaded here -->
+                                                            <!-- Bookings will be loaded here -->
         </div>
     </div>
 
     <script>
-        // Load pending bookings
         function loadPendingBookings() {
             const bookingsList = document.getElementById('bookingsList');
             const bookingsCount = document.getElementById('bookingsCount');
-
-            // Show loading state
             bookingsList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -241,7 +238,6 @@
                 });
         }
 
-        // Cancel booking function
         function cancelBooking(bookingId) {
             if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
                 return;
@@ -263,7 +259,7 @@
             .then(data => {
                 if (data.success) {
                     alert('Booking cancelled successfully!');
-                    loadPendingBookings(); // Reload the list
+                    loadPendingBookings();
                 } else {
                     throw new Error(data.message || 'Failed to cancel booking');
                 }
@@ -274,7 +270,6 @@
             });
         }
 
-        // Dropdown functionality
         document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
             e.stopPropagation();
             document.getElementById('dropdownMenu').classList.toggle('show');
@@ -286,11 +281,9 @@
             }
         });
 
-        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadPendingBookings();
-            
-            // Auto-refresh every 30 seconds
+
             setInterval(loadPendingBookings, 30000);
         });
     </script>

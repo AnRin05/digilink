@@ -124,10 +124,8 @@
 
     <script>
         function acceptBooking(bookingId) {
-            bookingId = parseInt(bookingId); // optional if you need a number instead of string
-
+            bookingId = parseInt(bookingId); 
             if (confirm('Are you sure you want to accept this booking?')) {
-                // Show loading state
                 const acceptBtn = document.querySelector('.btn-accept');
                 const originalText = acceptBtn.innerHTML;
                 acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';

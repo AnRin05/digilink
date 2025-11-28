@@ -61,12 +61,8 @@ class LoginController extends Controller
             ->withInput($request->only('email', 'remember'));
     }
 
-    /**
-     * Log out the authenticated user.
-     */
     public function logout(Request $request)
     {
-        // Use a single logout method for all guards
         if (Auth::guard('admin')->check()) {
             Auth::guard('admin')->logout();
         } elseif (Auth::guard('driver')->check()) {

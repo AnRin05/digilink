@@ -221,99 +221,6 @@
             transition: all 0.3s ease;
         }
 
-        .rating-section {
-    margin-top: 15px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 3px solid #ffc107;
-}
-
-.rating-section h4 {
-    color: #212529;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.rating-section p {
-    color: #495057;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-}
-
-.stars-container {
-    display: flex;
-    gap: 5px;
-    margin: 15px 0;
-    justify-content: center;
-}
-
-.rating-star {
-    font-size: 32px;
-    cursor: pointer;
-    color: #ddd;
-    transition: all 0.2s ease;
-    margin: 0 2px;
-}
-
-.rating-star:hover,
-.rating-star.active {
-    color: #ffc107;
-    transform: scale(1.2);
-}
-
-.rate-btn {
-    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-    color: #212529;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.9rem;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.rate-btn:hover {
-    background: linear-gradient(135deg, #e0a800 0%, #c69500 100%);
-    transform: translateY(-2px);
-}
-
-.rate-btn:disabled {
-    background: #bdc3c7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.rating-message {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-.rating-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.rating-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
         .info-card:hover {
             border-color: #007bff;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
@@ -648,17 +555,17 @@
                 <span class="status-badge in-progress" id="overallStatusBadge">IN PROGRESS</span>
                 <p style="margin-top: 10px;">Real-time driver location tracking</p>
             </div>
-                            <!-- Report/Help Section -->
+                                                            <!-- Report/Help Section -->
             <div class="info-card">
                 <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
                 <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Urgent Help Button -->
+                                                            <!-- Urgent Help Button -->
                     <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
                         <i class="fas fa-life-ring"></i>
                         Request Urgent Help
                     </button>
                     
-                    <!-- Complaint Button -->
+                                                            <!-- Complaint Button -->
                     <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
                         <i class="fas fa-flag"></i>
                         Submit Complaint
@@ -666,7 +573,7 @@
                 </div>
             </div>
 
-            <!-- Urgent Help Modal -->
+                                                            <!-- Urgent Help Modal -->
             <div id="urgentHelpModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
                 <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
                     <div class="modal-header" style="border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 20px;">
@@ -798,40 +705,18 @@
                 @endif
             </div>
 
-<div class="info-card">
-    <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
-    <div id="completionStatus">
-        <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
-    </div>
-    <div id="completionActions" style="margin-top: 15px;">
-        <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
-            <i class="fas fa-check"></i>
-            Confirm Trip Completion
-        </button>
-        <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
-    </div>
-
-    <!-- ADD THE RATING SECTION RIGHT HERE -->
-    <div id="ratingSection" style="display: none;">
-        <div class="rating-section">
-            <h4><i class="fas fa-star"></i> Rate Your Driver</h4>
-            <p>How was your experience with {{ $booking->driver->fullname ?? 'the driver' }}?</p>
-            
-            <div class="stars-container">
-                @for($i = 1; $i <= 5; $i++)
-                    <span class="rating-star" data-rating="{{ $i }}">☆</span>
-                @endfor
-            </div>
-            <input type="hidden" id="selectedRating" value="5">
-            
-            <button class="rate-btn" onclick="submitRating()" id="submitRatingBtn">
-                <i class="fas fa-paper-plane"></i>
-                Submit Rating
-            </button>
-            
-            <div id="ratingMessage" class="rating-message"></div>
-        </div>
-    </div>
+            <div class="info-card">
+                <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
+                <div id="completionStatus">
+                    <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
+                </div>
+                <div id="completionActions" style="margin-top: 15px;">
+                    <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
+                        <i class="fas fa-check"></i>
+                        Confirm Trip Completion
+                    </button>
+                    <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                </div>
                 <div class="cancel-section">
                     <div class="cancel-warning">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -999,117 +884,9 @@
                     ${bookingData.dropoff.address}
                 </div>
             `);
-
-        // Initialize rating system
-        initRatingSystem();
         startTrackingUpdates();
         startStatusUpdates();
     }
-
-    // RATING SYSTEM FUNCTIONS
-    function initRatingSystem() {
-        const stars = document.querySelectorAll('.rating-star');
-        const selectedRating = document.getElementById('selectedRating');
-        
-        // Initialize with 5 stars selected
-        if (stars.length > 0) {
-            setRating(5);
-        }
-        
-        // Add click events to stars
-        stars.forEach(star => {
-            star.addEventListener('click', function() {
-                const rating = parseInt(this.getAttribute('data-rating'));
-                setRating(rating);
-            });
-        });
-        
-        function setRating(rating) {
-            selectedRating.value = rating;
-            stars.forEach((star, index) => {
-                if (index < rating) {
-                    star.classList.add('active');
-                    star.textContent = '★';
-                } else {
-                    star.classList.remove('active');
-                    star.textContent = '☆';
-                }
-            });
-        }
-    }
-
-    function submitRating() {
-        const rating = document.getElementById('selectedRating').value;
-        const bookingId = bookingData.id;
-        const driverId = bookingData.driver_id;
-        const btn = document.getElementById('submitRatingBtn');
-        const messageDiv = document.getElementById('ratingMessage');
-        
-        if (!rating) {
-            messageDiv.innerHTML = '<div class="rating-error">Please select a rating</div>';
-            return;
-        }
-        
-        // Show loading state
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        btn.disabled = true;
-        
-        // Submit rating
-        fetch('/digilink/public/passenger/submit-rating', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                booking_id: bookingId,
-                driver_id: driverId,
-                rating: parseInt(rating)
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                messageDiv.innerHTML = `<div class="rating-success">${data.message}</div>`;
-                btn.style.display = 'none';
-                
-                // Show success message and option to go back
-                setTimeout(() => {
-                    document.getElementById('ratingSection').innerHTML = `
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> 
-                            <strong>Thank you for your rating!</strong><br>
-                            You rated: ${'★'.repeat(rating)}${'☆'.repeat(5-rating)} (${rating}/5)
-                        </div>
-                        <button class="btn btn-primary" onclick="goToBookings()" style="width: 100%; margin-top: 10px;">
-                            <i class="fas fa-arrow-left"></i> Back to My Bookings
-                        </button>
-                    `;
-                }, 1500);
-            } else {
-                throw new Error(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            messageDiv.innerHTML = '<div class="rating-error">Failed to submit rating. Please try again.</div>';
-        })
-        .finally(() => {
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Rating';
-            btn.disabled = false;
-        });
-    }
-
-    function goToBookings() {
-        window.location.href = "{{ route('passenger.pending.bookings') }}";
-    }
-
-    // MODIFIED COMPLETION FUNCTION - Doesn't redirect automatically
     function confirmCompletion() {
         if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
             return;
@@ -1136,16 +913,14 @@
                 updateCompletionStatus(data.completion_status, data.is_completed);
                 showCompletionMessage(data.message, 'success');
                 
-                if (data.is_completed) {
-                    stopTracking();
-                    updateStatusDisplay('completed');
-                    
-                    // Show rating section instead of redirecting
-                    document.getElementById('ratingSection').style.display = 'block';
-                    
-                    // Show message about rating
-                    showCompletionMessage('Trip completed! Please rate your driver below.', 'success');
-                }
+                // ALWAYS redirect to trip-completed page after successful confirmation
+                console.log('Redirecting to trip completed page...');
+                stopTracking();
+                updateStatusDisplay('completed');
+                
+                // Immediate redirect without delay
+                window.location.href = `/digilink/public/passenger/trip-completed/${bookingData.id}`;
+                
             } else {
                 throw new Error(data.message || 'Failed to confirm completion');
             }
@@ -1157,17 +932,16 @@
             confirmBtn.disabled = false;
         });
     }
+        function startTrackingUpdates() {
+            console.log('Starting tracking updates...');
+            updateDriverLocation();
+            updateInterval = setInterval(updateDriverLocation, 3000);
+        }
 
-    function startTrackingUpdates() {
-        console.log('Starting tracking updates...');
-        updateDriverLocation();
-        updateInterval = setInterval(updateDriverLocation, 3000);
-    }
-
-    function startStatusUpdates() {
-        updateBookingStatus();
-        statusInterval = setInterval(updateBookingStatus, 10000);
-    }
+        function startStatusUpdates() {
+            updateBookingStatus();
+            statusInterval = setInterval(updateBookingStatus, 10000);
+        }
 
     function updateBookingStatus() {
         fetch(`/digilink/public/passenger/get-booking-location/${bookingData.id}?_t=${Date.now()}`)
@@ -1180,13 +954,22 @@
                 if (data.success) {
                     updateStatusDisplay(data.booking.status);
                     
-                    // Show rating section if booking is completed and not already rated
-                    if (data.booking.status === 'completed' && data.booking.completion_verified === 'both_confirmed') {
-                        document.getElementById('ratingSection').style.display = 'block';
-                        document.getElementById('confirmCompletionBtn').style.display = 'none';
+                    // Update completion status based on backend data
+                    if (data.booking.completion_verified) {
+                        updateCompletionStatus(data.booking.completion_verified, data.booking.status === 'completed');
                     }
                     
-                    if (['completed', 'cancelled'].includes(data.booking.status)) {
+                    // If booking is completed OR passenger has confirmed, redirect to trip completed page
+                    if (data.booking.status === 'completed' || 
+                        data.booking.completion_verified === 'passenger_confirmed' ||
+                        data.booking.completion_verified === 'both_confirmed') {
+                        stopTracking();
+                        setTimeout(() => {
+                            window.location.href = `/digilink/public/passenger/trip-completed/${bookingData.id}`;
+                        }, 1000);
+                    }
+                    
+                    if (data.booking.status === 'cancelled') {
                         stopTracking();
                     }
                 }
@@ -1195,7 +978,6 @@
                 console.error('Error fetching booking status:', error);
             });
     }
-
     function updateStatusDisplay(status) {
         const config = statusConfig[status] || statusConfig.in_progress;
         
@@ -1220,6 +1002,11 @@
         const cancelBtn = document.getElementById('cancelBookingBtn');
         if (cancelBtn && (status === 'completed' || status === 'cancelled')) {
             cancelBtn.style.display = 'none';
+        }
+        
+        const confirmBtn = document.getElementById('confirmCompletionBtn');
+        if (confirmBtn && status === 'completed') {
+            confirmBtn.style.display = 'none';
         }
     }
 
@@ -1251,8 +1038,8 @@
                 <div class="status-item ${isActive ? 'active' : ''}">
                     <div class="status-icon ${config.timeline.icon} ${isPast ? 'completed' : ''}">
                         ${isActive && status !== 'completed' ? '<i class="fas fa-sync-alt fa-spin"></i>' : 
-                          isPast ? '<i class="fas fa-check"></i>' : 
-                          `<i class="fas fa-${getStatusIcon(status)}"></i>`}
+                        isPast ? '<i class="fas fa-check"></i>' : 
+                        `<i class="fas fa-${getStatusIcon(status)}"></i>`}
                     </div>
                     <div class="status-details">
                         <strong>${config.timeline.title}</strong>
@@ -1415,6 +1202,7 @@
         }
     }
 
+    // ... rest of the functions (cancelOngoingBooking, showUrgentHelpModal, etc.) remain the same
     function cancelOngoingBooking() {
         if (!confirm('Are you sure you want to cancel this ongoing trip?\n\n⚠️ This action cannot be undone. The driver will be notified immediately.')) {
             return;
@@ -1452,7 +1240,6 @@
         });
     }
 
-    // Report/Help Functions
     function showUrgentHelpModal() {
         document.getElementById('urgentHelpModal').style.display = 'flex';
     }

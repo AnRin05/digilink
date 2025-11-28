@@ -342,7 +342,7 @@
             <p class="text-gray-600">Help us improve FastLan by sharing your experience</p>
         </div>
 
-        <!-- Display Success/Error Messages -->
+                                                            <!-- Display Success/Error Messages -->
         @if(session('success'))
             <div class="alert alert-success mb-6">
                 <i class="fas fa-check-circle"></i> {{ session('success') }}
@@ -359,14 +359,14 @@
             <form action="{{ route('feedback.store') }}" method="POST" id="feedbackForm">
                 @csrf
 
-                <!-- Debug info (remove in production) -->
+                                                            <!-- Debug info (remove in production) -->
                 <div style="background: #f3f4f6; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 12px;">
                     <strong>Information:</strong> 
                     User Type: {{ $userType ?? 'Unknown' }}, 
                     User Name: {{ $user->fullname ?? 'Unknown' }}
                 </div>
 
-                <!-- Satisfaction Rating -->
+                                                            <!-- Satisfaction Rating -->
                 <div class="mb-8">
                     <label class="block text-lg font-semibold text-gray-900 mb-4">
                         How satisfied are you with FastLan? *
@@ -387,7 +387,7 @@
                     @enderror
                 </div>
 
-                <!-- Feedback Type -->
+                                                            <!-- Feedback Type -->
                 <div class="mb-6">
                     <label for="feedback_type" class="block text-sm font-medium text-gray-700 mb-2">
                         What is this feedback about? *
@@ -406,7 +406,7 @@
                     @enderror
                 </div>
 
-                <!-- Reason for Low Rating (Conditional) -->
+                                                            <!-- Reason for Low Rating (Conditional) -->
                 <div id="reasonSection" class="mb-6 hidden">
                     <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
                         What was the main reason for your low rating? *
@@ -417,7 +417,7 @@
                     @enderror
                 </div>
 
-                <!-- Positive Feedback -->
+                                                            <!-- Positive Feedback -->
                 <div class="mb-6">
                     <label for="positive_feedback" class="block text-sm font-medium text-gray-700 mb-2">
                         What do you like about FastLan? (Optional)
@@ -425,7 +425,7 @@
                     <textarea name="positive_feedback" id="positive_feedback" rows="3" placeholder="Tell us what you enjoy about using our service...">{{ old('positive_feedback') }}</textarea>
                 </div>
 
-                <!-- Improvement Suggestions -->
+                                                            <!-- Improvement Suggestions -->
                 <div class="mb-6">
                     <label for="improvements" class="block text-sm font-medium text-gray-700 mb-2">
                         How can we improve? (Optional)
@@ -433,7 +433,7 @@
                     <textarea name="improvements" id="improvements" rows="3" placeholder="Any suggestions for improvement...">{{ old('improvements') }}</textarea>
                 </div>
 
-                <!-- Privacy Options -->
+                                                            <!-- Privacy Options -->
                 <div class="mb-6 space-y-4">
                     <div class="flex items-center">
                         <input type="checkbox" name="is_anonymous" id="is_anonymous" value="1" {{ old('is_anonymous') ? 'checked' : '' }}>
@@ -460,7 +460,7 @@
                     </div>
                 </div>
 
-                <!-- Submit Button -->
+                                                            <!-- Submit Button -->
                 <div class="flex justify-end space-x-4">
                     <a href="{{ url()->previous() }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                         Cancel
@@ -496,20 +496,17 @@
                 5: 'Very Satisfied 😄'
             };
 
-            // Initialize with old data if exists
             const oldRating = satisfactionRating.value;
             if (oldRating) {
                 updateRatingDisplay(parseInt(oldRating));
             }
 
-            // Star rating functionality
             ratingStars.forEach(star => {
                 star.addEventListener('click', function() {
                     const rating = parseInt(this.dataset.rating);
                     updateRatingDisplay(rating);
                 });
 
-                // Add hover effect
                 star.addEventListener('mouseenter', function() {
                     const rating = parseInt(this.dataset.rating);
                     ratingStars.forEach((s, index) => {
@@ -535,7 +532,6 @@
                 console.log('Setting rating:', rating);
                 satisfactionRating.value = rating;
                 
-                // Update stars display
                 ratingStars.forEach((s, index) => {
                     const icon = s.querySelector('i');
                     if (index < rating) {
@@ -544,11 +540,9 @@
                         icon.className = 'far fa-star text-gray-300';
                     }
                 });
-                
-                // Update rating text
+
                 ratingText.textContent = ratingTexts[rating];
                 
-                // Show/hide reason section for low ratings
                 if (rating <= 2) {
                     reasonSection.classList.remove('hidden');
                     document.getElementById('reason').setAttribute('required', 'required');
@@ -558,7 +552,6 @@
                 }
             }
 
-            // Contact email toggle
             if (contactCheckbox && contactEmailSection) {
                 contactCheckbox.addEventListener('change', function() {
                     if (this.checked) {
@@ -568,13 +561,11 @@
                     }
                 });
 
-                // Initialize contact email section
                 if (contactCheckbox.checked) {
                     contactEmailSection.classList.remove('hidden');
                 }
             }
 
-            // Form validation
             const feedbackForm = document.getElementById('feedbackForm');
             if (feedbackForm) {
                 feedbackForm.addEventListener('submit', function(e) {

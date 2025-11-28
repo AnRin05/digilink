@@ -18,13 +18,13 @@
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
             
-            <!-- More Menu Trigger -->
+                                                            <!-- More Menu Trigger -->
             <div class="more-menu-container">
                 <button class="more-menu-trigger" id="moreMenuTrigger">
                     <i class="fas fa-ellipsis-h"></i> More
                 </button>
                 
-                <!-- More Menu Dropdown -->
+                                                            <!-- More Menu Dropdown -->
                 <div class="more-menu-dropdown" id="moreMenuDropdown">
                     <div class="more-menu-header">
                         <h3>More Options</h3>
@@ -59,11 +59,6 @@
                             <i class="fas fa-file-alt"></i>
                             <span>Reports / History</span>
                         </a>
-                        
-                        <a href="{{ route('admin.notifications') }}" class="nav-item">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
-                        </a>
                     </nav>
                 </div>
             </div>
@@ -90,7 +85,7 @@
         @endif
 
         <div class="charts-grid">
-            <!-- Graph 1: Bookings by Status -->
+                                                            <!-- Graph 1: Bookings by Status -->
             <div class="chart-card">
                 <div class="chart-header">
                     <h3>Bookings by Status</h3>
@@ -106,7 +101,7 @@
                 </div>
             </div>
 
-            <!-- Graph 2: Account Creation -->
+                                                            <!-- Graph 2: Account Creation -->
             <div class="chart-card">
                 <div class="chart-header">
                     <h3>Account Creation</h3>
@@ -122,7 +117,7 @@
                 </div>
             </div>
 
-            <!-- Graph 3: Service Type Distribution -->
+                                                            <!-- Graph 3: Service Type Distribution -->
             <div class="chart-card">
                 <div class="chart-header">
                     <h3>Service Type Distribution</h3>
@@ -148,17 +143,13 @@
     </main>
 
     <script>
-        // PHP data converted to JavaScript
         const bookingsData = @json($bookingsData);
         const accountCreationData = @json($accountCreationData);
         const serviceTypeData = @json($serviceTypeData);
-
-        // Initialize charts
         let bookingsChart, accountsChart, serviceTypeChart;
         let currentBookingsPeriod = 'today';
         let currentAccountsPeriod = 'today';
 
-        // Bookings Chart
         function initBookingsChart(period = 'today') {
             const ctx = document.getElementById('bookingsChart').getContext('2d');
             const data = bookingsData[period];
@@ -219,7 +210,6 @@
             });
         }
 
-        // Accounts Chart
         function initAccountsChart(period = 'today') {
             const ctx = document.getElementById('accountsChart').getContext('2d');
             const data = accountCreationData[period];
@@ -274,7 +264,6 @@
             });
         }
 
-        // Service Type Chart
         function initServiceTypeChart() {
             const ctx = document.getElementById('serviceTypeChart').getContext('2d');
             
@@ -312,14 +301,11 @@
             });
         }
 
-        // Tab functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize charts
             initBookingsChart();
             initAccountsChart();
             initServiceTypeChart();
 
-            // Bookings time tabs
             document.querySelectorAll('#bookingsTimeTabs .time-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     document.querySelectorAll('#bookingsTimeTabs .time-tab').forEach(t => t.classList.remove('active'));
@@ -329,7 +315,6 @@
                 });
             });
 
-            // Accounts time tabs
             document.querySelectorAll('#accountsTimeTabs .time-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     document.querySelectorAll('#accountsTimeTabs .time-tab').forEach(t => t.classList.remove('active'));

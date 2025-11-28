@@ -395,4 +395,9 @@ class Booking extends Model
             !$this->review()->exists() &&
             $this->completion_verified === self::VERIFICATION_BOTH_CONFIRMED;
     }
+    public function canShowRatingSection()
+    {
+        return $this->status === self::STATUS_COMPLETED && 
+            !$this->review()->exists();
+    }
 }

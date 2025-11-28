@@ -16,14 +16,13 @@
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('admin.passengers') }}"><i class="fas fa-users"></i> Passengers</a>
             <a href="{{ route('admin.drivers') }}"><i class="fas fa-id-card"></i> Drivers</a>
-            
-            <!-- More Menu Trigger -->
+
             <div class="more-menu-container">
                 <button class="more-menu-trigger" id="moreMenuTrigger">
                     <i class="fas fa-ellipsis-h"></i> More
                 </button>
                 
-                <!-- More Menu Dropdown -->
+                                                            <!-- More Menu Dropdown -->
                 <div class="more-menu-dropdown" id="moreMenuDropdown">
                     <div class="more-menu-header">
                         <h3>More Options</h3>
@@ -57,11 +56,6 @@
                         <a href="{{ route('admin.reports') }}" class="nav-item">
                             <i class="fas fa-file-alt"></i>
                             <span>Reports / History</span>
-                        </a>
-                        
-                        <a href="{{ route('admin.notifications') }}" class="nav-item">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
                         </a>
                     </nav>
                 </div>

@@ -10,7 +10,7 @@
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
-    <!-- Navbar -->
+                                                            <!-- Navbar -->
     <nav class="navbar">
         <a href="/" class="nav-brand">Fast<span>Lan</span></a>
         <a href="{{ route('passenger.dashboard') }}" class="back-link">
@@ -19,10 +19,10 @@
         <h1 class="page-title">Edit Profile</h1>
     </nav>
 
-    <!-- Main Container -->
+                                                            <!-- Main Container -->
     <div class="main-container">
         <div class="card">
-            <!-- Success/Error Messages -->
+                                                            <!-- Success/Error Messages -->
             @if(session('success'))
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle"></i>
@@ -46,7 +46,7 @@
                 </div>
             @endif
 
-            <!-- Profile Image Section -->
+                                                            <!-- Profile Image Section -->
             <div class="profile-section">
                 <div class="profile-image-container" onclick="document.getElementById('profile_image').click()">
                     <img id="profileImage" 
@@ -65,12 +65,11 @@
                 <p class="profile-hint">Click on the image to change your profile picture</p>
             </div>
 
-            <!-- Edit Form -->
+                                                            <!-- Edit Form -->
             <form action="{{ route('passenger.update') }}" method="POST" enctype="multipart/form-data" class="form-section">
                 @csrf
                 @method('PUT')
-
-                <!-- Full Name -->
+                                                            <!-- Full Name -->
                 <div class="form-group">
                     <label for="fullname" class="form-label">
                         Full Name<span class="required">*</span>
@@ -83,7 +82,7 @@
                            class="form-input">
                 </div>
 
-                <!-- Email -->
+                                                            <!-- Email -->
                 <div class="form-group">
                     <label for="email" class="form-label">
                         Email Address<span class="required">*</span>
@@ -96,7 +95,7 @@
                            class="form-input">
                 </div>
 
-                <!-- Phone -->
+                                                            <!-- Phone -->
                 <div class="form-group">
                     <label for="phone" class="form-label">
                         Phone Number<span class="required">*</span>
@@ -108,15 +107,13 @@
                            required
                            class="form-input">
                 </div>
-
-                <!-- Hidden Profile Image Input -->
+                                                            <!-- Hidden Profile Image Input -->
                 <input type="file" 
                        name="profile_image" 
                        id="profile_image_input" 
                        class="hidden" 
                        accept="image/jpeg,image/png,image/jpg,image/gif">
-
-                <!-- Action Buttons -->
+                                                            <!-- Action Buttons -->
                 <div class="button-group">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Changes
@@ -126,16 +123,14 @@
                         <i class="fas fa-trash"></i> Delete Account
                     </button>
                 </div>
-
-                <!-- Cancel Link -->
+                                                            <!-- Cancel Link -->
                 <a href="{{ route('passenger.dashboard') }}" class="cancel-link">
                     <i class="fas fa-times"></i> Cancel
                 </a>
             </form>
         </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
+                                                            <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <h3 class="modal-title">Delete Account</h3>
@@ -156,20 +151,17 @@
     </div>
 
     <script>
-        // Image preview functionality
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('profileImage').src = e.target.result;
-                    // Also set the hidden input for form submission
                     document.getElementById('profile_image_input').files = input.files;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // Delete account confirmation
         function confirmDelete() {
             document.getElementById('deleteModal').classList.add('active');
         }
@@ -178,14 +170,12 @@
             document.getElementById('deleteModal').classList.remove('active');
         }
 
-        // Close modal when clicking outside
         document.getElementById('deleteModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeDeleteModal();
             }
         });
 
-        // Escape key to close modal
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeDeleteModal();

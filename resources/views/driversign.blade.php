@@ -197,7 +197,6 @@
         const passwordStrengthMeter = document.getElementById("passwordStrengthMeter");
         const passwordFeedback = document.getElementById("passwordFeedback");
 
-        // Password strength checker
         function checkPasswordStrength(pass) {
             let strength = 0;
             let feedback = "";
@@ -207,7 +206,6 @@
             if (/[0-9]/.test(pass)) strength += 1;
             if (/[!@#$%^&*(),.?":{}|<>]/.test(pass)) strength += 1;
             
-            // Update strength meter
             if (pass.length === 0) {
                 passwordStrengthMeter.className = "password-strength-meter";
                 passwordStrengthMeter.style.width = "0";
@@ -229,17 +227,14 @@
             return strength >= 3 && pass.length >= 5;
         }
 
-        // Update progress bar
         function updateProgressBar() {
     const fields = [...form.querySelectorAll('input[required], select[required]')];
     let filled = 0;
     
     fields.forEach(field => {
         if (field.type === 'checkbox') {
-            // For checkboxes, check if they're checked
             if (field.checked) filled++;
         } else {
-            // For other fields, check if they have a value
             if (field.value.trim() !== '') filled++;
         }
     });
@@ -249,21 +244,18 @@
     progressText.textContent = Math.round(progress) + '% Complete';
 }
 form.addEventListener("reset", function () {
-    // Reset progress bar
     progressFill.style.width = "0%";
     progressText.textContent = "0% Complete";
 
-    // Also clear password strength meter & feedback
     passwordStrengthMeter.className = "password-strength-meter";
     passwordStrengthMeter.style.width = "0";
     passwordFeedback.textContent = "";
 });
 
-        // Event listeners
+
         form.addEventListener("input", function(e) {
             updateProgressBar();
             
-            // Check password strength in real-time
             if (e.target.id === "password") {
                 checkPasswordStrength(e.target.value);
             }
@@ -272,7 +264,6 @@ form.addEventListener("reset", function () {
         form.addEventListener("submit", function(e) {
             let valid = true;
 
-            // Check password strength
             if (!checkPasswordStrength(password.value)) {
                 document.getElementById("passwordError").textContent = "Password must be at least 5 characters and include uppercase, number, and symbol";
                 document.getElementById("passwordError").style.display = "block";
@@ -283,7 +274,6 @@ form.addEventListener("reset", function () {
                 document.getElementById("passwordError").style.display = "none";
             }
 
-            // Check password confirmation
             if (password.value !== confirmPassword.value) {
                 document.getElementById("confirmPasswordError").textContent = "Passwords do not match";
                 document.getElementById("confirmPasswordError").style.display = "block";
@@ -293,7 +283,6 @@ form.addEventListener("reset", function () {
                 document.getElementById("confirmPasswordError").style.display = "none";
             }
 
-            // Validate all required fields
             form.querySelectorAll('input[required], select[required]').forEach(field => {
                 const errorEl = document.getElementById(field.id + 'Error');
                 if (field.hasAttribute('required') && !field.value.trim()) {
@@ -315,7 +304,6 @@ form.addEventListener("reset", function () {
 
             if (!valid) {
                 e.preventDefault();
-                // Scroll to first error
                 const firstError = form.querySelector('.error-message[style="display: block"]');
                 if (firstError) {
                     firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -323,7 +311,6 @@ form.addEventListener("reset", function () {
             }
         });
 
-        // Initialize progress bar
         updateProgressBar();
     </script>
 </body>

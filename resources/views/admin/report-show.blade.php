@@ -24,7 +24,7 @@
     <main class="admin-main">
         <div class="report-details-container">
             <div class="details-grid">
-                <!-- Report Information -->
+                                                            <!-- Report Information -->
                 <div class="detail-section">
                     <h3>Report Information</h3>
                     <div class="detail-card">
@@ -47,7 +47,7 @@
                     </div>
                 </div>
 
-                <!-- Booking Information -->
+                                                            <!-- Booking Information -->
                 <div class="detail-section">
                     <h3>Booking Information</h3>
                     <div class="detail-card">
@@ -70,7 +70,7 @@
                     </div>
                 </div>
 
-                <!-- Location Information -->
+                                                            <!-- Location Information -->
                 <div class="detail-section">
                     <h3>Location Information</h3>
                     <div class="detail-card">
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <!-- Report Description -->
+                                                            <!-- Report Description -->
                 <div class="detail-section full-width">
                     <h3>Report Description</h3>
                     <div class="detail-card">
@@ -101,7 +101,7 @@
                     </div>
                 </div>
 
-                <!-- Admin Response Form -->
+                                                            <!-- Admin Response Form -->
                 <div class="detail-section full-width">
                     <h3>Admin Response</h3>
                     <form action="{{ route('admin.reports.update', $report->id) }}" method="POST" class="response-form">
