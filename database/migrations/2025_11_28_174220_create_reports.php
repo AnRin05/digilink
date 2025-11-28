@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
+        Schema::dropIfExists('reports');
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('report_type');

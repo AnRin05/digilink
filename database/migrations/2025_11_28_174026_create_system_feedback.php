@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
+        Schema::dropIfExists('system_feedback');
         Schema::create('system_feedback', function (Blueprint $table) {
             $table->id();
             $table->foreignId('passenger_id')->nullable()->constrained('passengers')->onDelete('cascade');

@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
+        Schema::dropIfExists('booking_history');
         Schema::create('booking_history', function (Blueprint $table) {
             $table->id('history_id');
             $table->unsignedInteger('booking_id'); // References bookingID from bookings table

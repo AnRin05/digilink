@@ -39,9 +39,9 @@
                         <i class="fas fa-history"></i>
                         Ride History
                     </a>
-                    <a href="#" class="dropdown-item">
+                    <a href="{{ route('feedback.create') }}" class="dropdown-item">
                         <i class="fas fa-cog"></i>
-                        Settings
+                        System Feedback
                     </a>
                     <a href="#" class="dropdown-item logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="fas fa-sign-out-alt"></i>
