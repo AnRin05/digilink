@@ -23,8 +23,11 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-.env.local
-.env.*.local
-/node_modules
-.env.local
-storage/logs/
+
+
+
+
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
