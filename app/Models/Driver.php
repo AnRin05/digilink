@@ -24,15 +24,15 @@ class Driver extends Authenticatable
         'plateNumber',
         'vehicleReg',
         'orcrUpload',
+        'profile_image',
         'password',
+        'is_approved',
         'currentLocation',
         'current_lat',
         'current_lng',
         'completedBooking',
         'availStatus',
         'serviceType',
-        'is_approved',
-        'profile_image',
     ];
 
     protected $hidden = [

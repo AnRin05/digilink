@@ -6,11 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        // First, drop the problematic table if it exists
+        Schema::dropIfExists('drivers');
+        
+        // Then create with the corrected structure
         Schema::create('drivers', function (Blueprint $table) {
             $table->id();
             $table->string('fullname');
@@ -24,9 +25,12 @@ return new class extends Migration
             $table->string('plateNumber')->unique();
             $table->string('vehicleReg');
             $table->string('orcrUpload');
+            $table->string('profile_image')->nullable();
             $table->string('password');
+            $table->boolean('is_approved')->default(false);
             $table->rememberToken();
             $table->timestamps();
+            
             $table->enum('currentLocation', [
                 'all',
                 'Anomar',
@@ -62,17 +66,15 @@ return new class extends Migration
                 'Trinidad',
                 'Washington'
             ])->default('all');
-            $table->decimal('current_lat', 10, 8)->nullable()->after('currentLocation');
-            $table->decimal('current_lng', 11, 8)->nullable()->after('current_lat');
+            
+            $table->decimal('current_lat', 10, 8)->nullable();
+            $table->decimal('current_lng', 11, 8)->nullable();
             $table->enum('serviceType', ['Ride', 'Delivery', 'Both'])->default('Ride');
             $table->integer('completedBooking')->default(0);
             $table->boolean('availStatus')->default(false);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('drivers');

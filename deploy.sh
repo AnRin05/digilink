@@ -5,16 +5,17 @@ echo "Starting Laravel deployment..."
 # Generate application key
 php artisan key:generate
 
-# Run database migrations
-php artisan migrate --force
+# Clear cache
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
 
-# Clear and cache config
+# Run database migrations with force
+php artisan migrate:refresh --force
+
+# Cache everything for production
 php artisan config:cache
-
-# Clear and cache routes
 php artisan route:cache
-
-# Clear and cache views
 php artisan view:cache
 
 # Optimize the application
