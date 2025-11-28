@@ -9,7 +9,7 @@ class Booking extends Model
 {
     use HasFactory;
 
-    // Primary key
+    // Primary key configuration
     protected $primaryKey = 'bookingID';
     public $incrementing = true;
     protected $keyType = 'int';
@@ -38,13 +38,13 @@ class Booking extends Model
 
     // Attribute casting
     protected $casts = [
-        'fare'             => 'decimal:2',
-        'pickupLatitude'   => 'decimal:8',
-        'pickupLongitude'  => 'decimal:8',
-        'dropoffLatitude'  => 'decimal:8',
+        'fare' => 'decimal:2',
+        'pickupLatitude' => 'decimal:8',
+        'pickupLongitude' => 'decimal:8',
+        'dropoffLatitude' => 'decimal:8',
         'dropoffLongitude' => 'decimal:8',
-        'timeStamp'        => 'datetime',
-        'scheduleTime'     => 'datetime',
+        'timeStamp' => 'datetime',
+        'scheduleTime' => 'datetime',
         'driver_completed_at' => 'datetime',
         'passenger_completed_at' => 'datetime',
     ];
