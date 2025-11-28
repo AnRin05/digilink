@@ -6,14 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::dropIfExists('booking_history');
+        
         Schema::create('booking_history', function (Blueprint $table) {
             $table->id('history_id');
-            $table->unsignedInteger('booking_id'); // References bookingID from bookings table
-            $table->unsignedInteger('passenger_id');
-            $table->unsignedInteger('driver_id')->nullable();
+            
+            // Foreign keys - MUST match the data type of the referenced columns
+            $table->unsignedBigInteger('booking_id'); // Changed to unsignedBigInteger to match bookingID
+            $table->unsignedBigInteger('passenger_id'); // Changed to unsignedBigInteger
+            $table->unsignedBigInteger('driver_id')->nullable(); // Changed to unsignedBigInteger
             
             // Booking details (copied from bookings table)
             $table->string('pickup_location');
@@ -47,7 +50,7 @@ return new class extends Migration
             // Timestamps
             $table->timestamps();
             
-            // Foreign keys
+            // Foreign keys - updated to match the correct column names
             $table->foreign('booking_id')->references('bookingID')->on('bookings')->onDelete('cascade');
             $table->foreign('passenger_id')->references('passengerID')->on('passengers')->onDelete('cascade');
             $table->foreign('driver_id')->references('driverID')->on('drivers')->onDelete('cascade');
@@ -63,7 +66,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('booking_history');
     }

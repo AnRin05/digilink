@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop existing bookings table if it exists
         Schema::dropIfExists('bookings');
         
         Schema::create('bookings', function (Blueprint $table) {
-            // Primary key
+            // Primary key - using regular id() which creates unsignedBigInteger
             $table->id('bookingID');
             
-            // Foreign keys
+            // Foreign keys - make sure these match the primary key types of passengers and drivers
             $table->unsignedBigInteger('passengerID');
             $table->unsignedBigInteger('driverID')->nullable();
             
@@ -65,9 +64,9 @@ return new class extends Migration
             // Timestamps
             $table->timestamps();
             
-            // Foreign key constraints
-            $table->foreign('passengerID')->references('id')->on('passengers')->onDelete('cascade');
-            $table->foreign('driverID')->references('id')->on('drivers')->onDelete('set null');
+            // Foreign key constraints - updated to match the actual primary key names
+            $table->foreign('passengerID')->references('passengerID')->on('passengers')->onDelete('cascade');
+            $table->foreign('driverID')->references('driverID')->on('drivers')->onDelete('set null');
             
             // Indexes for better performance
             $table->index(['status', 'driverID']);

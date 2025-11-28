@@ -6,27 +6,38 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::dropIfExists('reviews');
+        
         Schema::create('reviews', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('booking_id')->constrained('bookings', 'bookingID')->onDelete('cascade');
-            $table->foreignId('passenger_id')->constrained('passengers')->onDelete('cascade');
-            $table->foreignId('driver_id')->constrained('drivers')->onDelete('cascade');
-            $table->integer('rating')->unsigned()->default(5);
-            $table->timestamps();
-
-            // Ensure one review per booking
-            $table->unique(['booking_id']);
+            $table->id('reviewID');
             
-            // Indexes for performance
+            // Foreign keys - all unsignedBigInteger to match primary keys
+            $table->unsignedBigInteger('booking_id');
+            $table->unsignedBigInteger('passenger_id');
+            $table->unsignedBigInteger('driver_id');
+            
+            $table->integer('rating')->unsigned();
+            $table->text('comment')->nullable();
+            $table->enum('type', ['passenger_to_driver', 'driver_to_passenger'])->default('passenger_to_driver');
+            $table->timestamps();
+            
+            // Foreign keys
+            $table->foreign('booking_id')->references('bookingID')->on('bookings')->onDelete('cascade');
+            $table->foreign('passenger_id')->references('passengerID')->on('passengers')->onDelete('cascade');
+            $table->foreign('driver_id')->references('driverID')->on('drivers')->onDelete('cascade');
+            
+            // Unique constraint
+            $table->unique(['booking_id', 'type']);
+            
+            // Indexes
             $table->index(['driver_id', 'rating']);
-            $table->index(['passenger_id']);
+            $table->index(['passenger_id', 'created_at']);
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('reviews');
     }
