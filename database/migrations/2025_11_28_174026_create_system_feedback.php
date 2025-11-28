@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::dropIfExists('system_feedback');
         Schema::create('system_feedback', function (Blueprint $table) {
             $table->id();
+            // FIXED: foreignId automatically references 'id' from the table
             $table->foreignId('passenger_id')->nullable()->constrained('passengers')->onDelete('cascade');
             $table->foreignId('driver_id')->nullable()->constrained('drivers')->onDelete('cascade');
             $table->enum('user_type', ['passenger', 'driver']);

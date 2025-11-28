@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -13,7 +14,7 @@ return new class extends Migration
         Schema::create('reviews', function (Blueprint $table) {
             $table->id('reviewID');
             
-            // Foreign keys - all unsignedBigInteger to match primary keys
+            // Foreign keys
             $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('passenger_id');
             $table->unsignedBigInteger('driver_id');
@@ -23,10 +24,10 @@ return new class extends Migration
             $table->enum('type', ['passenger_to_driver', 'driver_to_passenger'])->default('passenger_to_driver');
             $table->timestamps();
             
-            // Foreign keys
+            // FIXED: Reference 'id' not 'passengerID' or 'driverID'
             $table->foreign('booking_id')->references('bookingID')->on('bookings')->onDelete('cascade');
-            $table->foreign('passenger_id')->references('passengerID')->on('passengers')->onDelete('cascade');
-            $table->foreign('driver_id')->references('driverID')->on('drivers')->onDelete('cascade');
+            $table->foreign('passenger_id')->references('id')->on('passengers')->onDelete('cascade');
+            $table->foreign('driver_id')->references('id')->on('drivers')->onDelete('cascade');
             
             // Unique constraint
             $table->unique(['booking_id', 'type']);

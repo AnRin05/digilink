@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('admin_notes')->nullable();
             $table->timestamps();
 
+            // bookingID is correct here since bookings uses bookingID
             $table->foreign('booking_id')->references('bookingID')->on('bookings')->onDelete('cascade');
         });
     }
