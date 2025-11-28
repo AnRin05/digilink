@@ -25,5 +25,6 @@ Thumbs.db
 
 .env.local
 .env.*.local
+/node_modules
+.env.local
 storage/logs/
-bootstrap/cache/

@@ -1,5 +1,5 @@
 [build]
-builder = "dockerfile"
+builder = "nixpacks"
 
 [deploy]
-startCommand = "php artisan migrate --force && apache2-foreground"
+startCommand = "vendor/bin/heroku-php-apache2 public/"
