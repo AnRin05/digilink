@@ -13,12 +13,12 @@ return new class extends Migration
         Schema::create('booking_history', function (Blueprint $table) {
             $table->id('history_id');
             
-            // Foreign keys - MUST match the data type of the referenced columns
-            $table->unsignedBigInteger('booking_id'); // Changed to unsignedBigInteger to match bookingID
-            $table->unsignedBigInteger('passenger_id'); // Changed to unsignedBigInteger
-            $table->unsignedBigInteger('driver_id')->nullable(); // Changed to unsignedBigInteger
+            // Foreign keys - MUST match the actual primary key column names
+            $table->unsignedBigInteger('booking_id');
+            $table->unsignedBigInteger('passenger_id');
+            $table->unsignedBigInteger('driver_id')->nullable();
             
-            // Booking details (copied from bookings table)
+            // Booking details
             $table->string('pickup_location');
             $table->string('dropoff_location');
             $table->decimal('pickup_latitude', 10, 8)->nullable();
@@ -50,12 +50,12 @@ return new class extends Migration
             // Timestamps
             $table->timestamps();
             
-            // Foreign keys - updated to match the correct column names
+            // FIXED: Reference 'id' not 'passengerID', 'driverID', 'bookingID'
             $table->foreign('booking_id')->references('bookingID')->on('bookings')->onDelete('cascade');
-            $table->foreign('passenger_id')->references('passengerID')->on('passengers')->onDelete('cascade');
-            $table->foreign('driver_id')->references('driverID')->on('drivers')->onDelete('cascade');
+            $table->foreign('passenger_id')->references('id')->on('passengers')->onDelete('cascade');
+            $table->foreign('driver_id')->references('id')->on('drivers')->onDelete('cascade');
             
-            // Indexes for better performance
+            // Indexes
             $table->index('booking_id');
             $table->index('passenger_id');
             $table->index('driver_id');
