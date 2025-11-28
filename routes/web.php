@@ -128,7 +128,7 @@ Route::prefix('driver')->group(function () {
     Route::get('/rating-data', [DriverController::class, 'seeRatingData'])->name('driver.rating.data');
 });
 
-// Admin Routes
+//  Admin Routes
 Route::prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/passengers', [AdminController::class, 'passengers'])->name('admin.passengers');
