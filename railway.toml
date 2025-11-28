@@ -1,2 +1,5 @@
 [build]
 builder = "dockerfile"
+
+[deploy]
+startCommand = "php artisan migrate --force && apache2-foreground"
