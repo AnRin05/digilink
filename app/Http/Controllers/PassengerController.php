@@ -102,97 +102,114 @@ class PassengerController extends Controller
 
 public function bookRide(Request $request)
 {
-    $passenger = Auth::guard('passenger')->user();
+    try {
+        $passenger = Auth::guard('passenger')->user();
 
-    $activeBookingsCount = Booking::where('passengerID', $passenger->id)
-        ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])
-        ->count();
-
-    if ($activeBookingsCount >= 3) {
-        if ($request->ajax() || $request->wantsJson()) {
+        // Debug: Check if passenger is authenticated
+        if (!$passenger) {
+            logger('Passenger not authenticated');
             return response()->json([
                 'success' => false,
-                'message' => 'You cannot book more than 3 bookings at a time. Please wait for your current booking to be completed or cancelled.'
+                'message' => 'Passenger not authenticated. Please login again.'
+            ], 401);
+        }
+
+        logger("Passenger attempting to book: " . $passenger->id . " - " . $passenger->email);
+
+        $activeBookingsCount = Booking::where('passengerID', $passenger->id)
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])
+            ->count();
+
+        logger("Active bookings count: " . $activeBookingsCount);
+
+        if ($activeBookingsCount >= 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot book more than 3 bookings at a time.'
             ], 422);
         }
-        return redirect()->back()->with('error',
-            'You cannot book more than 3 bookings at a time. Please wait for your current booking to be completed or cancelled.');
-    }
 
-    $request->validate([
-        'pickupLocation' => 'required|string|max:255',
-        'dropoffLocation' => 'required|string|max:255',
-        'pickupLatitude' => 'required|numeric',
-        'pickupLongitude' => 'required|numeric',
-        'dropoffLatitude' => 'required|numeric',
-        'dropoffLongitude' => 'required|numeric',
-        'serviceType' => 'required|in:booking_to_go,for_delivery',
-        'fare' => 'required|numeric|min:0',
-        'paymentMethod' => 'required|in:cash,gcash',
-        'description' => 'nullable|string|max:500',
-        'scheduleTime' => 'nullable|date|after:now',
-    ]);
+        $validated = $request->validate([
+            'pickupLocation' => 'required|string|max:255',
+            'dropoffLocation' => 'required|string|max:255',
+            'pickupLatitude' => 'required|numeric',
+            'pickupLongitude' => 'required|numeric',
+            'dropoffLatitude' => 'required|numeric',
+            'dropoffLongitude' => 'required|numeric',
+            'serviceType' => 'required|in:booking_to_go,for_delivery',
+            'fare' => 'required|numeric|min:0',
+            'paymentMethod' => 'required|in:cash,gcash',
+            'description' => 'nullable|string|max:500',
+            'scheduleTime' => 'nullable|date|after:now',
+        ]);
 
-    try {
         DB::beginTransaction();
-
-        $fare = $request->fare;
 
         $bookingData = [
             'passengerID' => $passenger->id,
             'driverID' => null,
-            'pickupLocation' => $request->pickupLocation,
-            'dropoffLocation' => $request->dropoffLocation,
+            'pickupLocation' => $validated['pickupLocation'],
+            'dropoffLocation' => $validated['dropoffLocation'],
             'status' => Booking::STATUS_PENDING,
-            'fare' => $fare,
-            'pickupLatitude' => $request->pickupLatitude,
-            'pickupLongitude' => $request->pickupLongitude,
-            'dropoffLatitude' => $request->dropoffLatitude,
-            'dropoffLongitude' => $request->dropoffLongitude,
-            'serviceType' => $request->serviceType,
-            'description' => $request->description,
-            'paymentMethod' => $request->paymentMethod,
+            'fare' => $validated['fare'],
+            'pickupLatitude' => $validated['pickupLatitude'],
+            'pickupLongitude' => $validated['pickupLongitude'],
+            'dropoffLatitude' => $validated['dropoffLatitude'],
+            'dropoffLongitude' => $validated['dropoffLongitude'],
+            'serviceType' => $validated['serviceType'],
+            'description' => $validated['description'] ?? null,
+            'paymentMethod' => $validated['paymentMethod'],
             'timeStamp' => now(),
         ];
 
         if ($request->filled('scheduleTime')) {
-            $bookingData['scheduleTime'] = $request->scheduleTime;
+            $bookingData['scheduleTime'] = $validated['scheduleTime'];
         }
 
-        // ONLY CREATE THE BOOKING - NO BOOKING HISTORY FOR NEW BOOKINGS
+        logger('Attempting to create booking with data:', $bookingData);
+
         $booking = Booking::create($bookingData);
+
+        logger('Booking created successfully. ID: ' . $booking->bookingID);
 
         DB::commit();
 
-        $message = ($request->serviceType === 'for_delivery' ? 'Delivery' : 'Ride') . ' booked successfully! Fare: ₱' . number_format($fare, 2);
+        $message = ($validated['serviceType'] === 'for_delivery' ? 'Delivery' : 'Ride') . ' booked successfully! Fare: ₱' . number_format($validated['fare'], 2);
         if ($request->filled('scheduleTime')) {
-            $message .= ' (Scheduled for ' . Carbon::parse($request->scheduleTime)->format('M d, Y h:i A') . ')';
+            $message .= ' (Scheduled for ' . Carbon::parse($validated['scheduleTime'])->format('M d, Y h:i A') . ')';
         } else {
             $message .= '. A driver will be assigned soon.';
         }
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'booking_id' => $booking->bookingID
-            ]);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'booking_id' => $booking->bookingID
+        ]);
 
-        return redirect()->route('passenger.dashboard')->with('success', $message);
-
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        DB::rollBack();
+        logger('Validation error: ' . json_encode($e->errors()));
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+        
     } catch (\Exception $e) {
         DB::rollBack();
-        Log::error('Booking error: ' . $e->getMessage());
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Booking Successful.'
-            ], 500);
+        logger('Booking error: ' . $e->getMessage());
+        logger('Error trace: ' . $e->getTraceAsString());
+        
+        // Check for specific database errors
+        if (str_contains($e->getMessage(), 'SQLSTATE')) {
+            logger('SQL Error: ' . $e->getMessage());
         }
 
-        return redirect()->back()->with('error', 'An error occurred while creating your booking. Please try again.');
+        return response()->json([
+            'success' => false,
+            'message' => 'Booking failed: ' . $e->getMessage()
+        ], 500);
     }
 }
 
