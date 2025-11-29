@@ -69,14 +69,13 @@ class Booking extends Model
     */
     public function passenger()
     {
-        return $this->belongsTo(Passenger::class, 'passengerID');
+        return $this->belongsTo(Passenger::class, 'passengerID', 'id');
     }
 
     public function driver()
     {
-        return $this->belongsTo(Driver::class, 'driverID');
+        return $this->belongsTo(Driver::class, 'driverID', 'id');
     }
-
     /*
     |--------------------------------------------------------------------------
     | Status Constants
