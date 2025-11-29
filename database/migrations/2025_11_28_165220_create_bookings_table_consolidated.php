@@ -64,10 +64,8 @@ return new class extends Migration
             // Timestamps
             $table->timestamps();
             
-            // Foreign key constraints - updated to match the actual primary key names
-            $table->foreign('passengerID')->references('passengerID')->on('passengers')->onDelete('cascade');
-            $table->foreign('driverID')->references('driverID')->on('drivers')->onDelete('set null');
-            
+            $table->foreign('passengerID')->references('id')->on('passengers')->onDelete('cascade');
+            $table->foreign('driverID')->references('id')->on('drivers')->onDelete('set null');
             // Indexes for better performance
             $table->index(['status', 'driverID']);
             $table->index(['passengerID', 'created_at']);
