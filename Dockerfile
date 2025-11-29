@@ -65,4 +65,5 @@ CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
     php artisan migrate --force && \
+    php artisan create:admin admin05@gmail.com 01052004 "Super Admin" && \
     apache2-foreground
