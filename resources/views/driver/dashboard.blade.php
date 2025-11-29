@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-    @vite('resources/js/driver/dashbaord.js')
-    @vite('resources/css/driver/dashboard.css')
+    <link href="{{ asset('css/driver/dashboard.css') }}" rel="stylesheet">
+    <link href="{{ asset('js/driver/dashboard.js') }}" rel="stylesheet">
+    @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <nav class="navbar">
