@@ -95,7 +95,7 @@
 </style>
 
         <div class="nav-left">
-           <a href="/digilink/public" class="nav-brand">Fast<span>Lan</span></a>
+           <a href="{{ route(name: 'home') }}" class="nav-brand">Fast<span>Lan</span></a>
         </div>
         <div class="nav-middle">
         </div>

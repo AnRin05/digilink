@@ -359,7 +359,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="nav-brand">Fast<span>Lan</span></a>
+        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
         <div class="nav-links">
             <a href="{{ route('passenger.pending.bookings') }}" class="nav-link">
                 <i class="fas fa-arrow-left"></i> Back to Bookings

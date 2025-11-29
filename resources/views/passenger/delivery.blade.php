@@ -18,7 +18,7 @@
 <body>
                                                             <!-- Navbar -->
     <nav class="navbar">
-        <a href="/digilink/public" class="nav-brand">Fast<span>Lan</span></a>
+        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
         <div class="nav-links">
             <a href="{{ route('passenger.dashboard') }}" class="nav-link">Ride Service</a>
             <a href="{{ route('passenger.edit') }}" class="nav-link">Edit Profile</a>

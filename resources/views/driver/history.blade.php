@@ -13,7 +13,7 @@
 <body>
     <div class="bg-decoration"></div>
         <nav class="navbar">
-        <a href="/" class="nav-brand">Fast<span>Lan</span></a>
+        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
         <div class="nav-links">
             <a href="{{ route('passenger.edit') }}" class="nav-link">Edit Profile</a>
             <div class="user-profile-dropdown">

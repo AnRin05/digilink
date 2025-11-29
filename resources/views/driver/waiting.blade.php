@@ -79,7 +79,7 @@
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <a href="/digilink/public" class="btn btn-primary">
+                    <a href="{{ route(name: 'home') }}" class="btn btn-primary">
                         <i class="fas fa-home"></i> Return to Home
                     </a>
                 </div>

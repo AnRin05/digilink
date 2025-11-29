@@ -12,7 +12,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="nav-brand">Fast<span>Lan</span></a>
+        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
         <div class="nav-links">
             <a href="{{ route('driver.dashboard') }}" class="nav-link">Dashboard</a>
             <a href="{{ route('driver.availableBookings') }}" class="nav-link">Available Bookings</a>

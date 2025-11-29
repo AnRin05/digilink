@@ -208,7 +208,7 @@
                 </a>
             @endif
             
-            <a href="{{ url('/') }}" class="block w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+            <a href="{{ route(name: 'home') }}" class="block w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
                 Go to Homepage
             </a>
         </div>

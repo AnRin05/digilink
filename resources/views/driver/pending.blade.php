@@ -14,7 +14,7 @@
 <body>
     <nav>
         <div class="nav-left">
-            <a href="/digilink/public" class="nav-brand">Fast<span>Lan</span></a>
+            <a href="#" class="nav-brand">Fast<span>Lan</span></a>
         </div>
         <div class="nav-right">
             <ul>

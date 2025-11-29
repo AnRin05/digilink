@@ -15,7 +15,7 @@
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <nav class="navbar">
-        <a href="/" class="nav-brand">Fast<span>Lan</span></a>
+        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
         <div class="nav-links">
             <a href="{{ route('driver.dashboard') }}" class="nav-link">Driver Dashboard</a>
             <a href="{{ route('driver.edit') }}" class="nav-link">Edit Account</a>
