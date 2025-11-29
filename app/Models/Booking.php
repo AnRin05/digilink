@@ -8,13 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Booking extends Model
 {
     use HasFactory;
-
-    // Primary key configuration
-    protected $primaryKey = 'bookingID';
-    public $incrementing = true;
-    protected $keyType = 'int';
-
-    // Mass assignable fields
     protected $fillable = [
         'passengerID',
         'driverID',
