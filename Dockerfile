@@ -1,6 +1,16 @@
+# Frontend build stage
+FROM node:18-alpine as frontend
+
+WORKDIR /var/www/html
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# PHP application stage
 FROM php:8.2-apache
 
-# Install system dependencies including Node.js
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,9 +19,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    default-mysql-client \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+    default-mysql-client
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -28,11 +36,12 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
+# Copy built frontend assets from the frontend stage
+COPY --from=frontend /var/www/html/public/build ./public/build
+COPY --from=frontend /var/www/html/node_modules ./node_modules
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
-
-# Install Node.js dependencies and build frontend assets
-RUN npm install && npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage
