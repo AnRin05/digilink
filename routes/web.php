@@ -22,7 +22,20 @@ use Illuminate\Support\Facades\DB;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
+Route::get('css/{file}', function ($file) {
+    $path = resource_path("css/{$file}");
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    $content = file_get_contents($path);
+    $version = filemtime($path); 
+    
+    return response($content)
+        ->header('Content-Type', 'text/css')
+        ->header('Cache-Control', 'public, max-age=31536000')
+        ->header('ETag', $version);
+});
 // Public routes for home page, choice, and login/signup
 Route::get('/', function () {
     return view('index');
