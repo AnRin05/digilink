@@ -40,7 +40,7 @@ class ReportResponseNotification extends Notification implements ShouldQueue
             ->line('Booking ID: ' . $this->report->booking_id)
             ->line('Status: ' . ucfirst($this->report->status))
             ->line('')
-            ->action('View Booking Details', url('/bookings/' . $this->report->booking_id))
+            ->action('View Booking Details', route('driver.bookingDetails', $this->report->booking_id))
             ->line('Thank you for using our service!');
     }
 }
