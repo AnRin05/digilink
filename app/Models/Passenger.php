@@ -40,9 +40,13 @@ class Passenger extends Authenticatable
             ->exists();
     }
 
+    #public function getAverageSatisfactionRating()
+    #{
+     #   return $this->systemFeedbacks()->avg('satisfaction_rating') ?: 0;
+    #}
     public function getAverageSatisfactionRating()
-    {
-        return $this->systemFeedbacks()->avg('satisfaction_rating') ?: 0;
-    }
+   {
+       return (int) ($this->systemFeedbacks()->avg('satisfaction_rating') ?? 0);
+   }
 
 }
