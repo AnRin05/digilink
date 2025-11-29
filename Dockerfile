@@ -1,4 +1,14 @@
-FROM php:8.2-apache
+# Multi-stage build for frontend (Node.js)
+FROM node:18-alpine as frontend-build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Final stage with PHP
+FROM php:8.1-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -8,8 +18,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip \
-    default-mysql-client
+    unzip
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -17,34 +26,28 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Get latest Composer
+# Copy Composer executable
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copy built frontend assets from the frontend-build stage
+COPY --from=frontend-build /app/public/build /app/public/build
+COPY --from=frontend-build /app/node_modules /app/node_modules
+
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /app
 
 # Copy application files
 COPY . .
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage
-RUN chown -R www-data:www-data /var/www/html/bootstrap/cache
-
-# Enable Apache mod_rewrite
+# Configure Apache
 RUN a2enmod rewrite
-
-# Copy Apache configuration
 COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Expose port
-EXPOSE 8080
+# Set permissions
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Start command
-CMD php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan migrate --force && \
-    apache2-foreground
+EXPOSE 80
+CMD ["apache2-foreground"]
