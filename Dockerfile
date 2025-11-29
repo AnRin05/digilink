@@ -1,12 +1,21 @@
-# Build stage for Node assets
+# -------------------------
+# 1. Build Vite assets
+# -------------------------
 FROM node:18 AS node_builder
 WORKDIR /app
+
+# Install node dependencies
 COPY package*.json ./
 RUN npm install
+
+# Build assets
 COPY . .
 RUN npm run build
 
-# PHP stage
+
+# -------------------------
+# 2. PHP + Apache runtime
+# -------------------------
 FROM php:8.2-apache
 
 # Install system dependencies
@@ -20,41 +29,38 @@ RUN apt-get update && apt-get install -y \
     unzip \
     default-mysql-client
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Get latest Composer
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Copy Apache config
+COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
+RUN a2ensite 000-default.conf
+
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
+# Copy application source
 COPY . .
 
-# Copy built assets from node_builder stage
+# Copy built node assets from builder stage
 COPY --from=node_builder /app/public/build ./public/build
 
-# Install PHP dependencies
+# Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage
-RUN chown -R www-data:www-data /var/www/html/bootstrap/cache
+# Set correct permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Expose Apache port
+EXPOSE 80
 
-# Copy Apache configuration
-COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
-
-# Expose port
-EXPOSE 8080
-
-# Start command
+# Start services
 CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
