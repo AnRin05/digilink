@@ -4,10 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Booking extends Model
 {
     use HasFactory;
+
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'bookingID';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'passengerID',
         'driverID',
@@ -29,7 +43,11 @@ class Booking extends Model
         'completion_verified',
     ];
 
-    // Attribute casting
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
     protected $casts = [
         'fare' => 'decimal:2',
         'pickupLatitude' => 'decimal:8',
@@ -40,22 +58,16 @@ class Booking extends Model
         'scheduleTime' => 'datetime',
         'driver_completed_at' => 'datetime',
         'passenger_completed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-    public function passenger()
-    {
-        return $this->belongsTo(Passenger::class, 'passengerID');
-    }
-
-    public function driver()
-    {
-        return $this->belongsTo(Driver::class, 'driverID');
-    }
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = true;
 
     /*
     |--------------------------------------------------------------------------
@@ -68,7 +80,7 @@ class Booking extends Model
     const STATUS_COMPLETED   = 'completed';
     const STATUS_CANCELLED   = 'cancelled';
 
-        /*
+    /*
     |--------------------------------------------------------------------------
     | Completion Verification Constants
     |--------------------------------------------------------------------------
@@ -93,6 +105,31 @@ class Booking extends Model
     */
     const PAYMENT_CASH  = 'cash';
     const PAYMENT_GCASH = 'gcash';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+    public function passenger()
+    {
+        return $this->belongsTo(Passenger::class, 'passengerID', 'passengerID');
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class, 'driverID', 'driverID');
+    }
+
+    public function history()
+    {
+        return $this->hasOne(BookingHistory::class, 'booking_id', 'bookingID');
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'booking_id', 'bookingID');
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -134,16 +171,14 @@ class Booking extends Model
         return $query->whereDate('created_at', today());
     }
 
-    public function cancelAndRelease()
+    public function scopeActive($query)
     {
-        $this->driverID = null;
-        $this->status = self::STATUS_PENDING;
-        return $this->save();
+        return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_IN_PROGRESS]);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Business Logic Helpers
+    | Business Logic Methods
     |--------------------------------------------------------------------------
     */
     public function isAvailable()
@@ -161,6 +196,29 @@ class Booking extends Model
         return is_null($this->scheduleTime) || $this->scheduleTime->isPast();
     }
 
+    public function canBeCancelled()
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_ACCEPTED]);
+    }
+
+    public function canBeRated()
+    {
+        return $this->status === self::STATUS_COMPLETED && 
+            !$this->review()->exists() &&
+            $this->completion_verified === self::VERIFICATION_BOTH_CONFIRMED;
+    }
+
+    public function canShowRatingSection()
+    {
+        return $this->status === self::STATUS_COMPLETED && 
+            !$this->review()->exists();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status Transition Methods
+    |--------------------------------------------------------------------------
+    */
     public function accept($driverId)
     {
         $this->driverID = $driverId;
@@ -185,28 +243,20 @@ class Booking extends Model
         return $this->save();
     }
 
-    public function markAsCompleted()
-    {
-        $this->update([
-            'status' => self::STATUS_COMPLETED,
-            'driver_completed_at' => now(),
-            'completion_verified' => self::VERIFICATION_BOTH_CONFIRMED
-        ]);
-
-        if ($this->driver) {
-            $this->driver->increment('completedBooking');
-        }
-
-        return $this;
-    }
-
     public function cancel()
     {
         $this->status = self::STATUS_CANCELLED;
         return $this->save();
     }
 
-        /*
+    public function cancelAndRelease()
+    {
+        $this->driverID = null;
+        $this->status = self::STATUS_PENDING;
+        return $this->save();
+    }
+
+    /*
     |--------------------------------------------------------------------------
     | Completion Verification Methods
     |--------------------------------------------------------------------------
@@ -220,7 +270,6 @@ class Booking extends Model
                 : self::VERIFICATION_DRIVER_CONFIRMED
         ]);
 
-        // If both confirmed, complete the booking
         if ($this->completion_verified === self::VERIFICATION_BOTH_CONFIRMED) {
             $this->completeBooking();
         }
@@ -235,7 +284,6 @@ class Booking extends Model
                 : self::VERIFICATION_PASSENGER_CONFIRMED
         ]);
 
-        // If both confirmed, complete the booking
         if ($this->completion_verified === self::VERIFICATION_BOTH_CONFIRMED) {
             $this->completeBooking();
         }
@@ -246,10 +294,19 @@ class Booking extends Model
         $this->status = self::STATUS_COMPLETED;
         $this->save();
 
-        // Increment driver's completed bookings count
         if ($this->driver) {
             $this->driver->incrementCompletedBookings();
         }
+    }
+
+    public function markAsCompleted()
+    {
+        return $this->update([
+            'status' => self::STATUS_COMPLETED,
+            'driver_completed_at' => now(),
+            'passenger_completed_at' => now(),
+            'completion_verified' => self::VERIFICATION_BOTH_CONFIRMED
+        ]);
     }
 
     public function getCompletionStatus()
@@ -282,22 +339,22 @@ class Booking extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Accessors
+    | Accessors & Mutators
     |--------------------------------------------------------------------------
     */
-    public function getFormattedFare()
+    public function getFormattedFareAttribute()
     {
         return '₱' . number_format((float) $this->fare, 2);
     }
 
-    public function getFormattedScheduleTime()
+    public function getFormattedScheduleTimeAttribute()
     {
         return $this->scheduleTime
             ? $this->scheduleTime->format('M d, Y h:i A')
             : 'Immediate';
     }
 
-    public function getPaymentMethodDisplay()
+    public function getPaymentMethodDisplayAttribute()
     {
         return match ($this->paymentMethod) {
             self::PAYMENT_CASH  => 'Cash',
@@ -306,7 +363,7 @@ class Booking extends Model
         };
     }
 
-    public function getServiceTypeDisplay()
+    public function getServiceTypeDisplayAttribute()
     {
         return match ($this->serviceType) {
             self::SERVICE_BOOKING_TO_GO => 'Ride',
@@ -315,21 +372,21 @@ class Booking extends Model
         };
     }
 
-    public function canBeCancelled()
-    {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_ACCEPTED]);
-    }
-
-    public function getBookingType()
+    public function getBookingTypeAttribute()
     {
         return $this->isScheduled() ? 'Scheduled' : 'Immediate';
     }
 
-       protected static function boot()
+    /*
+    |--------------------------------------------------------------------------
+    | Model Events
+    |--------------------------------------------------------------------------
+    */
+    protected static function boot()
     {
         parent::boot();
 
-        // Create history record when booking is completed or cancelled
+        // Create history record when booking status changes to completed or cancelled
         static::updated(function ($booking) {
             if ($booking->isDirty('status') && 
                 in_array($booking->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED])) {
@@ -337,7 +394,7 @@ class Booking extends Model
             }
         });
 
-        // Also create history record when booking is created (for immediate history tracking)
+        // Create initial history record when booking is created
         static::created(function ($booking) {
             $booking->createHistoryRecord();
         });
@@ -350,47 +407,30 @@ class Booking extends Model
     */
     public function createHistoryRecord()
     {
-        BookingHistory::create([
-            'booking_id' => $this->bookingID,
-            'passenger_id' => $this->passengerID,
-            'driver_id' => $this->driverID,
-            'pickup_location' => $this->pickupLocation,
-            'dropoff_location' => $this->dropoffLocation,
-            'pickup_latitude' => $this->pickupLatitude,
-            'pickup_longitude' => $this->pickupLongitude,
-            'dropoff_latitude' => $this->dropoffLatitude,
-            'dropoff_longitude' => $this->dropoffLongitude,
-            'fare' => $this->fare,
-            'status' => $this->status,
-            'service_type' => $this->serviceType,
-            'payment_method' => $this->paymentMethod,
-            'description' => $this->description,
-            'schedule_time' => $this->scheduleTime,
-            'driver_completed_at' => $this->driver_completed_at,
-            'passenger_completed_at' => $this->passenger_completed_at,
-            'completion_verified' => $this->completion_verified,
-        ]);
-    }
-
-    public function history()
-    {
-        return $this->hasOne(BookingHistory::class, 'booking_id', 'bookingID');
-    }
-                                                                 // In Booking.php model
-    public function review()
-    {
-        return $this->hasOne(Review::class, 'booking_id', 'bookingID');
-    }
-
-    public function canBeRated()
-    {
-        return $this->status === self::STATUS_COMPLETED && 
-            !$this->review()->exists() &&
-            $this->completion_verified === self::VERIFICATION_BOTH_CONFIRMED;
-    }
-    public function canShowRatingSection()
-    {
-        return $this->status === self::STATUS_COMPLETED && 
-            !$this->review()->exists();
+        // Make sure BookingHistory model exists and has the correct structure
+        if (class_exists(BookingHistory::class)) {
+            BookingHistory::create([
+                'booking_id' => $this->bookingID,
+                'passenger_id' => $this->passengerID,
+                'driver_id' => $this->driverID,
+                'pickup_location' => $this->pickupLocation,
+                'dropoff_location' => $this->dropoffLocation,
+                'pickup_latitude' => $this->pickupLatitude,
+                'pickup_longitude' => $this->pickupLongitude,
+                'dropoff_latitude' => $this->dropoffLatitude,
+                'dropoff_longitude' => $this->dropoffLongitude,
+                'fare' => $this->fare,
+                'status' => $this->status,
+                'service_type' => $this->serviceType,
+                'payment_method' => $this->paymentMethod,
+                'description' => $this->description,
+                'schedule_time' => $this->scheduleTime,
+                'driver_completed_at' => $this->driver_completed_at,
+                'passenger_completed_at' => $this->passenger_completed_at,
+                'completion_verified' => $this->completion_verified,
+                'created_at' => $this->created_at,
+                'updated_at' => $this->updated_at,
+            ]);
+        }
     }
 }
