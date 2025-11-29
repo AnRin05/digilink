@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 class Driver extends Authenticatable
 {
@@ -47,6 +48,37 @@ class Driver extends Authenticatable
         'current_lng' => 'float',
         'availStatus' => 'boolean',
     ];
+
+        public function setPasswordAttribute($value)
+    {
+        // Only hash if the value is not already hashed
+        if (!empty($value) && !preg_match('/^\$2y\$/', $value)) {
+            $this->attributes['password'] = Hash::make($value);
+        } else {
+            $this->attributes['password'] = $value;
+        }
+    }
+
+    /**
+     * Custom password verification that handles both bcrypt and plain text
+     */
+    public function validatePassword($password)
+    {
+        // If password is bcrypted, use Hash::check
+        if (preg_match('/^\$2y\$/', $this->password)) {
+            return Hash::check($password, $this->password);
+        }
+        
+        // If password is plain text, compare directly (and then migrate to bcrypt)
+        if ($this->password === $password) {
+            // Migrate to bcrypt
+            $this->password = Hash::make($password);
+            $this->save();
+            return true;
+        }
+        
+        return false;
+    }
 
     public function bookings()
     {
