@@ -13,7 +13,7 @@
     
     @yield('styles')
     
-    @vite('resources/js/login.js')
+    @vite('resources/js/app.js')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
