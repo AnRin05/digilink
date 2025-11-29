@@ -1,13 +1,12 @@
-# Frontend build stage
-FROM node:18-alpine as frontend
-
-WORKDIR /var/www/html
+# Build stage for Node assets
+FROM node:18 AS node_builder
+WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-# PHP application stage
+# PHP stage
 FROM php:8.2-apache
 
 # Install system dependencies
@@ -36,15 +35,15 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Copy built frontend assets from the frontend stage
-COPY --from=frontend /var/www/html/public/build ./public/build
-# COPY --from=frontend /var/www/html/node_modules ./node_modules  # Remove this line
+# Copy built assets from node_builder stage
+COPY --from=node_builder /app/public/build ./public/build
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage
+RUN chown -R www-data:www-data /var/www/html/bootstrap/cache
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -55,7 +54,7 @@ COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 # Expose port
 EXPOSE 8080
 
-# Start command - REMOVED npm run build since assets are already built
+# Start command
 CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
