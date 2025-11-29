@@ -1,0 +1,481 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #212529;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.navbar {
+    background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.nav-brand {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #dc3545;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.nav-brand:hover {
+    transform: translateY(-2px);
+}
+
+.nav-brand span {
+    color: white;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    min-height: 44px;
+}
+
+.nav-link:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.nav-link:active {
+    transform: scale(0.98);
+}
+
+.main-container {
+    max-width: 800px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+}
+
+.page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.back-link {
+    color: #6c757d;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 0.9rem;
+}
+
+.back-link:hover {
+    color: #dc3545;
+}
+
+.back-link:active {
+    transform: scale(0.98);
+}
+
+.edit-form {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.95rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    min-height: 44px;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    border-color: #dc3545;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-input:hover:not(:focus),
+.form-textarea:hover:not(:focus),
+.form-select:hover:not(:focus) {
+    border-color: #ced4da;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    padding: 12px 14px;
+}
+
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23dc3545' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 35px;
+}
+
+.map-container {
+    height: 250px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #e9ecef;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+#editMap {
+    height: 100%;
+    width: 100%;
+}
+
+.location-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.btn {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    min-height: 44px;
+    white-space: nowrap;
+}
+
+.btn i {
+    transition: transform 0.3s ease;
+}
+
+.btn:hover i {
+    transform: scale(1.1);
+}
+
+.btn-primary {
+    background: #dc3545;
+    color: white;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(220, 53, 69, 0.35);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.25);
+    width: 100%;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(108, 117, 125, 0.35);
+}
+
+.btn-secondary:active {
+    transform: scale(0.98);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #495057;
+    border: 2px solid #e9ecef;
+    width: 100%;
+}
+
+.btn-outline:hover {
+    background: rgba(220, 53, 69, 0.05);
+    color: #dc3545;
+    border-color: #dc3545;
+    transform: translateY(-2px);
+}
+
+.btn-outline:active {
+    transform: scale(0.98);
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 2px solid #f8f9fa;
+}
+
+.current-location {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 3px solid #dc3545;
+}
+
+.current-location p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    color: #495057;
+    word-break: break-word;
+}
+
+.map-instructions {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    max-width: calc(100% - 20px);
+}
+
+@media (min-width: 768px) {
+    .navbar {
+        padding: 1.2rem 2rem;
+        flex-wrap: nowrap;
+        gap: 2rem;
+    }
+
+    .nav-brand {
+        font-size: 1.6rem;
+    }
+
+    .nav-links {
+        gap: 1.5rem;
+    }
+
+    .nav-link {
+        padding: 10px 18px;
+        font-size: 1rem;
+    }
+
+    .main-container {
+        padding: 0 2rem;
+        margin: 2rem auto;
+    }
+
+    .page-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+    }
+
+    .back-link {
+        padding: 10px 16px;
+        font-size: 1rem;
+    }
+
+    .edit-form {
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        padding: 12px 16px;
+        font-size: 1rem;
+    }
+
+    .form-textarea {
+        min-height: 120px;
+    }
+
+    .map-container {
+        height: 350px;
+        margin-bottom: 1.5rem;
+    }
+
+    .location-buttons {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .location-buttons .btn {
+        flex: 1;
+        width: auto;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        font-size: 0.95rem;
+    }
+
+    .form-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+    }
+
+    .form-actions .btn {
+        width: auto;
+        flex: 0 1 auto;
+    }
+
+    .current-location {
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .current-location p {
+        font-size: 0.95rem;
+        margin: 0.4rem 0;
+    }
+
+    .map-instructions {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .navbar {
+        padding: 1.2rem 3rem;
+    }
+
+    .nav-brand {
+        font-size: 1.8rem;
+    }
+
+    .main-container {
+        padding: 0 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .edit-form {
+        padding: 2.5rem;
+    }
+
+    .map-container {
+        height: 400px;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .nav-link {
+        min-height: 48px;
+    }
+
+    .back-link {
+        min-height: 48px;
+        padding: 0 12px;
+    }
+
+    .btn {
+        min-height: 48px;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        min-height: 48px;
+        font-size: 16px;
+    }
+}
