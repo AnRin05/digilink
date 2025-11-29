@@ -6,8 +6,15 @@
     <title>FastLan - Motorcycle Ride & Delivery</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite('resources/css/app.css')
-    @vite('resources/css/nav.css')
+        <!-- Base CSS -->
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/nav.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/login.css') }}" rel="stylesheet">
+    
+    <!-- Page-specific CSS -->
+    @yield('styles')
+    
+    <!-- Keep JS with Vite for HMR in development -->
     @vite('resources/js/app.js')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
