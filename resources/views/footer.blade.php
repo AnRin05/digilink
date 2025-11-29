@@ -75,7 +75,7 @@
             <div class="footer-section">
                 <h3>Quick Links</h3>
                 <ul>
-                    <li><a href="/digilink/public">Home</a></li>
+                    <li><a href="{{ route(name: 'home') }}">Home</a></li>
                     <li><a href="login">Login</a></li>
                     <li><a href="#">Contact</a></li>
                 </ul>

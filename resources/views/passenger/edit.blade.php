@@ -6,7 +6,8 @@
     <title>Edit Profile - Passenger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite('resources/css/passenger/edit.css')
+    <link href="{{ asset('css/passenger/edit.css') }}" rel="stylesheet">
+    @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>

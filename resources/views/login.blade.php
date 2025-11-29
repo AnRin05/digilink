@@ -6,14 +6,11 @@
     <title>FastLan - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/nav.css') }}" rel="stylesheet">
     <link href="{{ asset('css/login.css') }}" rel="stylesheet">
     <link href="{{ asset('js/login.js') }}" rel="stylesheet">
-    
     @yield('styles')
     
-    @vite('resources/js/app.js')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
