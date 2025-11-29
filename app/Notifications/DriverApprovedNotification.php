@@ -28,7 +28,7 @@ class DriverApprovedNotification extends Notification implements ShouldQueue
             ->greeting('Congratulations ' . $notifiable->fullname . '!')
             ->line('Your driver account has been successfully approved by our administration team.')
             ->line('You can now log in to your account and start accepting rides.')
-            ->action('Login to Driver Dashboard', route('login'))
+            ->action('Login to Driver Dashboard', url('login'))
             ->line('If you have any questions, please contact our support team.')
             ->line('Thank you for choosing our service!');
     }
