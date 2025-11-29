@@ -103,9 +103,13 @@ Route::prefix('driver')->group(function () {
     Route::get('/get-available-bookings', [DriverController::class, 'getAvailableBookings'])->name('driver.getAvailableBookings');
     Route::get('/booking-details/{id}', [DriverController::class, 'getBookingDetails'])->name('driver.bookingDetails');
     Route::post('/accept-booking/{id}', [DriverController::class, 'acceptBooking'])->name('driver.accept.booking');
-    Route::post('/driver/update-location', [DriverController::class, 'updateLocation'])->name('driver.update.location');
-    Route::put('/driver/update-currentlocation', [DriverController::class, 'updateCurrentLocation'])->name('driver.updateCurrentLocation');
-    Route::get('/driver/today-stats', [DriverController::class, 'getTodayStats'])->name('driver.getTodayStats');
+    Route::post('/update-location', [DriverController::class, 'updateLocation'])->name('driver.update.location');
+    Route::put('/update-currentlocation', [DriverController::class, 'updateCurrentLocation'])->name('driver.updateCurrentLocation');
+    Route::get('/today-stats', [DriverController::class, 'getTodayStats'])->name('driver.getTodayStats');
+
+    #Route::post('/driver/update-location', [DriverController::class, 'updateLocation'])->name('driver.update.location');
+    #Route::put('/driver/update-currentlocation', [DriverController::class, 'updateCurrentLocation'])->name('driver.updateCurrentLocation');
+    #Route::get('/driver/today-stats', [DriverController::class, 'getTodayStats'])->name('driver.getTodayStats');
 
     
     Route::get('/get-accepted-bookings', [DriverController::class, 'getAcceptedBookings'])->name('driver.getAcceptedBookings');
