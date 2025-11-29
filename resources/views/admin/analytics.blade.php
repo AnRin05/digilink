@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics Fastlan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    @vite('resources/css/admin/analytics.css')
-    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <link href="{{ asset('css/admin/analytics.css') }}" rel="stylesheet">
+    @yield('styles')
 </head>
 <body>
     <header class="admin-header">

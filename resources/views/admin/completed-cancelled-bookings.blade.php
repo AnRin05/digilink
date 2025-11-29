@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }} - Admin Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="{{ asset('css/admin-bookings.css') }}" rel="stylesheet">
+        <link href="{{ asset('css/admin/ongoing.css') }}" rel="stylesheet">
+    @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
     <style>
         body {

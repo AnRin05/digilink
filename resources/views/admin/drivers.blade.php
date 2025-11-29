@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver</title>
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
-    @vite('resources/css/admin/driver.css')
+    <link href="{{ asset('css/admin/driver.css') }}" rel="stylesheet">
+    @yield('styles')
 </head>
 <body>
     <header>

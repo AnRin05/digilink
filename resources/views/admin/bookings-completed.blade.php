@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Completed Bookings</title>
-    @vite('resources/css/admin/complete.css')
+    <link href="{{ asset('css/admin/complete.css') }}" rel="stylesheet">
+    @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
 </head>
-    @vite('resources/css/admin/dashboard.css')
+    <link href="{{ asset('css/admin/dashboard.css') }}" rel="stylesheet">
+    @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 <body>
     <header class="admin-header">

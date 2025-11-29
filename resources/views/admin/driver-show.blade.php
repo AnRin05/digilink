@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Details - {{ $driver->fullname }}</title>
-    @vite('resources/css/admin/driver-details.css')
+        <link href="{{ asset('css/admin/driver-details.css') }}" rel="stylesheet">
+    @yield('styles')
 </head>
 <body>
     <header class="admin-header">

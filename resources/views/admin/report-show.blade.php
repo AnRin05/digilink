@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Details - Admin</title>
-    @vite('resources/css/admin/report-show.css')
+    <link href="{{ asset('css/admin/report-show.css') }}" rel="stylesheet">
+    @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
 </head>
 <body>
