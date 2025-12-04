@@ -958,182 +958,21 @@ body {
         </div>
     </div>
 
-    <script>
-        function loadPendingBookings() {
-            const bookingsList = document.getElementById('bookingsList');
-            const bookingsCount = document.getElementById('bookingsCount');
-            bookingsList.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
-                    <h3 class="empty-title">Loading Bookings</h3>
-                    <p class="empty-text">Please wait while we fetch your bookings...</p>
+<script>
+    function loadPendingBookings() {
+        const bookingsList = document.getElementById('bookingsList');
+        const bookingsCount = document.getElementById('bookingsCount');
+        bookingsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-spinner fa-spin"></i>
                 </div>
-            `;
+                <h3 class="empty-title">Loading Bookings</h3>
+                <p class="empty-text">Please wait while we fetch your bookings...</p>
+            </div>
+        `;
 
-            fetch("{{ route('passenger.get.pending.bookings') }}")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.success) {
-                        throw new Error(data.message || 'Failed to load bookings');
-                    }
-
-                    bookingsCount.textContent = `${data.count} booking${data.count !== 1 ? 's' : ''}`;
-
-                    if (data.count === 0) {
-                        bookingsList.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">
-                                    <i class="fas fa-clipboard-list"></i>
-                                </div>
-                                <h3 class="empty-title">No Active Bookings</h3>
-                                <p class="empty-text">You don't have any pending, accepted, or on-going bookings.</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    bookingsList.innerHTML = '';
-                    data.bookings.forEach(booking => {
-                        const bookingCard = document.createElement('div');
-                        bookingCard.className = 'booking-card';
-                        bookingCard.innerHTML = `
-                            <div class="booking-header">
-                                <div class="booking-info">
-                                    <h3>${booking.service_type} Booking</h3>
-                                    <p class="detail-row">
-                                        <i class="fas fa-calendar"></i>
-                                        Booked on: ${booking.created_at}
-                                    </p>
-                                </div>
-                                <span class="status-badge status-${booking.status}">
-                                    ${booking.status_display}
-                                </span>
-                            </div>
-
-                            <div class="booking-details">
-                                <div class="detail-row">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <strong>Pickup:</strong> ${booking.pickup_location}
-                                </div>
-                                <div class="detail-row">
-                                    <i class="fas fa-flag-checkered"></i>
-                                    <strong>Drop-off:</strong> ${booking.dropoff_location}
-                                </div>
-                                <div class="detail-row">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    <strong>Fare:</strong> ${booking.fare}
-                                </div>
-                                <div class="detail-row">
-                                    <i class="fas fa-credit-card"></i>
-                                    <strong>Payment:</strong> ${booking.payment_method}
-                                </div>
-                                ${booking.schedule_time !== 'Immediate' ? `
-                                <div class="detail-row">
-                                    <i class="fas fa-clock"></i>
-                                    <strong>Scheduled:</strong> ${booking.schedule_time}
-                                </div>
-                                ` : ''}
-                                ${booking.description ? `
-                                <div class="detail-row">
-                                    <i class="fas fa-sticky-note"></i>
-                                    <strong>Description:</strong> ${booking.description}
-                                </div>
-                                ` : ''}
-                            </div>
-
-                            ${booking.driver_name !== 'Not assigned yet' ? `
-                            <div class="driver-info">
-                                <h4>Driver Information</h4>
-                                <div class="detail-row">
-                                    <i class="fas fa-user"></i>
-                                    <strong>Driver:</strong> ${booking.driver_name}
-                                </div>
-                                <div class="detail-row">
-                                    <i class="fas fa-phone"></i>
-                                    <strong>Phone:</strong> ${booking.driver_phone}
-                                </div>
-                                <div class="detail-row">
-                                    <i class="fas fa-car"></i>
-                                    <strong>Vehicle:</strong> ${booking.vehicle_info}
-                                </div>
-                                <div class="detail-row">
-                                    <i class="fas fa-list"></i>
-                                    <strong>Completed Booking:</strong> ${booking.completed_booking}
-                                </div>
-                            </div>
-                            ` : ''}
-                            ${booking.can_edit ? `
-                            <div class="booking-actions">
-                                <a href="{{ url('/passenger/edit-booking') }}/${booking.id}" class="btn btn-edit">
-                                    <i class="fas fa-edit"></i>
-                                    Edit Booking
-                                </a>
-                                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
-                                    <i class="fas fa-times"></i>
-                                    Cancel Booking
-                                </button>
-                            </div>
-                            ` : booking.can_track ? `
-                            <div class="booking-actions">
-                                <a href="{{ url('/passenger/track-booking') }}/${booking.id}" class="btn btn-track">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    View Progress
-                                </a>
-                                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})" ${booking.can_cancel ? '' : 'disabled'}>
-                                    <i class="fas fa-times"></i>
-                                    Cancel Booking
-                                </button>
-                            </div>
-                            ` : booking.can_cancel ? `
-                            <div class="booking-actions">
-                                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
-                                    <i class="fas fa-times"></i>
-                                    Cancel Booking
-                                </button>
-                            </div>
-                            ` : ''}
-                        `;
-                        bookingsList.appendChild(bookingCard);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading bookings:', error);
-                    bookingsList.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <h3 class="empty-title">Error Loading Bookings</h3>
-                            <p class="empty-text">There was a problem loading your bookings. Please try again.</p>
-                            <button class="btn btn-danger" onclick="loadPendingBookings()" style="margin-top: 1rem;">
-                                <i class="fas fa-redo"></i>
-                                Try Again
-                            </button>
-                        </div>
-                    `;
-                    bookingsCount.textContent = 'Error';
-                });
-        }
-
-        function cancelBooking(bookingId) {
-            if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-                return;
-            }
-
-            fetch(`{{ url('/passenger/cancel-booking') }}/${booking.id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
+        fetch("{{ route('passenger.get.pending.bookings') }}")
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -1141,35 +980,210 @@ body {
                 return response.json();
             })
             .then(data => {
-                if (data.success) {
-                    alert('Booking cancelled successfully!');
-                    loadPendingBookings();
-                } else {
-                    throw new Error(data.message || 'Failed to cancel booking');
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load bookings');
                 }
+
+                bookingsCount.textContent = `${data.count} booking${data.count !== 1 ? 's' : ''}`;
+
+                if (data.count === 0) {
+                    bookingsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h3 class="empty-title">No Active Bookings</h3>
+                            <p class="empty-text">You don't have any pending, accepted, or on-going bookings.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                bookingsList.innerHTML = '';
+                data.bookings.forEach(booking => {
+                    const bookingCard = document.createElement('div');
+                    bookingCard.className = 'booking-card';
+                    bookingCard.innerHTML = `
+                        <div class="booking-header">
+                            <div class="booking-info">
+                                <h3>${booking.service_type} Booking</h3>
+                                <p class="detail-row">
+                                    <i class="fas fa-calendar"></i>
+                                    Booked on: ${booking.created_at}
+                                </p>
+                            </div>
+                            <span class="status-badge status-${booking.status}">
+                                ${booking.status_display}
+                            </span>
+                        </div>
+
+                        <div class="booking-details">
+                            <div class="detail-row">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <strong>Pickup:</strong> ${booking.pickup_location}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-flag-checkered"></i>
+                                <strong>Drop-off:</strong> ${booking.dropoff_location}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <strong>Fare:</strong> ${booking.fare}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-credit-card"></i>
+                                <strong>Payment:</strong> ${booking.payment_method}
+                            </div>
+                            ${booking.schedule_time !== 'Immediate' ? `
+                            <div class="detail-row">
+                                <i class="fas fa-clock"></i>
+                                <strong>Scheduled:</strong> ${booking.schedule_time}
+                            </div>
+                            ` : ''}
+                            ${booking.description ? `
+                            <div class="detail-row">
+                                <i class="fas fa-sticky-note"></i>
+                                <strong>Description:</strong> ${booking.description}
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        ${booking.driver_name !== 'Not assigned yet' ? `
+                        <div class="driver-info">
+                            <h4>Driver Information</h4>
+                            <div class="detail-row">
+                                <i class="fas fa-user"></i>
+                                <strong>Driver:</strong> ${booking.driver_name}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-phone"></i>
+                                <strong>Phone:</strong> ${booking.driver_phone}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-car"></i>
+                                <strong>Vehicle:</strong> ${booking.vehicle_info}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-list"></i>
+                                <strong>Completed Booking:</strong> ${booking.completed_booking}
+                            </div>
+                        </div>
+                        ` : ''}
+                        ${booking.can_edit ? `
+                        <div class="booking-actions">
+                            <a href="{{ url('/passenger/edit-booking') }}/${booking.id}" class="btn btn-edit">
+                                <i class="fas fa-edit"></i>
+                                Edit Booking
+                            </a>
+                            <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
+                                <i class="fas fa-times"></i>
+                                Cancel Booking
+                            </button>
+                        </div>
+                        ` : booking.can_track ? `
+                        <div class="booking-actions">
+                            <a href="{{ url('/passenger/track-booking') }}/${booking.id}" class="btn btn-track">
+                                <i class="fas fa-map-marker-alt"></i>
+                                View Progress
+                            </a>
+                            <button class="btn btn-danger" onclick="cancelBooking(${booking.id})" ${booking.can_cancel ? '' : 'disabled'}>
+                                <i class="fas fa-times"></i>
+                                Cancel Booking
+                            </button>
+                        </div>
+                        ` : booking.can_cancel ? `
+                        <div class="booking-actions">
+                            <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
+                                <i class="fas fa-times"></i>
+                                Cancel Booking
+                            </button>
+                        </div>
+                        ` : ''}
+                    `;
+                    bookingsList.appendChild(bookingCard);
+                });
             })
             .catch(error => {
-                console.error('Error cancelling booking:', error);
-                alert('Failed to cancel booking: ' + error.message);
+                console.error('Error loading bookings:', error);
+                bookingsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="empty-title">Error Loading Bookings</h3>
+                        <p class="empty-text">There was a problem loading your bookings. Please try again.</p>
+                        <button class="btn btn-danger" onclick="loadPendingBookings()" style="margin-top: 1rem;">
+                            <i class="fas fa-redo"></i>
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                bookingsCount.textContent = 'Error';
             });
+    }
+
+    function cancelBooking(bookingId) {
+        if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+            return;
         }
 
-        document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.getElementById('dropdownMenu').classList.toggle('show');
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.user-profile-dropdown')) {
-                document.getElementById('dropdownMenu').classList.remove('show');
+        // FIXED: Use the same URL format as your other links
+        fetch(`{{ url('/passenger/cancel-booking') }}/${bookingId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({}) // Optional: send empty JSON object
+        })
+        .then(response => {
+            // Better error handling to get the actual error message
+            if (!response.ok) {
+                // Try to parse the error response
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Network response was not ok');
+                }).catch(() => {
+                    throw new Error('Network response was not ok');
+                });
             }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Booking cancelled successfully!');
+                loadPendingBookings();
+            } else {
+                throw new Error(data.message || 'Failed to cancel booking');
+            }
+        })
+        .catch(error => {
+            console.error('Error cancelling booking:', error);
+            alert('Failed to cancel booking: ' + error.message);
         });
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPendingBookings();
+    // Alternative cancel function using a link (if you prefer this format)
+    function cancelBookingLink(bookingId, event) {
+        event.preventDefault(); // Prevent link navigation
+        cancelBooking(bookingId); // Call the main cancel function
+    }
 
-            setInterval(loadPendingBookings, 30000);
-        });
-    </script>
+    document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('dropdownMenu').classList.toggle('show');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.user-profile-dropdown')) {
+            document.getElementById('dropdownMenu').classList.remove('show');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPendingBookings();
+
+        setInterval(loadPendingBookings, 30000);
+    });
+</script>
 </body>
 </html>
