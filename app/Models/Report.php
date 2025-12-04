@@ -14,6 +14,8 @@ class Report extends Model
         'description',
         'reporter_type',
         'reporter_id',
+        'reporter_name',
+        'reporter_phone',
         'booking_id',
         'location_data',
         'booking_data',
@@ -30,6 +32,16 @@ class Report extends Model
         'passenger_data' => 'array',
     ];
 
+    // Report Types
+    const TYPE_URGENT_HELP = 'urgent_help';
+    const TYPE_COMPLAINT = 'complaint';
+
+    // Status Types
+    const STATUS_PENDING = 'pending';
+    const STATUS_IN_REVIEW = 'in_review';
+    const STATUS_RESOLVED = 'resolved';
+    const STATUS_CLOSED = 'closed';
+
     // Relationships
     public function booking()
     {
@@ -38,30 +50,46 @@ class Report extends Model
 
     public function reporter()
     {
-        if ($this->reporter_type === 'passenger') {
-            return $this->belongsTo(Passenger::class, 'reporter_id');
-        } else {
+        if ($this->reporter_type === 'driver') {
             return $this->belongsTo(Driver::class, 'reporter_id');
+        } else {
+            return $this->belongsTo(Passenger::class, 'reporter_id');
         }
     }
 
-    // Report types
-    const TYPE_URGENT_HELP = 'urgent_help';
-    const TYPE_COMPLAINT = 'complaint';
-    const TYPE_GENERAL = 'general';
-
-    // Statuses
-    const STATUS_PENDING = 'pending';
-    const STATUS_REVIEWED = 'reviewed';
-    const STATUS_RESOLVED = 'resolved';
-
-    public function getReportTypeDisplay()
+    // Helper methods to get the opposite party
+    public function getReportedPartyAttribute()
     {
-        return match($this->report_type) {
-            self::TYPE_URGENT_HELP => 'Urgent Help',
-            self::TYPE_COMPLAINT => 'Complaint',
-            self::TYPE_GENERAL => 'General Report',
-            default => ucfirst($this->report_type)
-        };
+        if ($this->reporter_type === 'driver') {
+            // Driver reported, so show passenger info
+            return [
+                'type' => 'passenger',
+                'name' => $this->passenger_data['name'] ?? 'N/A',
+                'phone' => $this->passenger_data['phone'] ?? 'N/A'
+            ];
+        } else {
+            // Passenger reported, so show driver info
+            return [
+                'type' => 'driver',
+                'name' => $this->driver_data['name'] ?? 'N/A',
+                'phone' => $this->driver_data['phone'] ?? 'N/A'
+            ];
+        }
+    }
+
+    // Scope methods
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    public function scopeUrgentHelp($query)
+    {
+        return $query->where('report_type', self::TYPE_URGENT_HELP);
+    }
+
+    public function scopeComplaint($query)
+    {
+        return $query->where('report_type', self::TYPE_COMPLAINT);
     }
 }

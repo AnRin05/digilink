@@ -101,8 +101,8 @@
         </div>
         <div class="nav-right">
             <ul>
-                <li><a href="/digilink/public">Home</a></li>
-                <li><a href="login">Login</a></li>
+                <li><a href="{{ route(name: 'home') }}">Home</a></li>
+                <li><a href="{{ route(name: 'login') }}">Login</a></li>
                 <li><a href="#">Contact</a></li>
             </ul>
         </div>

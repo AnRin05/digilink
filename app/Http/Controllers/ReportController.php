@@ -22,12 +22,15 @@ class ReportController extends Controller
 
             $booking = Booking::with(['passenger', 'driver'])->findOrFail($request->booking_id);
 
-            $reporterType = 'passenger';
-            $reporterId = Auth::guard('passenger')->id();
-            
+            // Determine reporter type and get reporter info
             if (Auth::guard('driver')->check()) {
                 $reporterType = 'driver';
                 $reporterId = Auth::guard('driver')->id();
+                $reporter = Auth::guard('driver')->user();
+            } else {
+                $reporterType = 'passenger';
+                $reporterId = Auth::guard('passenger')->id();
+                $reporter = Auth::guard('passenger')->user();
             }
 
             $locationData = $this->collectLocationData($booking, $reporterType);
@@ -42,6 +45,8 @@ class ReportController extends Controller
                 'description' => $description,
                 'reporter_type' => $reporterType,
                 'reporter_id' => $reporterId,
+                'reporter_name' => $reporter->fullname,
+                'reporter_phone' => $reporter->phone,
                 'booking_id' => $booking->bookingID,
                 'location_data' => $locationData,
                 'booking_data' => $bookingData,
@@ -53,7 +58,8 @@ class ReportController extends Controller
             Log::info("Urgent help report created", [
                 'report_id' => $report->id,
                 'booking_id' => $booking->bookingID,
-                'reporter_type' => $reporterType
+                'reporter_type' => $reporterType,
+                'reporter_name' => $reporter->fullname
             ]);
 
             return response()->json([
@@ -70,6 +76,7 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
     public function sendComplaint(Request $request)
     {
         try {
@@ -82,12 +89,15 @@ class ReportController extends Controller
 
             $booking = Booking::with(['passenger', 'driver'])->findOrFail($request->booking_id);
 
-            $reporterType = 'passenger';
-            $reporterId = Auth::guard('passenger')->id();
-            
+            // Determine reporter type and get reporter info
             if (Auth::guard('driver')->check()) {
                 $reporterType = 'driver';
                 $reporterId = Auth::guard('driver')->id();
+                $reporter = Auth::guard('driver')->user();
+            } else {
+                $reporterType = 'passenger';
+                $reporterId = Auth::guard('passenger')->id();
+                $reporter = Auth::guard('passenger')->user();
             }
 
             $locationData = $this->collectLocationData($booking, $reporterType);
@@ -100,6 +110,8 @@ class ReportController extends Controller
                 'description' => $this->generateComplaintDescription($request, $booking, $reporterType),
                 'reporter_type' => $reporterType,
                 'reporter_id' => $reporterId,
+                'reporter_name' => $reporter->fullname,
+                'reporter_phone' => $reporter->phone,
                 'booking_id' => $booking->bookingID,
                 'location_data' => $locationData,
                 'booking_data' => $bookingData,
@@ -111,6 +123,8 @@ class ReportController extends Controller
             Log::info("Complaint report created", [
                 'report_id' => $report->id,
                 'booking_id' => $booking->bookingID,
+                'reporter_type' => $reporterType,
+                'reporter_name' => $reporter->fullname,
                 'complaint_type' => $request->complaint_type,
                 'severity' => $request->severity
             ]);
@@ -145,6 +159,7 @@ class ReportController extends Controller
             ],
             'reported_at' => now()->toISOString(),
         ];
+
         if ($booking->driver && $booking->driver->current_lat) {
             $locationData['driver_current'] = [
                 'latitude' => $booking->driver->current_lat,
@@ -152,10 +167,6 @@ class ReportController extends Controller
                 'location_name' => $booking->driver->currentLocation,
                 'last_updated' => $booking->driver->updated_at->toISOString(),
             ];
-        }
-
-        if ($reporterType === 'passenger' && Auth::guard('passenger')->check()) {
-            $passenger = Auth::guard('passenger')->user();
         }
 
         return $locationData;
@@ -193,6 +204,7 @@ class ReportController extends Controller
             'completed_trips' => $booking->driver->completedBooking,
         ];
     }
+
     private function collectPassengerData($booking)
     {
         if (!$booking->passenger) {
@@ -207,9 +219,6 @@ class ReportController extends Controller
         ];
     }
 
-    /**
-     * Generate automatic description for urgent help
-     */
     private function generateUrgentHelpDescription($booking, $reporterType, $additionalNotes = null)
     {
         $baseDescription = "🚨 URGENT HELP REQUESTED\n";
@@ -259,5 +268,40 @@ class ReportController extends Controller
         $description .= "\nDescription:\n{$request->description}";
 
         return $description;
+    }
+
+    // Method to get reports for admin with proper display
+    public function getReportsForAdmin()
+    {
+        $reports = Report::with('booking')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($report) {
+                $report->display_info = $this->getDisplayInfo($report);
+                return $report;
+            });
+
+        return $reports;
+    }
+
+    // Helper method to get display information
+    private function getDisplayInfo($report)
+    {
+        $reporterInfo = "Reporter: {$report->reporter_name} ({$report->reporter_type})";
+        
+        if ($report->reporter_type === 'passenger') {
+            // Passenger reported, show driver info
+            $oppositeParty = "Driver: {$report->driver_data['name']} ({$report->driver_data['phone']})";
+        } else {
+            // Driver reported, show passenger info
+            $oppositeParty = "Passenger: {$report->passenger_data['name']} ({$report->passenger_data['phone']})";
+        }
+
+        return [
+            'reporter_info' => $reporterInfo,
+            'opposite_party' => $oppositeParty,
+            'pickup' => $report->location_data['booking_pickup']['address'] ?? 'N/A',
+            'dropoff' => $report->location_data['booking_dropoff']['address'] ?? 'N/A'
+        ];
     }
 }

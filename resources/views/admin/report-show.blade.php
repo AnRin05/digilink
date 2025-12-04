@@ -13,7 +13,14 @@
         <div class="header-left">
             <h1>Report Details #{{ $report->id }}</h1>
             <div class="report-meta">
-                <span class="report-type {{ $report->report_type }}">{{ $report->getReportTypeDisplay() }}</span>
+                <span class="label">Report Type:</span>
+                <span class="value {{ $report->report_type }}">
+                    @if($report->report_type === 'urgent_help')
+                        UrgentHelp
+                    @else
+                        Complaint
+                    @endif
+                </span>
                 <span class="report-status {{ $report->status }}">{{ ucfirst($report->status) }}</span>
             </div>
         </div>
@@ -25,14 +32,18 @@
     <main class="admin-main">
         <div class="report-details-container">
             <div class="details-grid">
-                                                            <!-- Report Information -->
+                <!-- Report Information -->
                 <div class="detail-section">
                     <h3>Report Information</h3>
                     <div class="detail-card">
-                        <div class="detail-row">
-                            <span class="label">Report Type:</span>
-                            <span class="value {{ $report->report_type }}">{{ $report->getReportTypeDisplay() }}</span>
-                        </div>
+                        <span class="label">Report Type:</span>
+                        <span class="value {{ $report->report_type }}">
+                            @if($report->report_type === 'urgent_help')
+                                UrgentHelp
+                            @else
+                                Complaint
+                            @endif
+                        </span>
                         <div class="detail-row">
                             <span class="label">Status:</span>
                             <span class="status-badge {{ $report->status }}">{{ ucfirst($report->status) }}</span>
@@ -48,7 +59,7 @@
                     </div>
                 </div>
 
-                                                            <!-- Booking Information -->
+                <!-- Booking Information -->
                 <div class="detail-section">
                     <h3>Booking Information</h3>
                     <div class="detail-card">
@@ -71,7 +82,7 @@
                     </div>
                 </div>
 
-                                                            <!-- Location Information -->
+                <!-- Location Information -->
                 <div class="detail-section">
                     <h3>Location Information</h3>
                     <div class="detail-card">
@@ -92,7 +103,7 @@
                     </div>
                 </div>
 
-                                                            <!-- Report Description -->
+                <!-- Report Description -->
                 <div class="detail-section full-width">
                     <h3>Report Description</h3>
                     <div class="detail-card">
@@ -102,7 +113,7 @@
                     </div>
                 </div>
 
-                                                            <!-- Admin Response Form -->
+                <!-- Admin Response Form -->
                 <div class="detail-section full-width">
                     <h3>Admin Response</h3>
                     <form action="{{ route('admin.reports.update', $report->id) }}" method="POST" class="response-form">
@@ -135,6 +146,7 @@
                             <label for="email_response">Email Response:</label>
                             <textarea name="email_response" id="email_response" class="form-textarea" 
                                       placeholder="Write your response to the reporter...">{{ old('email_response') }}</textarea>
+                            <small class="form-text">This message will be sent to the reporter via email.</small>
                         </div>
 
                         <div class="form-actions">
@@ -158,6 +170,33 @@
 
             sendEmailCheckbox.addEventListener('change', function() {
                 emailResponseGroup.style.display = this.checked ? 'block' : 'none';
+                
+                // Auto-populate email response if empty
+                if (this.checked && !document.getElementById('email_response').value) {
+                    const status = document.getElementById('status').value;
+                    const defaultResponses = {
+                        'reviewed': 'Your report has been reviewed and is currently being processed by our team.',
+                        'resolved': 'Your report has been resolved. Thank you for bringing this to our attention.',
+                        'pending': 'Your report is pending review by our team.'
+                    };
+                    document.getElementById('email_response').value = defaultResponses[status] || 
+                        'Thank you for your report. We are looking into this matter.';
+                }
+            });
+
+            // Also trigger when status changes
+            document.getElementById('status').addEventListener('change', function() {
+                if (sendEmailCheckbox.checked && document.getElementById('email_response').value) {
+                    // Update the email response based on new status if checkbox is checked
+                    const status = this.value;
+                    const defaultResponses = {
+                        'reviewed': 'Your report has been reviewed and is currently being processed by our team.',
+                        'resolved': 'Your report has been resolved. Thank you for bringing this to our attention.',
+                        'pending': 'Your report is pending review by our team.'
+                    };
+                    document.getElementById('email_response').value = defaultResponses[status] || 
+                        'Thank you for your report. We are looking into this matter.';
+                }
             });
         });
     </script>

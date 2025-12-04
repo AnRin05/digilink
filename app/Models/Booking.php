@@ -344,22 +344,19 @@ class Booking extends Model
         return $this->isScheduled() ? 'Scheduled' : 'Immediate';
     }
 
-       protected static function boot()
+    protected static function boot()
     {
         parent::boot();
 
-        // Create history record when booking is completed or cancelled
+        // Create history record only when booking status changes to COMPLETED or CANCELLED
         static::updated(function ($booking) {
-            if ($booking->isDirty('status') && 
-                in_array($booking->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED])) {
+            $completedOrCancelled = [self::STATUS_COMPLETED, self::STATUS_CANCELLED];
+            
+            if ($booking->isDirty('status') && in_array($booking->status, $completedOrCancelled)) {
                 $booking->createHistoryRecord();
             }
         });
 
-        // Also create history record when booking is created (for immediate history tracking)
-        static::created(function ($booking) {
-            $booking->createHistoryRecord();
-        });
     }
 
     /*
@@ -367,8 +364,9 @@ class Booking extends Model
     | History Methods
     |--------------------------------------------------------------------------
     */
-    public function createHistoryRecord()
-    {
+public function createHistoryRecord()
+{
+    try {
         BookingHistory::create([
             'booking_id' => $this->bookingID,
             'passenger_id' => $this->passengerID,
@@ -387,9 +385,14 @@ class Booking extends Model
             'schedule_time' => $this->scheduleTime,
             'driver_completed_at' => $this->driver_completed_at,
             'passenger_completed_at' => $this->passenger_completed_at,
-            'completion_verified' => $this->completion_verified,
+            'completion_verified' => $this->completion_verified ?? 'pending', // Use default if null
         ]);
+        
+        logger('History record created for booking ID: ' . $this->bookingID . ' with status: ' . $this->status);
+    } catch (\Exception $e) {
+        logger('Error creating history record for booking ID ' . $this->bookingID . ': ' . $e->getMessage());
     }
+}
 
     public function history()
     {

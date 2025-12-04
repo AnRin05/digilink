@@ -10,10 +10,1155 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <link href="{{ asset('js/passdash.js') }}" rel="stylesheet">
-    <link href="{{ asset('css/passenger/passdashboard.css') }}" rel="stylesheet">
     @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    }
+
+    html, body {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        position: relative;
+        color: #212529;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 30% 70%, rgba(220, 53, 69, 0.03) 0%, transparent 50%);
+        z-index: -1;
+        animation: float 30s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        bottom: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 70% 30%, rgba(220, 53, 69, 0.02) 0%, transparent 50%);
+        z-index: -1;
+        animation: float 25s ease-in-out infinite reverse;
+        pointer-events: none;
+    }
+
+    @keyframes float {
+        0%, 100% { 
+            transform: translateY(0px) rotate(0deg);
+            opacity: 1;
+        }
+        50% { 
+            transform: translateY(-30px) rotate(180deg);
+            opacity: 0.7;
+        }
+    }
+
+    .navbar {
+        height: auto;
+        min-height: 70px;
+        width: 100%;
+        padding: 15px 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .nav-brand {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc3545;
+        text-decoration: none;
+        text-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .nav-brand:hover {
+        transform: translateY(-2px);
+        text-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+    }
+
+    .nav-brand span {
+        color: #ffffff;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .nav-link {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 10px 15px;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        font-size: 13px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: #dc3545;
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+        width: 80%;
+    }
+
+    .nav-link:hover {
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    .user-profile-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 44px;
+    }
+
+    .user-profile:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-container {
+        position: relative;
+    }
+
+    .profile-pic {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: 3px solid #dc3545;
+        object-fit: cover;
+        box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .user-profile:hover .profile-pic {
+        border-color: #ffffff;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.5);
+    }
+
+    .online-indicator {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 14px;
+        height: 14px;
+        background: #28a745;
+        border-radius: 50%;
+        border: 2px solid #212529;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+    }
+
+    .user-profile span {
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: none;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        min-width: 220px;
+        border-radius: 16px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
+        overflow: hidden;
+        margin-top: 12px;
+        animation: dropdownFade 0.3s ease;
+        border: 1px solid rgba(220, 53, 69, 0.1);
+    }
+
+    @keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dropdown-content.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 22px;
+        color: #495057;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f4;
+        min-height: 48px;
+        cursor: pointer;
+    }
+
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item:active {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        transform: translateX(5px);
+    }
+
+    .dropdown-item i {
+        width: 22px;
+        text-align: center;
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .dropdown-item:hover i {
+        color: #dc3545;
+        transform: scale(1.1);
+    }
+
+    .dropdown-item.logout {
+        color: #dc3545;
+        font-weight: 600;
+        background: rgba(220, 53, 69, 0.05);
+    }
+
+    .dropdown-item.logout i {
+        color: #dc3545;
+    }
+
+    .dropdown-item.logout:hover {
+        background: rgba(220, 53, 69, 0.15);
+    }
+
+    .alert {
+        padding: 12px 20px;
+        margin: 15px auto;
+        max-width: calc(100% - 30px);
+        border-radius: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideDown 0.4s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        flex-wrap: wrap;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 2px solid #dc3545;
+        color: #721c24;
+    }
+
+    .alert i {
+        font-size: 1.1rem;
+    }
+
+    .close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+        min-height: 44px;
+        min-width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close:hover {
+        opacity: 1;
+    }
+
+    .booking-nav {
+        margin: 20px auto;
+        display: flex;
+        justify-content: center;
+        gap: 0.8rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.98) 100%);
+        padding: 1rem;
+        border-radius: 50px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(220, 53, 69, 0.15);
+        max-width: 90%;
+        flex-wrap: wrap;
+    }
+
+    .booking-nav .btn-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #495057;
+        padding: 10px 18px;
+        border-radius: 25px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        text-decoration: none;
+        min-height: 44px;
+    }
+
+    .booking-nav .btn-link.active {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: #ffffff;
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.35);
+    }
+
+    .booking-nav .btn-link i {
+        font-size: 1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .booking-nav .btn-link.active i {
+        color: #ffffff;
+    }
+
+    .booking-nav .btn-link:not(.active) i {
+        color: #dc3545;
+    }
+
+    .booking-nav .btn-link:hover:not(.active) {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin: 1.5rem auto;
+        width: 100%;
+        max-width: 1400px;
+        padding: 0 1rem;
+    }
+
+    .left-panel {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+        max-height: none;
+        overflow-y: auto;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .left-panel:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .left-panel h2 {
+        color: #212529;
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 3px solid #dc3545;
+        position: relative;
+    }
+
+    .left-panel h2::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: #212529;
+    }
+
+    .driver-card {
+        background: white;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 14px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 2px solid #e9ecef;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .driver-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        border-color: #dc3545;
+    }
+
+    .driver-header {
+        margin-bottom: 14px;
+    }
+
+    .driver-profile {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .driver-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #dc3545;
+        box-shadow: 0 3px 12px rgba(220, 53, 69, 0.25);
+    }
+
+    .driver-info strong {
+        font-size: 1.2rem;
+        color: #212529;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .driver-rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .star-rating {
+        color: #ffc107;
+        font-size: 1rem;
+    }
+
+    .rating-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .driver-details {
+        margin-bottom: 14px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        color: #495057;
+    }
+
+    .detail-item i {
+        width: 18px;
+        text-align: center;
+        color: #dc3545;
+    }
+
+    .driver-status {
+        text-align: right;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-available {
+        background: rgba(40, 167, 69, 0.15);
+        color: #155724;
+        border: 2px solid #28a745;
+    }
+
+    .status-unavailable {
+        background: rgba(220, 53, 69, 0.15);
+        color: #721c24;
+        border: 2px solid #dc3545;
+    }
+
+    .status-badge i {
+        font-size: 0.7rem;
+    }
+
+    .text-success {
+        color: #28a745;
+    }
+
+    .text-muted {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .right-panel {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .map-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 3px solid #dc3545;
+        position: relative;
+    }
+
+    .map-title::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: #212529;
+    }
+
+    #map-container {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        border: 3px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    #map-container:hover {
+        border-color: #dc3545;
+        box-shadow: 0 15px 40px rgba(220, 53, 69, 0.18);
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .leaflet-container {
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .leaflet-control-zoom a {
+        background: #dc3545 !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .leaflet-control-zoom a:hover {
+        background: #c82333 !important;
+    }
+
+    .leaflet-popup-content-wrapper {
+        border-radius: 12px !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    #map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.98);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        font-size: 1rem;
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #dc3545;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .map-info {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.2rem;
+        border-radius: 18px;
+        margin-bottom: 1.5rem;
+        border: 2px solid #e9ecef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .map-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: #dc3545;
+    }
+
+    .map-info p {
+        margin-bottom: 0.8rem;
+        color: #495057;
+        font-size: 0.95rem;
+        padding-left: 1rem;
+    }
+
+    .map-info p:last-child {
+        margin-bottom: 0;
+    }
+
+    .map-info strong {
+        color: #212529;
+        font-weight: 600;
+    }
+
+    .map-info span {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .notes-section {
+        background: rgba(220, 53, 69, 0.05);
+        padding: 1.2rem;
+        border-radius: 18px;
+        margin-bottom: 1.5rem;
+        border-left: 5px solid #dc3545;
+    }
+
+    .notes-section h4 {
+        color: #212529;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .notes-section h4 i {
+        color: #dc3545;
+        font-size: 1.1rem;
+    }
+
+    .notes-section p {
+        color: #495057;
+        margin-bottom: 0.5rem;
+        padding-left: 1.2rem;
+        position: relative;
+        font-size: 0.95rem;
+    }
+
+    .notes-section p:last-child {
+        margin-bottom: 0;
+    }
+
+    .notes-section p::before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: #dc3545;
+        font-weight: 700;
+    }
+
+    .booking-form {
+        background: #ffffff;
+        padding: 1.5rem;
+        border-radius: 20px;
+        border: 2px solid #e9ecef;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.6rem;
+        color: #212529;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 1rem;
+        color: #212529;
+        background: #ffffff;
+        transition: all 0.3s ease;
+        font-family: 'Poppins', sans-serif;
+        min-height: 44px;
+    }
+
+    .form-control:focus {
+        border-color: #dc3545;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15);
+    }
+
+    .form-control:hover:not(:focus) {
+        border-color: #ced4da;
+    }
+
+    select.form-control {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%23dc3545' d='M7 10L2 5h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 40px;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .h5 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .fare-display-container {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffeaea 100%);
+        padding: 1.5rem;
+        border-radius: 18px;
+        margin: 1.5rem 0;
+        border: 3px solid #dc3545;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
+    }
+
+    .fare-label {
+        font-size: 1.1rem;
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    #fareDisplay {
+        color: #dc3545;
+        font-size: 2.5rem;
+        font-weight: 800;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        display: block;
+        line-height: 1.2;
+    }
+
+    .fare-subtext {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 8px;
+        font-style: italic;
+    }
+
+    .text-danger {
+        color: #dc3545;
+    }
+
+    .mb-3 {
+        margin-bottom: 1.2rem;
+    }
+
+    .btn {
+        padding: 14px 28px;
+        border: none;
+        border-radius: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 48px;
+        white-space: nowrap;
+    }
+
+    .btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .btn:hover i {
+        transform: scale(1.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        width: 100%;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: scale(0.98);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.25);
+        margin-bottom: 0.8rem;
+        padding: 12px 24px;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-danger:active {
+        transform: scale(0.98);
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+        margin: 1.5rem 0;
+    }
+
+    @media (min-width: 768px) {
+        .navbar {
+            height: 80px;
+            padding: 0 2rem;
+        }
+
+        .nav-brand {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .user-profile span {
+            display: inline;
+        }
+
+        .booking-nav {
+            gap: 1.5rem;
+            padding: 1rem 2rem;
+            max-width: fit-content;
+        }
+
+        .booking-nav .btn-link {
+            font-size: 1rem;
+            padding: 12px 25px;
+        }
+
+        .main-container {
+            flex-direction: row;
+            gap: 2rem;
+            padding: 0 2rem;
+            margin: 2rem auto;
+        }
+
+        .left-panel {
+            flex: 0 0 320px;
+            padding: 2rem;
+            max-height: calc(100vh - 200px);
+            position: sticky;
+            top: 100px;
+        }
+
+        .left-panel h2 {
+            font-size: 1.6rem;
+        }
+
+        .driver-card {
+            padding: 1.5rem;
+        }
+
+        .driver-avatar {
+            width: 60px;
+            height: 60px;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 2.5rem;
+        }
+
+        .map-title {
+            font-size: 1.6rem;
+        }
+
+        #map-container {
+            height: 420px;
+        }
+
+        .booking-form {
+            padding: 2.5rem;
+        }
+
+        .form-control {
+            padding: 15px 20px;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            font-size: 1.05rem;
+        }
+
+        .fare-display-container {
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        #fareDisplay {
+            font-size: 3.5rem;
+        }
+
+        .fare-label {
+            font-size: 1.3rem;
+        }
+
+        .alert {
+            padding: 15px 25px;
+            margin: 20px auto;
+        }
+
+        .alert i {
+            font-size: 1.3rem;
+        }
+
+        .map-info {
+            padding: 1.8rem;
+        }
+
+        .notes-section {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .navbar {
+            padding: 0 3rem;
+        }
+
+        .left-panel {
+            flex: 0 0 350px;
+        }
+
+        .main-container {
+            padding: 0 3rem;
+        }
+
+        #fareDisplay {
+            font-size: 4rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .nav-brand {
+            font-size: 2rem;
+        }
+
+        .left-panel {
+            flex: 0 0 380px;
+        }
+
+        .main-container {
+            padding: 0 2rem;
+        }
+
+        #map-container {
+            height: 500px;
+        }
+
+        .fare-display-container {
+            padding: 2.5rem;
+        }
+
+        #fareDisplay {
+            font-size: 4.5rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .driver-profile {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .driver-status {
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .fare-display-container {
+            padding: 1.2rem;
+        }
+
+        #fareDisplay {
+            font-size: 2.2rem;
+        }
+
+        .dropdown-content {
+            min-width: 200px;
+            right: 10px;
+        }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+        .nav-link::after {
+            display: none;
+        }
+
+        .btn {
+            min-height: 50px;
+        }
+
+        .dropdown-item {
+            min-height: 50px;
+        }
+
+        .form-control {
+            min-height: 50px;
+            font-size: 16px;
+        }
+
+        .user-profile {
+            min-height: 50px;
+        }
+
+        .booking-nav .btn-link {
+            min-height: 50px;
+        }
+
+        .driver-card:hover {
+            transform: none;
+        }
+
+        .btn-primary:hover {
+            transform: none;
+        }
+
+        .btn-danger:hover {
+            transform: none;
+        }
+    }
+</style>
 </head>
 <body>
                                                             <!-- Navbar -->
@@ -263,16 +1408,20 @@
         </div>
     </div>
 
-    <script>
+<script>
     let map;
     let mapInitialized = false;
     let pickupMarker = null;
     let dropoffMarker = null;
     let routeControl = null;
     let currentRoute = null;
+    let isSubmitting = false;
 
-
-    function showAlert(message, type = 'success') {
+    function showAlert(message, type = 'success', duration = 5000) {
+        // Remove any existing alerts first
+        const existingAlerts = document.querySelectorAll('.alert[style*="position: fixed"]');
+        existingAlerts.forEach(alert => alert.remove());
+        
         const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
         const alertHtml = `
             <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
@@ -284,12 +1433,13 @@
         `;
         document.body.insertAdjacentHTML('beforeend', alertHtml);
         
+        // Auto-dismiss after duration
         setTimeout(() => {
             const alert = document.querySelector('.alert:last-child');
             if (alert) {
                 alert.remove();
             }
-        }, 5000);
+        }, duration);
     }
 
     function initializeMap() {
@@ -398,25 +1548,52 @@
     }
 
     function calculateFare(distanceKm) {
-        const BASE_FARE = 13;
-        const BASE_DISTANCE_KM = 2.0;
-        const PER_KM_CHARGE = 1;
-        const SERVICE_CHARGE = 10;
-
-        let totalFare = BASE_FARE;
-
-        if (distanceKm > BASE_DISTANCE_KM) {
-            const extraDistance = distanceKm - BASE_DISTANCE_KM;
-            totalFare += Math.ceil(extraDistance) * PER_KM_CHARGE;
+        const serviceFee = 5;
+        let fare;
+        
+        if (distanceKm <= 4) {
+            fare = 10;
+        } else if (distanceKm <= 6) {
+            fare = 15;
+        } else if (distanceKm <= 9) {
+            fare = 25;
+        } else if (distanceKm <= 15) {
+            fare = 30;
+        } else if (distanceKm <= 19) {
+            fare = 50;
+        } else if (distanceKm <= 24) {
+            fare = 75;
+        } else {
+            fare = 75 + (distanceKm - 24) * 5;
         }
+        
+        // Add service fee
+        const totalFare = fare + serviceFee;
+        
+        return {
+            baseFare: fare,
+            serviceFee: serviceFee,
+            totalFare: totalFare,
+            distanceKm: distanceKm
+        };
+    }
 
-        totalFare += SERVICE_CHARGE;
-        return Math.max(totalFare, BASE_FARE + SERVICE_CHARGE);
+    function updateFareDisplay(distanceKm) {
+        const fareData = calculateFare(distanceKm);
+        document.getElementById('fareDisplay').innerHTML = 
+            `<span class="fare-amount">₱${fareData.totalFare.toFixed(2)}</span>`;
     }
 
     function showRoute(start, end) {
         if (routeControl) {
             map.removeControl(routeControl);
+        }
+        
+        // Check if L.Routing is available
+        if (!L.Routing) {
+            console.error('Leaflet Routing Machine is not loaded');
+            showAlert('Route calculation service is not available.', 'error');
+            return;
         }
         
         routeControl = L.Routing.control({
@@ -452,11 +1629,16 @@
             document.getElementById('distanceDisplay').textContent = distanceKm.toFixed(1) + ' km';
             document.getElementById('durationDisplay').textContent = durationDisplay;
 
-            const fare = calculateFare(distanceKm);
-            document.getElementById('fareDisplay').textContent = "₱" + fare.toFixed(2);
-            document.getElementById('fare').value = fare.toFixed(2);
+            const fareData = calculateFare(distanceKm);
+            updateFareDisplay(distanceKm);
+            document.getElementById('fare').value = fareData.totalFare.toFixed(2);
 
             currentRoute = route;
+        });
+
+        routeControl.on('routingerror', function(e) {
+            console.error('Route error:', e.error);
+            showAlert('Unable to calculate route. Please check your locations.', 'error');
         });
     }
 
@@ -496,17 +1678,42 @@
         document.getElementById('dropoffDisplay').textContent = 'Click again to set delivery location';
         document.getElementById('distanceDisplay').textContent = '-';
         document.getElementById('durationDisplay').textContent = '-';
-        document.getElementById('fareDisplay').textContent = '₱0.00';
+        
+        // Reset fare display
+        document.getElementById('fareDisplay').innerHTML = `<span class="fare-amount">₱0.00</span>`;
         document.getElementById('fare').value = '';
         
         const surigaoCity = [9.7890, 125.4950];
         map.setView(surigaoCity, 13);
     }
 
+    // Function to check booking limit
+    async function checkBookingLimit() {
+        try {
+            const response = await fetch('{{ route("passenger.pending.bookings.count") }}', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.pending_count || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error checking booking limit:', error);
+            return 0;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const barangaySelect = document.getElementById('barangay');
         const driverList = document.getElementById('driverList');
         const searchDriversBtn = document.getElementById('searchDriversBtn');
+        const bookingForm = document.getElementById('bookingForm');
 
         initializeMap();
 
@@ -613,90 +1820,134 @@
         }).join('');
     }
 
-        searchDriversBtn.addEventListener('click', searchDrivers);
+        if (searchDriversBtn) {
+            searchDriversBtn.addEventListener('click', searchDrivers);
+        }
 
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            console.log('Delivery form submitted via AJAX');
-            
-            const pickupLat = document.getElementById('pickupLatitude').value;
-            const dropoffLat = document.getElementById('dropoffLatitude').value;
-            
-            if (!pickupLat || !dropoffLat) {
-                showAlert('Please set both pickup and delivery locations on the map before booking.', 'error');
-                return false;
-            }
-            
-            const pickupLocation = document.getElementById('pickupLocation').value;
-            const dropoffLocation = document.getElementById('dropoffLocation').value;
-            
-            if (!pickupLocation || !dropoffLocation) {
-                showAlert('Please fill in both pickup and delivery barangay names.', 'error');
-                return false;
-            }
-
-            const description = document.getElementById('description').value;
-            if (!description) {
-                showAlert('Please describe the item you want to deliver.', 'error');
-                return false;
-            }
-            
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking Delivery...';
-            submitBtn.disabled = true;
-            
-            const formData = new FormData(this);
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Prevent multiple submissions
+                if (isSubmitting) {
+                    return;
                 }
-            })
-            .then(response => {
-                return response.json().catch(() => {
-                    return { success: true, message: 'Delivery booked successfully!' };
-                });
-            })
-            .then(data => {
-                const successMessage = data.message || 'Delivery booked successfully! A driver will be assigned soon.';
-                showAlert(successMessage, 'success');
-                console.log('Delivery booking response:', data);
                 
-                setTimeout(() => {
-                    document.getElementById('bookingForm').reset();
-                    resetMap();
-                }, 2000);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('Delivery booked successfully! Please check your pending bookings.', 'success');
+                console.log('Delivery form submitted via AJAX');
                 
-                setTimeout(() => {
-                    document.getElementById('bookingForm').reset();
-                    resetMap();
-                }, 2000);
-            })
-            .finally(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                // Validate required fields
+                const pickupLat = document.getElementById('pickupLatitude').value;
+                const dropoffLat = document.getElementById('dropoffLatitude').value;
+                
+                if (!pickupLat || !dropoffLat) {
+                    showAlert('Please set both pickup and delivery locations on the map before booking.', 'error');
+                    return false;
+                }
+                
+                const pickupLocation = document.getElementById('pickupLocation').value;
+                const dropoffLocation = document.getElementById('dropoffLocation').value;
+                
+                if (!pickupLocation || !dropoffLocation) {
+                    showAlert('Please fill in both pickup and delivery barangay names.', 'error');
+                    return false;
+                }
+
+                const description = document.getElementById('description').value;
+                if (!description) {
+                    showAlert('Please describe the item you want to deliver.', 'error');
+                    return false;
+                }
+                
+                // Check booking limit
+                const pendingCount = await checkBookingLimit();
+                if (pendingCount >= 3) {
+                    showAlert(`You cannot book more than 3 deliveries at a time. You currently have ${pendingCount} pending bookings. Please wait for some to be completed before booking again.`, 'error', 8000);
+                    return false;
+                }
+                
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                submitBtn.disabled = true;
+                isSubmitting = true;
+                
+                const formData = new FormData(this);
+                
+                try {
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else if (data.success) {
+                        showAlert(data.message, 'success', 6000);
+                        
+                        // Reset form after successful booking
+                        setTimeout(() => {
+                            resetMap();
+                            
+                            // Clear form fields
+                            document.getElementById('pickupLocation').value = '';
+                            document.getElementById('dropoffLocation').value = '';
+                            document.getElementById('description').value = '';
+                            document.getElementById('scheduleTime').value = '';
+                            
+                            // Show success message with booking info
+                            if (data.booking_id) {
+                                const fare = document.getElementById('fare').value || '0.00';
+                                showAlert(`Delivery booked successfully! Booking ID: ${data.booking_id}, Passenger: {{ Auth::guard('passenger')->user()->fullname }}`, 'success', 8000);
+                            }
+                        }, 1500);
+                    } else {
+                        // Show error message
+                        if (data.message) {
+                            showAlert(data.message, 'error');
+                        } else if (data.errors) {
+                            // Handle validation errors
+                            const errorMessages = Object.values(data.errors).flat().join(', ');
+                            showAlert('Validation error: ' + errorMessages, 'error');
+                        } else {
+                            showAlert('An error occurred. Please try again.', 'error');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('Network error. Please check your connection and try again.', 'error');
+                } finally {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    isSubmitting = false;
+                }
             });
-        });
+        }
 
-        document.getElementById('resetMapBtn').addEventListener('click', resetMap);
+        const resetMapBtn = document.getElementById('resetMapBtn');
+        if (resetMapBtn) {
+            resetMapBtn.addEventListener('click', resetMap);
+        }
 
-        document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.getElementById('dropdownMenu').classList.toggle('show');
-        });
+        const userProfileDropdown = document.getElementById('userProfileDropdown');
+        if (userProfileDropdown) {
+            userProfileDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('dropdownMenu').classList.toggle('show');
+            });
+        }
         
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.user-profile-dropdown')) {
-                document.getElementById('dropdownMenu').classList.remove('show');
+                const dropdownMenu = document.getElementById('dropdownMenu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.remove('show');
+                }
             }
         });
 
@@ -718,6 +1969,6 @@
             showAlert('{{ session('error') }}', 'error');
         @endif
     });
-    </script>
+</script>
 </body>
 </html>

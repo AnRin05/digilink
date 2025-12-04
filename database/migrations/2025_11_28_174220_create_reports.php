@@ -13,8 +13,10 @@ return new class extends Migration
             $table->id();
             $table->string('report_type');
             $table->text('description');
-            $table->string('reporter_type');
+            $table->string('reporter_type'); // 'driver' or 'passenger'
             $table->unsignedBigInteger('reporter_id');
+            $table->string('reporter_name'); // Store reporter's full name
+            $table->string('reporter_phone'); // Store reporter's phone
             $table->unsignedBigInteger('booking_id');
             $table->json('location_data')->nullable();
             $table->json('booking_data')->nullable();
@@ -24,8 +26,11 @@ return new class extends Migration
             $table->text('admin_notes')->nullable();
             $table->timestamps();
 
-            // bookingID is correct here since bookings uses bookingID
             $table->foreign('booking_id')->references('bookingID')->on('bookings')->onDelete('cascade');
+            
+            // Indexes for better performance
+            $table->index(['reporter_type', 'reporter_id']);
+            $table->index('status');
         });
     }
 

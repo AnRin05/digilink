@@ -566,145 +566,276 @@
             </section>
 
                                                             <!-- REPORTS SECTION -->
-            <section class="history-section">
-                <div class="section-header">
-                    <h2 class="section-title">Reports & Notifications</h2>
-                    <span class="section-badge" id="reports-count">{{ $reports->count() }} Reports</span>
-                </div>
-                
-                <div class="section-content">
-                    <div class="reports-container">
-                        <div class="reports-grid" id="reports-grid">
-                            @foreach($reports as $report)
-                            <div class="report-card" data-status="{{ $report->status }}">
-                                <div class="report-header">
-                                    <div class="report-type-badge {{ $report->report_type }}">
-                                        {{ $report->getReportTypeDisplay() }}
-                                    </div>
-                                    <div class="report-status {{ $report->status }}">
-                                        {{ ucfirst($report->status) }}
-                                    </div>
-                                </div>
-                                
-                                <div class="report-content">
-                                    <h3 class="report-title">
-                                        @if($report->report_type === 'urgent_help')
-                                            <i class="fas fa-exclamation-triangle urgent-icon"></i>
-                                        @else
-                                            <i class="fas fa-flag complaint-icon"></i>
-                                        @endif
-                                        Report #{{ $report->id }}
-                                    </h3>
-                                    
-                                    <div class="report-meta">
-                                        <p><strong>Booking:</strong> {{ $report->booking_id }}</p>
-                                        <p><strong>Reporter:</strong> 
-                                            {{ $report->reporter->fullname ?? 'Unknown' }} 
-                                            ({{ $report->reporter_type }})
-                                        </p>
-                                        <p><strong>Reported:</strong> {{ $report->created_at->format('M d, Y H:i') }}</p>
-                                    </div>
-                                    
-                                    <div class="report-description">
-                                        <strong>Description:</strong>
-                                        @php
-                                            $description = $report->description;
-                                            $lines = explode("\n", $description);
-                                            $filteredLines = [];
-                                            
-                                            foreach ($lines as $line) {
-                                                $line = trim($line);
-                                                if (empty($line)) continue;
-                                                
-                                                if (str_contains($line, 'COMPLAINT REPORT') || 
-                                                    str_contains($line, 'URGENT HELP REQUESTED') ||
-                                                    str_contains($line, 'Booking:') && str_contains($description, 'Booking:') ||
-                                                    str_contains($line, 'Reporter:') && str_contains($description, 'Reporter:') ||
-                                                    str_contains($line, 'Status:') ||
-                                                    str_contains($line, 'Service:')) {
-                                                    continue;
-                                                }
-                                                
-                                                $line = str_replace('Description:', '', $line);
-                                                $line = trim($line);
-                                                
-                                                if (!empty($line)) {
-                                                    $filteredLines[] = $line;
-                                                }
-                                            }
-                                            
-                                            if (!empty($filteredLines)) {
-                                                echo '<ul class="description-list">';
-                                                foreach ($filteredLines as $line) {
-                                                    if (strpos($line, ':') !== false) {
-                                                        $parts = explode(':', $line, 2);
-                                                        $key = trim($parts[0]);
-                                                        $value = trim($parts[1] ?? '');
-                                                        echo '<li><span class="list-label">' . e($key) . ':</span> <span class="list-value">' . e($value) . '</span></li>';
-                                                    } else {
-                                                        echo '<li><span class="list-label">Details:</span> <span class="list-value">' . e($line) . '</span></li>';
-                                                    }
-                                                }
-                                                echo '</ul>';
-                                            } else {
-                                                echo '<p>' . nl2br(e($description)) . '</p>';
-                                            }
-                                        @endphp
-                                    </div>
-                                    
-                                    @if($report->admin_notes)
-                                    <div class="admin-notes">
-                                        <strong>Admin Notes:</strong>
-                                        <p>{{ $report->admin_notes }}</p>
-                                    </div>
-                                    @endif
-                                </div>
-                                
-                                <div class="report-actions">
-                                    <a href="{{ route('admin.reports.show', $report->id) }}" class="btn btn-primary">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </a>
-                                    
-                                    @if($report->status === 'pending')
-                                    <span class="urgent-badge">NEEDS ATTENTION</span>
-                                    @endif
-                                </div>
-                            </div>
-                            @endforeach
+<section class="history-section">
+    <div class="section-header">
+        <h2 class="section-title">Reports & Notifications</h2>
+        <span class="section-badge" id="reports-count">{{ $reports->count() }} Reports</span>
+    </div>
+    
+    <div class="section-content">
+        <div class="reports-container">
+            <div class="reports-grid" id="reports-grid">
+                @foreach($reports as $report)
+                <div class="report-card" data-status="{{ $report->status }}">
+                    <div class="report-header">
+                        <div class="report-type-badge {{ $report->report_type }}">
+                            @if($report->report_type === 'urgent_help')
+                                UrgentHelp
+                            @else
+                                Complaint
+                            @endif
                         </div>
-
-                        @if($reports->count() === 0)
-                            <div class="empty-state">
-                                <div class="empty-icon">
-                                    <i class="fas fa-flag"></i>
-                                </div>
-                                <h3 class="empty-title">No Reports Yet</h3>
-                                <p class="empty-text">There are no reports or notifications at this time.</p>
-                            </div>
+                        <div class="report-status {{ $report->status }}">
+                            {{ ucfirst($report->status) }}
+                        </div>
+                    </div>
+                    
+                    <div class="report-content">
+                        <h3 class="report-title">
+                            @if($report->report_type === 'urgent_help')
+                                <i class="fas fa-exclamation-triangle urgent-icon"></i>
+                            @else
+                                <i class="fas fa-flag complaint-icon"></i>
+                            @endif
+                            Report #{{ $report->id }}
+                        </h3>
+                        
+                        <div class="report-meta">
+                            <p><strong>Booking:</strong> {{ $report->booking_id }}</p>
+                            <p><strong>Reporter:</strong> 
+                                {{ $report->reporter_name }} 
+                                ({{ $report->reporter_type }})
+                            </p>
+                            <p><strong>Reported:</strong> {{ $report->created_at->format('M d, Y H:i') }}</p>
+                            
+                            <!-- Show opposite party information -->
+                            @if($report->reporter_type === 'passenger')
+                                <p><strong>Driver:</strong> 
+                                    {{ $report->driver_data['name'] ?? 'N/A' }} 
+                                    ({{ $report->driver_data['phone'] ?? 'N/A' }})
+                                </p>
+                            @else
+                                <p><strong>Passenger:</strong> 
+                                    {{ $report->passenger_data['name'] ?? 'N/A' }} 
+                                    ({{ $report->passenger_data['phone'] ?? 'N/A' }})
+                                </p>
+                            @endif
+                            
+                            <p><strong>Pickup:</strong> {{ $report->location_data['booking_pickup']['address'] ?? 'N/A' }}</p>
+                            <p><strong>Dropoff:</strong> {{ $report->location_data['booking_dropoff']['address'] ?? 'N/A' }}</p>
+                        </div>
+                        
+                        <div class="report-description">
+                            <strong>Description:</strong>
+                            @php
+                                $description = $report->description;
+                                $lines = explode("\n", $description);
+                                $filteredLines = [];
+                                
+                                foreach ($lines as $line) {
+                                    $line = trim($line);
+                                    if (empty($line)) continue;
+                                    
+                                    // Skip the header lines that are now displayed in the meta section
+                                    if (str_contains($line, 'COMPLAINT REPORT') || 
+                                        str_contains($line, 'URGENT HELP REQUESTED') ||
+                                        str_contains($line, 'Booking:') ||
+                                        str_contains($line, 'Reporter:') ||
+                                        str_contains($line, 'Status:') ||
+                                        str_contains($line, 'Service:') ||
+                                        str_contains($line, 'Driver:') ||
+                                        str_contains($line, 'Passenger:') ||
+                                        str_contains($line, 'Pickup:') ||
+                                        str_contains($line, 'Dropoff:')) {
+                                        continue;
+                                    }
+                                    
+                                    $line = str_replace('Description:', '', $line);
+                                    $line = trim($line);
+                                    
+                                    if (!empty($line)) {
+                                        $filteredLines[] = $line;
+                                    }
+                                }
+                                
+                                if (!empty($filteredLines)) {
+                                    echo '<ul class="description-list">';
+                                    foreach ($filteredLines as $line) {
+                                        if (strpos($line, ':') !== false) {
+                                            $parts = explode(':', $line, 2);
+                                            $key = trim($parts[0]);
+                                            $value = trim($parts[1] ?? '');
+                                            echo '<li><span class="list-label">' . e($key) . ':</span> <span class="list-value">' . e($value) . '</span></li>';
+                                        } else {
+                                            echo '<li><span class="list-label">Details:</span> <span class="list-value">' . e($line) . '</span></li>';
+                                        }
+                                    }
+                                    echo '</ul>';
+                                } else {
+                                    echo '<p class="no-description">No additional description provided.</p>';
+                                }
+                            @endphp
+                        </div>
+                        
+                        @if($report->admin_notes)
+                        <div class="admin-notes">
+                            <strong>Admin Notes:</strong>
+                            <p>{{ $report->admin_notes }}</p>
+                        </div>
                         @endif
                     </div>
-
-                                                            <!-- Reports Pagination -->
-                    @if($reports->count() > 3)
-                    <div class="pagination-container" id="reports-pagination">
-                        <div class="pagination-info" id="reports-pagination-info">
-                            Showing 1-3 of {{ $reports->count() }} reports
-                        </div>
-                        <div class="pagination-controls">
-                            <button class="pagination-btn" id="reports-prev-btn" disabled>
-                                <i class="fas fa-chevron-left"></i> Previous
-                            </button>
-                            <div class="pagination-indicators" id="reports-indicators">
-                                                            <!-- Indicators will be generated by JavaScript -->
-                            </div>
-                            <button class="pagination-btn" id="reports-next-btn">
-                                Next <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
+                    
+                    <div class="report-actions">
+                        <a href="{{ route('admin.reports.show', $report->id) }}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        
+                        @if($report->status === 'pending')
+                        <span class="urgent-badge">NEEDS ATTENTION</span>
+                        @endif
                     </div>
-                    @endif
                 </div>
-            </section>
+                @endforeach
+            </div>
+
+            @if($reports->count() === 0)
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <h3 class="empty-title">No Reports Yet</h3>
+                    <p class="empty-text">There are no reports or notifications at this time.</p>
+                </div>
+            @endif
+        </div>
+
+        <!-- Reports Pagination -->
+        @if($reports->count() > 3)
+        <div class="pagination-container" id="reports-pagination">
+            <div class="pagination-info" id="reports-pagination-info">
+                Showing 1-3 of {{ $reports->count() }} reports
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="reports-prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-indicators" id="reports-indicators">
+                    <!-- Indicators will be generated by JavaScript -->
+                </div>
+                <button class="pagination-btn" id="reports-next-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        @endif
+    </div>
+</section>
+
+<style>
+.report-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: white;
+}
+
+.report-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.report-type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.report-type-badge.urgent_help {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.report-type-badge.complaint {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.report-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.report-status.pending {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.report-status.reviewed {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.report-status.resolved {
+    background: #d1edff;
+    color: #0c5460;
+}
+
+.report-meta p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.report-description {
+    margin: 12px 0;
+}
+
+.description-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+}
+
+.description-list li {
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.list-label {
+    font-weight: bold;
+    color: #333;
+}
+
+.list-value {
+    color: #666;
+}
+
+.admin-notes {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+.urgent-badge {
+    background: #dc3545;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.no-description {
+    color: #666;
+    font-style: italic;
+}
+</style>
         </div>
     </main>
 

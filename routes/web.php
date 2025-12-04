@@ -86,6 +86,7 @@ Route::prefix('passenger')->group(function () {
     Route::post('/cancel-ongoing-booking/{id}', [PassengerController::class, 'cancelOngoingBooking'])->name('passenger.cancel.ongoing.booking'); // NEW ROUTE
     Route::get('/edit-booking/{id}', [PassengerController::class, 'editBooking'])->name('passenger.edit.booking');
     Route::put('/update-booking/{id}', [PassengerController::class, 'updateBooking'])->name('passenger.update.booking');
+    Route::get('/pending-count', [PassengerController::class, 'getPendingCount'])->name('passenger.pending.bookings.count');
 
     Route::get('/track-booking/{id}', [PassengerController::class, 'trackBooking'])->name('passenger.track.booking');
     Route::get('/get-booking-location/{id}', [PassengerController::class, 'getBookingLocation'])->name('passenger.get.booking.location');
@@ -166,7 +167,7 @@ Route::prefix('admin')->group(function () {
     Route::put('/reports/{id}', [AdminController::class, 'updateReport'])->name('admin.reports.update');
     Route::get('/reports-count', [AdminController::class, 'getReportsCount'])->name('admin.reports.count');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('admin.notifications');
-
+    
     Route::get('/ongoing-bookings/{type}/{id}', [AdminController::class, 'viewOngoingBookings'])->name('admin.ongoing.bookings');
     Route::get('/view-completed-bookings/{type}/{id}', [AdminController::class, 'viewCompletedBookings'])->name('admin.view.completed.bookings');
     Route::get('/view-cancelled-bookings/{type}/{id}', [AdminController::class, 'viewCancelledBookings'])->name('admin.view.cancelled.bookings');

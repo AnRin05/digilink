@@ -107,13 +107,11 @@ class AdminController extends Controller
         try {
             $driver = Driver::findOrFail($id);
             
-            // Update driver status
             $driver->update([
                 'is_approved' => true,
                 'approved_at' => now()
             ]);
             
-            // Send approval notification with error handling
             try {
                 $driver->notify(new DriverApprovedNotification());
                 $emailStatus = 'Notification email sent.';
@@ -140,7 +138,6 @@ class AdminController extends Controller
         try {
             $driver = Driver::findOrFail($id);
             
-            // Send rejection notification with error handling
             try {
                 $driver->notify(new DriverRejectedNotification());
                 $emailStatus = 'Notification email sent.';
@@ -149,7 +146,6 @@ class AdminController extends Controller
                 $emailStatus = 'Driver rejected but email notification failed.';
             }
             
-            // Update driver status (you might want to delete or keep as rejected)
             $driver->update(['is_approved' => false]);
             
             return redirect()->route('admin.drivers')->with('success', 'Driver rejected successfully! ' . $emailStatus);
@@ -239,7 +235,6 @@ class AdminController extends Controller
             ]
         ];
 
-        // Graph 2: Account creation stats
         $accountCreationData = [
             'today' => [
                 'passengers' => Passenger::whereDate('created_at', $today)->count(),
@@ -353,13 +348,18 @@ public function reports()
                 ->where('status', Booking::STATUS_CANCELLED)->count();
         }
 
-        $reports = Report::with(['booking', 'reporter'])
+        $reports = Report::with(['booking'])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($report) {
+                // Add display information for the view
+                $report->display_info = $this->getReportDisplayInfo($report);
+                return $report;
+            });
 
         // Count reports by status
         $pendingReportsCount = Report::where('status', Report::STATUS_PENDING)->count();
-        $reviewedReportsCount = Report::where('status', Report::STATUS_REVIEWED)->count();
+        $reviewedReportsCount = Report::where('status', Report::STATUS_IN_REVIEW)->count();
         $resolvedReportsCount = Report::where('status', Report::STATUS_RESOLVED)->count();
 
         return view('admin.reports', compact(
@@ -377,23 +377,54 @@ public function reports()
     }
 }
 
-    public function showReport($id)
-    {
-        if (!Auth::guard('admin')->check()) {
-            return redirect()->route('login')->with('error', 'Please login as admin.');
-        }
-
-        try {
-            $report = Report::with(['booking.passenger', 'booking.driver', 'reporter'])
-                ->findOrFail($id);
-
-            return view('admin.report-show', compact('report'));
-
-        } catch (\Exception $e) {
-            Log::error('Error loading report: ' . $e->getMessage());
-            return redirect()->route('admin.reports')->with('error', 'Error loading report: ' . $e->getMessage());
-        }
+/**
+ * Helper method to get display information for reports
+ */
+private function getReportDisplayInfo($report)
+{
+    $reporterInfo = "Reporter: {$report->reporter_name} ({$report->reporter_type})";
+    
+    if ($report->reporter_type === 'passenger') {
+        // Passenger reported, show driver info
+        $driverData = $report->driver_data ?? [];
+        $oppositeParty = "Driver: " . ($driverData['name'] ?? 'N/A') . " (" . ($driverData['phone'] ?? 'N/A') . ")";
+    } else {
+        // Driver reported, show passenger info  
+        $passengerData = $report->passenger_data ?? [];
+        $oppositeParty = "Passenger: " . ($passengerData['name'] ?? 'N/A') . " (" . ($passengerData['phone'] ?? 'N/A') . ")";
     }
+
+    return [
+        'reporter_info' => $reporterInfo,
+        'opposite_party' => $oppositeParty,
+        'pickup' => $report->location_data['booking_pickup']['address'] ?? 'N/A',
+        'dropoff' => $report->location_data['booking_dropoff']['address'] ?? 'N/A',
+        'reporter_name' => $report->reporter_name,
+        'reporter_phone' => $report->reporter_phone,
+        'reporter_type' => $report->reporter_type,
+    ];
+}
+
+public function showReport($id)
+{
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('login')->with('error', 'Please login as admin.');
+    }
+
+    try {
+        $report = Report::with(['booking'])
+            ->findOrFail($id);
+
+        // Add display information
+        $report->display_info = $this->getReportDisplayInfo($report);
+
+        return view('admin.report-show', compact('report'));
+
+    } catch (\Exception $e) {
+        Log::error('Error loading report: ' . $e->getMessage());
+        return redirect()->route('admin.reports')->with('error', 'Error loading report: ' . $e->getMessage());
+    }
+}
 
     /**
      * Update report status and add admin response
@@ -401,7 +432,7 @@ public function reports()
     public function updateReport(Request $request, $id)
     {
         if (!Auth::guard('admin')->check()) {
-            return redirect()->route('login')->with('error', 'Please login as admin.');
+            return redirect()->route('admin.login')->with('error', 'Please login as admin.');
         }
 
         try {
@@ -409,7 +440,7 @@ public function reports()
                 'status' => 'required|in:pending,reviewed,resolved',
                 'admin_notes' => 'nullable|string|max:2000',
                 'send_email_response' => 'nullable|boolean',
-                'email_response' => 'nullable|string|max:2000',
+                'email_response' => 'required_if:send_email_response,true|nullable|string|max:2000',
             ]);
 
             $report = Report::with(['reporter'])->findOrFail($id);
@@ -418,31 +449,79 @@ public function reports()
             $report->update([
                 'status' => $request->status,
                 'admin_notes' => $request->admin_notes,
+                'updated_by_admin_id' => Auth::guard('admin')->id(),
             ]);
 
+            $emailStatus = '';
+
             // Send email response if requested
-            if ($request->send_email_response && $request->email_response) {
+            if ($request->boolean('send_email_response') && !empty($request->email_response)) {
                 try {
+                    // Check if reporter exists and has email
+                    if (!$report->reporter) {
+                        throw new \Exception('Reporter not found for this report.');
+                    }
+
+                    if (empty($report->reporter->email)) {
+                        throw new \Exception('Reporter email address not available.');
+                    }
+
+                    // Send notification
                     $report->reporter->notify(new ReportResponseNotification($report, $request->email_response));
-                    $emailStatus = 'Response email sent.';
+                    
+                    // Log email sent
+                    Log::info('Report response email sent successfully', [
+                        'report_id' => $report->id,
+                        'reporter_id' => $report->reporter->id,
+                        'reporter_type' => $report->reporter_type,
+                        'admin_id' => Auth::guard('admin')->id()
+                    ]);
+                    
+                    $emailStatus = ' Response email sent successfully.';
+                    
                 } catch (\Exception $e) {
-                    Log::error('Failed to send report response email: ' . $e->getMessage());
-                    $emailStatus = 'Report updated but email notification failed.';
+                    Log::error('Failed to send report response email: ' . $e->getMessage(), [
+                        'report_id' => $report->id,
+                        'reporter_id' => $report->reporter?->id,
+                        'admin_id' => Auth::guard('admin')->id()
+                    ]);
+                    $emailStatus = ' Report updated but email notification failed: ' . $e->getMessage();
                 }
             } else {
-                $emailStatus = 'Report updated successfully.';
+                $emailStatus = ' Report updated successfully.';
             }
 
-            return redirect()->route('admin.reports.show', $id)
-                ->with('success', 'Report updated successfully! ' . $emailStatus);
+            // Log report update
+            Log::info('Report updated by admin', [
+                'report_id' => $report->id,
+                'admin_id' => Auth::guard('admin')->id(),
+                'status' => $request->status,
+                'email_sent' => $request->boolean('send_email_response')
+            ]);
 
+            return redirect()->route('admin.reports.show', $id)
+                ->with('success', 'Report updated successfully!' . $emailStatus);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->route('admin.reports.show', $id)
+                ->withErrors($e->validator)
+                ->withInput();
+                
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Report not found: ' . $e->getMessage());
+            return redirect()->route('admin.reports')
+                ->with('error', 'Report not found.');
+                
         } catch (\Exception $e) {
-            Log::error('Error updating report: ' . $e->getMessage());
+            Log::error('Error updating report: ' . $e->getMessage(), [
+                'report_id' => $id,
+                'admin_id' => Auth::guard('admin')->id()
+            ]);
+            
             return redirect()->route('admin.reports.show', $id)
                 ->with('error', 'Error updating report: ' . $e->getMessage());
         }
     }
-
     /**
      * Get reports count for notifications
      */

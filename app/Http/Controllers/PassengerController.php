@@ -100,12 +100,38 @@ class PassengerController extends Controller
         return redirect()->route('home')->with('success', 'Account deleted successfully!');
     }
 
+    public function getPendingCount()
+{
+    try {
+        $passenger = Auth::guard('passenger')->user();
+        
+        if (!$passenger) {
+            return response()->json([
+                'pending_count' => 0
+            ]);
+        }
+        
+        $pendingCount = Booking::where('passengerID', $passenger->id)
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])
+            ->count();
+            
+        return response()->json([
+            'pending_count' => $pendingCount
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('Error getting pending count: ' . $e->getMessage());
+        return response()->json([
+            'pending_count' => 0
+        ]);
+    }
+}
+
 public function bookRide(Request $request)
 {
     try {
         $passenger = Auth::guard('passenger')->user();
 
-        // Debug: Check if passenger is authenticated
         if (!$passenger) {
             logger('Passenger not authenticated');
             return response()->json([
@@ -116,19 +142,7 @@ public function bookRide(Request $request)
 
         logger("Passenger attempting to book: " . $passenger->id . " - " . $passenger->email);
 
-        $activeBookingsCount = Booking::where('passengerID', $passenger->id)
-            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])
-            ->count();
-
-        logger("Active bookings count: " . $activeBookingsCount);
-
-        if ($activeBookingsCount >= 3) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You cannot book more than 3 bookings at a time.'
-            ], 422);
-        }
-
+        // VALIDATION FIRST
         $validated = $request->validate([
             'pickupLocation' => 'required|string|max:255',
             'dropoffLocation' => 'required|string|max:255',
@@ -142,6 +156,20 @@ public function bookRide(Request $request)
             'description' => 'nullable|string|max:500',
             'scheduleTime' => 'nullable|date|after:now',
         ]);
+
+        // CHECK BOOKING LIMIT AFTER VALIDATION BUT BEFORE TRANSACTION
+        $activeBookingsCount = Booking::where('passengerID', $passenger->id)
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])
+            ->count();
+
+        logger("Active bookings count: " . $activeBookingsCount);
+
+        if ($activeBookingsCount >= 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot book more than 3 bookings at a time. You currently have ' . $activeBookingsCount . ' active bookings.'
+            ], 422);
+        }
 
         DB::beginTransaction();
 
@@ -201,7 +229,6 @@ public function bookRide(Request $request)
         logger('Booking error: ' . $e->getMessage());
         logger('Error trace: ' . $e->getTraceAsString());
         
-        // Check for specific database errors
         if (str_contains($e->getMessage(), 'SQLSTATE')) {
             logger('SQL Error: ' . $e->getMessage());
         }

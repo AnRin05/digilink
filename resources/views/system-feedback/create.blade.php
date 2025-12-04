@@ -8,391 +8,579 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mb-8 {
-            margin-bottom: 2rem;
-        }
-
-        .mb-6 {
-            margin-bottom: 1.5rem;
-        }
-
-        .mb-4 {
-            margin-bottom: 1rem;
-        }
-
-        .mb-2 {
-            margin-bottom: 0.5rem;
-        }
-
-        .text-3xl {
-            font-size: 1.875rem;
-            line-height: 2.25rem;
-        }
-
-        .text-2xl {
-            font-size: 1.5rem;
-            line-height: 2rem;
-        }
-
-        .text-lg {
-            font-size: 1.125rem;
-            line-height: 1.75rem;
-        }
-
-        .text-sm {
-            font-size: 0.875rem;
-            line-height: 1.25rem;
-        }
-
-        .text-4xl {
-            font-size: 2.25rem;
-            line-height: 2.5rem;
-        }
-
-        .font-bold {
-            font-weight: 700;
-        }
-
-        .font-semibold {
-            font-weight: 600;
-        }
-
-        .font-medium {
-            font-weight: 500;
-        }
-
-        .text-gray-900 {
-            color: #1a202c;
-        }
-
-        .text-gray-700 {
-            color: #4a5568;
-        }
-
-        .text-gray-600 {
-            color: #718096;
-        }
-
-        .text-gray-500 {
-            color: #a0aec0;
-        }
-
-        .text-gray-300 {
-            color: #e2e8f0;
-        }
-
-        .text-red-500 {
-            color: #f56565;
-        }
-
-        .text-red-600 {
-            color: #e53e3e;
-        }
-
-        .text-yellow-400 {
-            color: #f6e05e;
-        }
-
-        .text-white {
-            color: #ffffff;
-        }
-
-        .bg-white {
-            background-color: #ffffff;
-        }
-
-        .bg-red-600 {
-            background-color: #e53e3e;
-        }
-
-        .bg-gray-50 {
-            background-color: #f9fafb;
-        }
-
-        .border {
-            border-width: 1px;
-        }
-
-        .border-gray-300 {
-            border-color: #e2e8f0;
-        }
-
-        .rounded-lg {
-            border-radius: 0.5rem;
-        }
-
-        .rounded {
-            border-radius: 0.25rem;
-        }
-
-        .shadow-lg {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .p-6 {
-            padding: 1.5rem;
-        }
-
-        .p-8 {
-            padding: 2rem;
-        }
-
-        .p-4 {
-            padding: 1rem;
-        }
-
-        .p-3 {
-            padding: 0.75rem;
-        }
-
-        .py-8 {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-
-        .py-3 {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-        }
-
-        .px-4 {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-
-        .px-6 {
-            padding-left: 1.5rem;
-            padding-right: 1.5rem;
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .justify-center {
-            justify-content: center;
-        }
-
-        .justify-end {
-            justify-content: flex-end;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .space-x-2 > * + * {
-            margin-left: 0.5rem;
-        }
-
-        .space-x-4 > * + * {
-            margin-left: 1rem;
-        }
-
-        .space-y-4 > * + * {
-            margin-top: 1rem;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .block {
-            display: block;
-        }
-
-        .inline-block {
-            display: inline-block;
-        }
-
-        .transition-colors {
-            transition-property: background-color, border-color, color, fill, stroke;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
-        }
-
-        .hover\:bg-red-700:hover {
-            background-color: #c53030;
-        }
-
-        .hover\:bg-gray-50:hover {
-            background-color: #f9fafb;
-        }
-
-        .focus\:ring-2:focus {
-            box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
-        }
-
-        .focus\:ring-red-500:focus {
-            box-shadow: 0 0 0 2px rgba(245, 101, 101, 0.5);
-        }
-
-        .focus\:border-red-500:focus {
-            border-color: #f56565;
-        }
-
-        input[type="checkbox"] {
-            border-radius: 0.25rem;
-        }
-
-        input[type="email"],
-        select,
-        textarea {
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.75rem;
-            width: 100%;
-            font-size: 1rem;
-        }
-
-        input[type="email"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #f56565;
-            box-shadow: 0 0 0 2px rgba(245, 101, 101, 0.1);
-        }
-
-        button {
-            cursor: pointer;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .rating-star {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .rating-star:hover {
-            transform: scale(1.1);
-        }
-
-        a {
-            text-decoration: none;
-            display: inline-block;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            color: #4a5568;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        a:hover {
-            background-color: #f9fafb;
-        }
-
-        .alert {
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0.5rem;
-            font-weight: 500;
-        }
-
-        .alert-success {
-            background-color: #c6f6d5;
-            color: #22543d;
-            border: 1px solid #9ae6b4;
-        }
-
-        .alert-error {
-            background-color: #fed7d7;
-            color: #c53030;
-            border: 1px solid #feb2b2;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mb-8 {
+    margin-bottom: 2rem;
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.bg-white {
+    background-color: #ffffff;
+}
+
+.bg-red-600 {
+    background-color: #e63946;
+}
+
+.bg-gray-50 {
+    background-color: #f9fafb;
+}
+
+.rounded-lg {
+    border-radius: 12px;
+}
+
+.rounded {
+    border-radius: 6px;
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.p-6 {
+    padding: 1.5rem;
+}
+
+.p-4 {
+    padding: 1rem;
+}
+
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.flex {
+    display: flex;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.space-x-2 > * + * {
+    margin-left: 0.5rem;
+}
+
+.space-x-4 > * + * {
+    margin-left: 1rem;
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.block {
+    display: block;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.header-section {
+    margin-bottom: 2.5rem;
+}
+
+.header-section h1 {
+    font-size: 2.2rem;
+    color: #212529;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.header-section p {
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+.feedback-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.rating-section {
+    margin-bottom: 2rem;
+}
+
+.rating-label {
+    font-size: 1.2rem;
+    color: #212529;
+    margin-bottom: 1rem;
+    display: block;
+    font-weight: 600;
+}
+
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.rating-star {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+    font-size: 2.5rem;
+}
+
+.rating-star i {
+    color: #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.rating-star:hover i {
+    color: #f6e05e;
+    transform: scale(1.1);
+}
+
+.rating-star.active i {
+    color: #f6e05e;
+}
+
+.rating-text {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.95rem;
+    color: #212529;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #212529;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: #e63946;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: #e63946;
+}
+
+.checkbox-label {
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: white;
+    color: #495057;
+    border: 2px solid #e9ecef;
+}
+
+.btn-secondary:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #e63946 0%, #dc3545 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(230, 57, 70, 0.3);
+}
+
+.footer-text {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    border: 1px solid #34d399;
+    color: #065f46;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border: 1px solid #f87171;
+    color: #7f1d1d;
+}
+
+.debug-info {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+    border: 1px dashed #dee2e6;
+}
+
+.error-text {
+    color: #e63946;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@media (max-width: 1024px) {
+    .container {
+        max-width: 700px;
+    }
+    
+    .feedback-card {
+        padding: 1.75rem;
+    }
+    
+    .header-section h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+    
+    .feedback-card {
+        padding: 1.5rem;
+        border-radius: 14px;
+    }
+    
+    .header-section h1 {
+        font-size: 1.8rem;
+    }
+    
+    .header-section p {
+        font-size: 1rem;
+    }
+    
+    .rating-star {
+        font-size: 2.2rem;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .feedback-card {
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+    
+    .header-section h1 {
+        font-size: 1.6rem;
+    }
+    
+    .header-section p {
+        font-size: 0.95rem;
+    }
+    
+    .rating-stars {
+        gap: 0.5rem;
+    }
+    
+    .rating-star {
+        font-size: 1.8rem;
+        padding: 0.3rem;
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 15px;
+    }
+    
+    .alert {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .header-section h1 {
+        font-size: 1.4rem;
+    }
+    
+    .feedback-card {
+        padding: 1rem;
+    }
+    
+    .rating-star {
+        font-size: 1.6rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 900px;
+    }
+    
+    .feedback-card {
+        padding: 2.5rem;
+    }
+    
+    .header-section h1 {
+        font-size: 2.5rem;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .feedback-card {
+        margin: 0.5rem 0;
+    }
+}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Share Your Feedback</h1>
-            <p class="text-gray-600">Help us improve FastLan by sharing your experience</p>
+        <div class="header-section text-center">
+            <h1>Share Your Feedback</h1>
+            <p>Help us improve FastLan by sharing your experience</p>
         </div>
 
-                                                            <!-- Display Success/Error Messages -->
         @if(session('success'))
-            <div class="alert alert-success mb-6">
+            <div class="alert alert-success">
                 <i class="fas fa-check-circle"></i> {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div class="alert alert-error mb-6">
+            <div class="alert alert-error">
                 <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
             </div>
         @endif
 
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="feedback-card">
+            <div class="debug-info">
+                <strong>Information:</strong> 
+                User Type: {{ $userType ?? 'Unknown' }}, 
+                User Name: {{ $user->fullname ?? 'Unknown' }}
+            </div>
+
             <form action="{{ route('feedback.store') }}" method="POST" id="feedbackForm">
                 @csrf
 
-                                                            <!-- Debug info (remove in production) -->
-                <div style="background: #f3f4f6; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 12px;">
-                    <strong>Information:</strong> 
-                    User Type: {{ $userType ?? 'Unknown' }}, 
-                    User Name: {{ $user->fullname ?? 'Unknown' }}
-                </div>
-
-                                                            <!-- Satisfaction Rating -->
-                <div class="mb-8">
-                    <label class="block text-lg font-semibold text-gray-900 mb-4">
+                <div class="rating-section">
+                    <label class="rating-label">
                         How satisfied are you with FastLan? *
                     </label>
-                    <div class="flex justify-center space-x-2 mb-4" id="ratingStars">
+                    <div class="rating-stars" id="ratingStars">
                         @for($i = 1; $i <= 5; $i++)
-                            <button type="button" class="text-4xl rating-star" data-rating="{{ $i }}">
-                                <i class="far fa-star text-gray-300"></i>
+                            <button type="button" class="rating-star" data-rating="{{ $i }}">
+                                <i class="far fa-star"></i>
                             </button>
                         @endfor
                     </div>
                     <input type="hidden" name="satisfaction_rating" id="satisfactionRating" required value="{{ old('satisfaction_rating') }}">
-                    <div class="text-center text-sm text-gray-600" id="ratingText">
+                    <div class="rating-text" id="ratingText">
                         Tap a star to rate
                     </div>
                     @error('satisfaction_rating')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        <div class="error-text">
+                            <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                        </div>
                     @enderror
                 </div>
 
-                                                            <!-- Feedback Type -->
-                <div class="mb-6">
-                    <label for="feedback_type" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="feedback_type" class="form-label">
                         What is this feedback about? *
                     </label>
-                    <select name="feedback_type" id="feedback_type" class="w-full" required>
+                    <select name="feedback_type" id="feedback_type" class="form-select" required>
                         <option value="">Select category</option>
                         <option value="general" {{ old('feedback_type') == 'general' ? 'selected' : '' }}>General Feedback</option>
                         <option value="booking" {{ old('feedback_type') == 'booking' ? 'selected' : '' }}>Booking Process</option>
@@ -402,85 +590,84 @@
                         <option value="technical" {{ old('feedback_type') == 'technical' ? 'selected' : '' }}>Technical Issues</option>
                     </select>
                     @error('feedback_type')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        <div class="error-text">
+                            <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                        </div>
                     @enderror
                 </div>
 
-                                                            <!-- Reason for Low Rating (Conditional) -->
-                <div id="reasonSection" class="mb-6 hidden">
-                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
+                <div id="reasonSection" class="form-group hidden">
+                    <label for="reason" class="form-label">
                         What was the main reason for your low rating? *
                     </label>
-                    <textarea name="reason" id="reason" rows="3" placeholder="Please tell us what we can improve...">{{ old('reason') }}</textarea>
+                    <textarea name="reason" id="reason" class="form-textarea" rows="3" placeholder="Please tell us what we can improve...">{{ old('reason') }}</textarea>
                     @error('reason')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        <div class="error-text">
+                            <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                        </div>
                     @enderror
                 </div>
 
-                                                            <!-- Positive Feedback -->
-                <div class="mb-6">
-                    <label for="positive_feedback" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="positive_feedback" class="form-label">
                         What do you like about FastLan? (Optional)
                     </label>
-                    <textarea name="positive_feedback" id="positive_feedback" rows="3" placeholder="Tell us what you enjoy about using our service...">{{ old('positive_feedback') }}</textarea>
+                    <textarea name="positive_feedback" id="positive_feedback" class="form-textarea" rows="3" placeholder="Tell us what you enjoy about using our service...">{{ old('positive_feedback') }}</textarea>
                 </div>
 
-                                                            <!-- Improvement Suggestions -->
-                <div class="mb-6">
-                    <label for="improvements" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="improvements" class="form-label">
                         How can we improve? (Optional)
                     </label>
-                    <textarea name="improvements" id="improvements" rows="3" placeholder="Any suggestions for improvement...">{{ old('improvements') }}</textarea>
+                    <textarea name="improvements" id="improvements" class="form-textarea" rows="3" placeholder="Any suggestions for improvement...">{{ old('improvements') }}</textarea>
                 </div>
 
-                                                            <!-- Privacy Options -->
-                <div class="mb-6 space-y-4">
-                    <div class="flex items-center">
+                <div class="space-y-4">
+                    <div class="checkbox-group">
                         <input type="checkbox" name="is_anonymous" id="is_anonymous" value="1" {{ old('is_anonymous') ? 'checked' : '' }}>
-                        <label for="is_anonymous" class="ml-2 block text-sm text-gray-700">
+                        <label for="is_anonymous" class="checkbox-label">
                             Submit feedback anonymously
                         </label>
                     </div>
                     
-                    <div class="flex items-center">
+                    <div class="checkbox-group">
                         <input type="checkbox" name="can_contact" id="can_contact" value="1" {{ old('can_contact') ? 'checked' : '' }}>
-                        <label for="can_contact" class="ml-2 block text-sm text-gray-700">
+                        <label for="can_contact" class="checkbox-label">
                             I'm open to being contacted about my feedback
                         </label>
                     </div>
 
-                    <div id="contactEmailSection" class="hidden">
-                        <label for="contact_email" class="block text-sm font-medium text-gray-700 mb-2">
+                    <div id="contactEmailSection" class="form-group hidden">
+                        <label for="contact_email" class="form-label">
                             Contact Email
                         </label>
-                        <input type="email" name="contact_email" id="contact_email" placeholder="your@email.com" value="{{ old('contact_email') }}">
+                        <input type="email" name="contact_email" id="contact_email" class="form-input" placeholder="your@email.com" value="{{ old('contact_email') }}">
                         @error('contact_email')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            <div class="error-text">
+                                <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                            </div>
                         @enderror
                     </div>
                 </div>
 
-                                                            <!-- Submit Button -->
-                <div class="flex justify-end space-x-4">
-                    <a href="{{ url()->previous() }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <div class="button-group">
+                    <a href="{{ url()->previous() }}" class="btn btn-secondary">
                         Cancel
                     </a>
-                    <button type="submit" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold">
+                    <button type="submit" class="btn btn-primary">
                         Submit Feedback
                     </button>
                 </div>
             </form>
         </div>
 
-        <div class="text-center text-sm text-gray-500">
+        <div class="footer-text">
             <p>Your feedback helps us create a better experience for everyone.</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Feedback form loaded');
-            
             const ratingStars = document.querySelectorAll('.rating-star');
             const satisfactionRating = document.getElementById('satisfactionRating');
             const ratingText = document.getElementById('ratingText');
@@ -506,38 +693,19 @@
                     const rating = parseInt(this.dataset.rating);
                     updateRatingDisplay(rating);
                 });
-
-                star.addEventListener('mouseenter', function() {
-                    const rating = parseInt(this.dataset.rating);
-                    ratingStars.forEach((s, index) => {
-                        const icon = s.querySelector('i');
-                        if (index < rating) {
-                            icon.style.color = '#f6e05e';
-                        }
-                    });
-                });
-
-                star.addEventListener('mouseleave', function() {
-                    const currentRating = satisfactionRating.value ? parseInt(satisfactionRating.value) : 0;
-                    ratingStars.forEach((s, index) => {
-                        const icon = s.querySelector('i');
-                        if (index >= currentRating) {
-                            icon.style.color = '#e2e8f0';
-                        }
-                    });
-                });
             });
 
             function updateRatingDisplay(rating) {
-                console.log('Setting rating:', rating);
                 satisfactionRating.value = rating;
                 
-                ratingStars.forEach((s, index) => {
-                    const icon = s.querySelector('i');
+                ratingStars.forEach((star, index) => {
+                    const icon = star.querySelector('i');
                     if (index < rating) {
-                        icon.className = 'fas fa-star text-yellow-400';
+                        icon.className = 'fas fa-star';
+                        icon.style.color = '#f6e05e';
                     } else {
-                        icon.className = 'far fa-star text-gray-300';
+                        icon.className = 'far fa-star';
+                        icon.style.color = '#e2e8f0';
                     }
                 });
 
@@ -569,8 +737,6 @@
             const feedbackForm = document.getElementById('feedbackForm');
             if (feedbackForm) {
                 feedbackForm.addEventListener('submit', function(e) {
-                    console.log('Form submitted, rating:', satisfactionRating.value);
-                    
                     if (!satisfactionRating.value) {
                         e.preventDefault();
                         alert('Please provide a rating by clicking on the stars.');
@@ -596,7 +762,6 @@
                         }
                     }
 
-                    console.log('Form validation passed');
                     return true;
                 });
             }
