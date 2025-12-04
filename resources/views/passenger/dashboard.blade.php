@@ -1866,13 +1866,15 @@
                                 const serviceType = document.getElementById('serviceType').value === 'for_delivery' ? 'Delivery' : 'Ride';
                                 const fare = document.getElementById('fare').value || '0.00';
                                 
-                                showAlert(`${serviceType} booked successfully! Booking ID: ${data.booking_id} by Passenger:{{ Auth::guard('passenger')->user()->fullname }}`, 'success', 8000);
+                                showAlert(`${serviceType} booked successfully! Booking ID: ${data.booking_id} by Passenger: {{ Auth::guard('passenger')->user()->fullname }}`, 'success', 8000);
                             }
                         }, 1500);
                     } else {
+                        // Show error message
                         if (data.message) {
                             showAlert(data.message, 'error');
                         } else if (data.errors) {
+                            // Handle validation errors
                             const errorMessages = Object.values(data.errors).flat().join(', ');
                             showAlert('Validation error: ' + errorMessages, 'error');
                         } else {
