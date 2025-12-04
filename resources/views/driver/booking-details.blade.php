@@ -123,41 +123,50 @@
         @endif
     </div>
 
-    <script>
-        function acceptBooking(bookingId) {
-            bookingId = parseInt(bookingId); 
-            if (confirm('Are you sure you want to accept this booking?')) {
-                const acceptBtn = document.querySelector('.btn-accept');
-                const originalText = acceptBtn.innerHTML;
-                acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
-                acceptBtn.disabled = true;
+<script>
+    function acceptBooking(bookingId) {
+        bookingId = parseInt(bookingId); 
+        if (confirm('Are you sure you want to accept this booking?')) {
+            // Find the specific button for this booking
+            const acceptBtn = document.querySelector(`.accept-btn-${bookingId}`) || document.querySelector('.btn-accept');
+            const originalText = acceptBtn.innerHTML;
+            acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
+            acceptBtn.disabled = true;
 
-                fetch(`/digilink/public/driver/accept-booking/${bookingId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        window.location.href = "{{ route('driver.dashboard') }}";
-                    } else {
-                        alert('Error: ' + data.message);
-                        acceptBtn.innerHTML = originalText;
-                        acceptBtn.disabled = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while accepting the booking.');
-                    acceptBtn.innerHTML = originalText;
-                    acceptBtn.disabled = false;
-                });
-            }
+            fetch(`{{ url('/driver/accept-booking') }}/${bookingId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({}) // Optional: send empty JSON object
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Network response was not ok');
+                    }).catch(() => {
+                        throw new Error('Network response was not ok');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = "{{ route('driver.dashboard') }}";
+                } else {
+                    throw new Error(data.message || 'Failed to accept booking');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while accepting the booking: ' + error.message);
+                acceptBtn.innerHTML = originalText;
+                acceptBtn.disabled = false;
+            });
         }
-    </script>
+    }
+</script>
 </body>
 </html>
