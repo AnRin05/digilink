@@ -82,7 +82,7 @@ class PassengerController extends Controller
         /** @var \App\Models\Passenger $passenger */
         $passenger->update($data);
 
-        return redirect()->route('passenger.dashboard')->with('success', 'Profile updated successfully!');
+        return redirect()->route('passenger.dashboard');
     }
 
     public function destroy()

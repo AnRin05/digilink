@@ -903,7 +903,7 @@ body {
             <div class="user-profile-dropdown">
                 <div class="user-profile" id="userProfileDropdown">
                     <div class="profile-container">
-                        <img src="{{ Auth::guard('passenger')->user()->profile_image ? asset('storage/' . Auth::guard('passenger')->user()->profile_image) : asset('images/default-avatar.png') }}" 
+                        <img src="{{ Auth::guard('passenger')->user()->profile_image    ? Storage::url(Auth::guard('passenger')->user()->profile_image)  : asset('images/default-avatar.png') }}" 
                              alt="Profile" class="profile-pic">
                         <div class="online-indicator"></div>
                     </div>
@@ -1070,31 +1070,35 @@ body {
                             </div>
                             ` : ''}
                             ${booking.can_edit ? `
-                                <div class="booking-actions">
-                                    <a href="/digilink/public/passenger/edit-booking/${booking.id}" class="btn btn-outline">
-                                        <i class="fas fa-edit"></i>
-                                        Edit Booking
-                                    </a>
-                                    <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
-                                        <i class="fas fa-times"></i>
-                                        Cancel Booking
-                                    </button>
-                                </div>
-                                ` : booking.can_track ? `
-                                <div class="booking-actions">
-                                    <a href="/digilink/public/passenger/track-booking/${booking.id}" class="btn btn-track">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        View Progress
-                                    </a>
-                                </div>
-                                ` : booking.can_cancel ? `
-                                <div class="booking-actions">
-                                    <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
-                                        <i class="fas fa-times"></i>
-                                        Cancel Booking
-                                    </button>
-                                </div>
-                                ` : ''}
+                            <div class="booking-actions">
+                                <a href="{{ url('/passenger/edit-booking') }}/${booking.id}" class="btn btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                    Edit Booking
+                                </a>
+                                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
+                                    <i class="fas fa-times"></i>
+                                    Cancel Booking
+                                </button>
+                            </div>
+                            ` : booking.can_track ? `
+                            <div class="booking-actions">
+                                <a href="{{ url('/passenger/track-booking') }}/${booking.id}" class="btn btn-track">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    View Progress
+                                </a>
+                                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})" ${booking.can_cancel ? '' : 'disabled'}>
+                                    <i class="fas fa-times"></i>
+                                    Cancel Booking
+                                </button>
+                            </div>
+                            ` : booking.can_cancel ? `
+                            <div class="booking-actions">
+                                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
+                                    <i class="fas fa-times"></i>
+                                    Cancel Booking
+                                </button>
+                            </div>
+                            ` : ''}
                         `;
                         bookingsList.appendChild(bookingCard);
                     });
