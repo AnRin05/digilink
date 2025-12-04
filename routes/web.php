@@ -84,7 +84,6 @@ Route::prefix('passenger')->group(function () {
     Route::post('/cancel-booking/{id}', [PassengerController::class, 'cancelBooking'])->name('passenger.cancel.booking');
     Route::get('/edit-booking/{id}', [PassengerController::class, 'editBooking'])->name('passenger.edit.booking');
     Route::post('/cancel-ongoing-booking/{id}', [PassengerController::class, 'cancelOngoingBooking'])->name('passenger.cancel.ongoing.booking'); // NEW ROUTE
-    Route::get('/edit-booking/{id}', [PassengerController::class, 'editBooking'])->name('passenger.edit.booking');
     Route::put('/update-booking/{id}', [PassengerController::class, 'updateBooking'])->name('passenger.update.booking');
     Route::get('/pending-count', [PassengerController::class, 'getPendingCount'])->name('passenger.pending.bookings.count');
 

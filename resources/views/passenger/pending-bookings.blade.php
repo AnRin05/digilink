@@ -903,7 +903,7 @@ body {
             <div class="user-profile-dropdown">
                 <div class="user-profile" id="userProfileDropdown">
                     <div class="profile-container">
-                        <img src="{{ Auth::guard('passenger')->user()->profile_image    ? Storage::url(Auth::guard('passenger')->user()->profile_image)  : asset('images/default-avatar.png') }}" 
+                        <img src="{{ Auth::guard('passenger')->user()->profile_image ? asset('storage/' . Auth::guard('passenger')->user()->profile_image) : asset('images/default-avatar.png') }}" 
                              alt="Profile" class="profile-pic">
                         <div class="online-indicator"></div>
                     </div>
