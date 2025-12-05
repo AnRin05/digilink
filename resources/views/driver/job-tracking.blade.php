@@ -13,7 +13,7 @@
     @yield('styles')
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
     <style>
-                * {
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -34,6 +34,8 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1002;
+            position: relative;
         }
 
         .nav-brand {
@@ -62,6 +64,7 @@
             align-items: center;
             gap: 8px;
             font-weight: 500;
+            font-size: 1rem;
         }
 
         .nav-link:hover {
@@ -69,102 +72,34 @@
             color: #dc3545;
         }
 
-        .job-tracking-container {
-            display: grid;
-            grid-template-columns: 380px 1fr;
+        .job-tracking-wrapper {
+            display: flex;
+            flex-direction: column;
             height: calc(100vh - 80px);
+            position: relative;
         }
 
-        .job-sidebar {
+        .map-section {
+            height: 70vh;
+            position: relative;
+            transition: height 0.4s ease;
+            z-index: 1;
             background: white;
-            border-right: 1px solid #e9ecef;
-            padding: 24px;
-            overflow-y: auto;
         }
 
-        .job-header {
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f8f9fa;
-        }
-
-        .job-header h1 {
-            font-size: 1.5rem;
-            color: #212529;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-
-        .job-header h1 i {
-            color: #dc3545;
-        }
-
-        .job-header p {
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: rgba(255, 193, 7, 0.1);
-            color: #ffc107;
-        }
-
-        .info-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-
-        .info-card:hover {
-            border-color: #dc3545;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .info-card h3 {
-            color: #212529;
-            margin-bottom: 16px;
-            font-size: 1.05rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-card h3 i {
-            color: #dc3545;
-        }
-
-        .info-card p {
-            margin: 8px 0;
-            color: #495057;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .info-card p strong {
-            color: #212529;
-            font-weight: 600;
+        .map-section.collapsed {
+            height: 40vh;
         }
 
         .map-container {
             position: relative;
-            background: white;
+            width: 100%;
+            height: 100%;
         }
 
         #jobMap {
-            height: 100%;
             width: 100%;
+            height: 100%;
         }
 
         .tracking-status {
@@ -179,10 +114,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #212529;
             border: 1px solid rgba(0,0,0,0.08);
+            max-width: calc(100% - 40px);
         }
 
         .tracking-indicator {
@@ -191,6 +127,7 @@
             border-radius: 50%;
             background: #28a745;
             animation: pulse 2s infinite;
+            flex-shrink: 0;
         }
 
         @keyframes pulse {
@@ -204,21 +141,162 @@
             }
         }
 
-        .job-actions {
+        .map-controls {
             position: absolute;
-            bottom: 24px;
-            left: 24px;
-            right: 24px;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-control {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-control:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-section {
+            flex: 1;
+            background: white;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 1001;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drag-handle {
+            width: 60px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 12px auto;
+            cursor: grab;
+            transition: background 0.3s ease;
+        }
+
+        .drag-handle:hover {
+            background: #dc3545;
+        }
+
+        .job-sidebar {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 24px 24px;
+        }
+
+        .job-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .job-header h1 {
+            font-size: 1.4rem;
+            color: #212529;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .job-header h1 i {
+            color: #dc3545;
+            font-size: 1.3rem;
+        }
+
+        .job-header p {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: #dc3545;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .info-card h3 {
+            color: #212529;
+            margin-bottom: 14px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card h3 i {
+            color: #dc3545;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            margin: 8px 0;
+            color: #495057;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .info-card p strong {
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .job-actions {
             display: flex;
             gap: 12px;
-            z-index: 1000;
+            margin-top: 20px;
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid #e9ecef;
         }
 
         .btn {
             padding: 14px 28px;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
@@ -233,13 +311,13 @@
         .btn-success {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
         }
 
         .btn-success:hover {
             background: linear-gradient(135deg, #218838 0%, #1e9e8a 100%);
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.35);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
         }
 
         .btn-danger {
@@ -286,42 +364,8 @@
             font-size: 0.85rem;
         }
 
-        .map-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .zoom-control {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #495057;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .zoom-control:hover {
-            background: #f8f9fa;
-            color: #dc3545;
-            border-color: #dc3545;
-            transform: scale(1.05);
-        }
-
         .job-sidebar::-webkit-scrollbar {
-            width: 6px;
+            width: 10px;
         }
 
         .job-sidebar::-webkit-scrollbar-track {
@@ -333,58 +377,15 @@
             border-radius: 10px;
         }
 
-        @media (max-width: 768px) {
-            .job-tracking-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-
-            .job-sidebar {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-                max-height: 40vh;
-            }
-
-            .job-actions {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                border-radius: 0;
-                padding: 12px;
-                background: white;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            }
-
-            .tracking-status {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                padding: 10px 14px;
-                font-size: 0.85rem;
-            }
-
-            .map-controls {
-                top: 10px;
-                right: 10px;
-            }
-
-            .zoom-control {
-                width: 36px;
-                height: 36px;
-                font-size: 1.1rem;
-            }
-        }
-
         /* Cancellation Alert Styles */
         .alert-section {
-            margin-top: 20px;
+            margin-top: 16px;
         }
 
         .alert {
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .alert-danger {
@@ -397,29 +398,30 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .alert-header h3 {
             color: #721c24;
             margin: 0;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
         }
 
         .alert-header i {
             color: #dc3545;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
 
         .alert-body {
             color: #721c24;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
         }
 
         .alert-body p {
-            margin: 8px 0;
-            line-height: 1.5;
+            margin: 6px 0;
+            line-height: 1.4;
         }
 
         .alert-actions {
@@ -434,48 +436,292 @@
             color: #dc3545;
             border: 1px solid #dc3545;
         }
-
-        /* Toast Notification */
-        .cancellation-toast {
+        .modal {
+            display: none;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 75vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #dc3545;
             display: flex;
             align-items: center;
             gap: 10px;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
         }
 
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
+        .modal-header h3 i {
+            font-size: 1.4rem;
+        }
+
+        .modal-header p {
+            color: #6c757d;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .alert-warning i {
+            color: #e0a800;
+            margin-right: 8px;
+        }
+
+        .alert-warning strong {
+            color: #856404;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .data-preview {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .data-preview h4 {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .data-preview ul {
+            font-size: 0.85rem;
+            color: #6c757d;
+            list-style: none;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            border: 1px solid #6c757d;
+            background: transparent;
+            color: #6c757d;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .modal .btn-danger {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .modal .btn-warning {
+            padding: 10px 20px;
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 768px) {
+            .job-tracking-wrapper {
+                flex-direction: row;
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
+
+            .map-section {
+                height: 100%;
+                width: 60%;
+                transition: width 0.4s ease;
+            }
+
+            .map-section.collapsed {
+                height: 100%;
+                width: 40%;
+            }
+
+            .sidebar-section {
+                width: 40%;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+                border-left: 1px solid #e9ecef;
+                box-shadow: none;
+            }
+
+            .sidebar-section.expanded {
+                width: 60%;
+            }
+
+            .drag-handle {
+                display: none;
+            }
+
+            .tracking-status {
+                max-width: 280px;
+            }
+            
+            .modal-content {
+                max-width: 500px;
+                max-height: 70vh;
             }
         }
 
-        .cancellation-toast.hiding {
-            animation: slideOutRight 0.3s ease;
+        @media (min-width: 1024px) {
+            .map-section {
+                width: 65%;
+            }
+
+            .map-section.collapsed {
+                width: 35%;
+            }
+
+            .sidebar-section {
+                width: 35%;
+            }
+
+            .sidebar-section.expanded {
+                width: 65%;
+            }
+            
+            .modal-content {
+                max-width: 520px;
+            }
         }
 
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
+        @media (max-width: 767px) {
+            .navbar {
+                padding: 1rem;
             }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
+
+            .nav-brand {
+                font-size: 1.5rem;
+            }
+
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            .map-section {
+                height: 50vh;
+            }
+
+            .map-section.collapsed {
+                height: 30vh;
+            }
+
+            .tracking-status {
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                padding: 12px 16px;
+                font-size: 0.85rem;
+            }
+
+            .map-controls {
+                top: 60px;
+                right: 15px;
+            }
+
+            .info-card {
+                padding: 16px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .job-actions {
+                padding: 16px;
+                flex-direction: column;
+            }
+            
+            .job-sidebar {
+                padding: 0 16px 16px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                max-height: 80vh;
             }
         }
     </style>
@@ -490,234 +736,414 @@
         </div>
     </nav>
 
-    <div class="job-tracking-container">
-                                                            <!-- Sidebar -->
-        <div class="job-sidebar">
-            <div class="job-header">
-                <h1>
-                    <i class="fas fa-route"></i>
-                    Active Job
-                </h1>
-                <span class="status-badge">IN PROGRESS</span>
-                <p style="margin-top: 10px;">Real-time location tracking active</p>
-            </div>
-
-                                                            <!-- Cancellation Alert Section -->
-            <div id="cancellationAlert" class="alert-section" style="display: none;">
-                <div class="alert alert-danger">
-                    <div class="alert-header">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Booking Cancelled</h3>
-                    </div>
-                    <div class="alert-body">
-                        <p id="cancellationMessage"></p>
-                        <p><strong>This trip has been cancelled by the passenger.</strong></p>
-                    </div>
-                    <div class="alert-actions">
-                        <button class="btn btn-primary" onclick="handleCancellation()">
-                            <i class="fas fa-check"></i>
-                            Acknowledge
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-                                                            <!-- Passenger Info -->
-            <div class="info-card">
-                <h3><i class="fas fa-user"></i> Passenger Details</h3>
-                <p>
-                    <strong><i class="fas fa-user-circle"></i> Name:</strong> 
-                    {{ $booking->passenger->fullname ?? 'N/A' }}
-                </p>
-                <p>
-                    <strong><i class="fas fa-phone"></i> Phone:</strong> 
-                    {{ $booking->passenger->phone ?? 'N/A' }}
-                </p>
-                <p>
-                    <strong><i class="fas fa-car"></i> Service:</strong> 
-                    {{ $booking->getServiceTypeDisplay() }}
-                </p>
-            </div>
-
-                                                            <!-- Trip Info -->
-            <div class="info-card">
-                <h3><i class="fas fa-route"></i> Trip Details</h3>
-                <p>
-                    <strong><i class="fas fa-map-marker-alt" style="color: #28a745;"></i> Pickup:</strong> 
-                    {{ $booking->pickupLocation }}
-                </p>
-                <p>
-                    <strong><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> Drop-off:</strong> 
-                    {{ $booking->dropoffLocation }}
-                </p>
-                <p>
-                    <strong><i class="fas fa-money-bill-wave"></i> Fare:</strong> 
-                    ₱{{ number_format($booking->fare, 2) }}
-                </p>
-                <p>
-                    <strong><i class="fas fa-credit-card"></i> Payment:</strong> 
-                    {{ $booking->getPaymentMethodDisplay() }}
-                </p>
-                @if($booking->description)
-                <p>
-                    <strong><i class="fas fa-sticky-note"></i> Notes:</strong> 
-                    {{ $booking->description }}
-                </p>
-                @endif
-            </div>
-                                                            <!-- Report/Help Section -->
-            <div class="info-card">
-                <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
-                <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
-                                                            <!-- Urgent Help Button -->
-                    <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
-                        <i class="fas fa-life-ring"></i>
-                        Request Urgent Help
-                    </button>
-                                                            <!-- Complaint Button -->
-                    <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
-                        <i class="fas fa-flag"></i>
-                        Submit Complaint
-                    </button>
-                </div>
-            </div>
-                                                            <!-- Urgent Help Modal -->
-            <div id="urgentHelpModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 style="color: #dc3545; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-life-ring"></i>
-                            Request Urgent Help
-                        </h3>
-                        <p style="color: #6c757d; margin-top: 8px; font-size: 0.9rem;">
-                            This will immediately notify administrators with your current location and booking details.
-                        </p>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <div class="alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Additional Information (Optional)</label>
-                            <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..."></textarea>
-                        </div>
-                        
-                        <div class="data-preview">
-                            <h4>What will be sent to admin:</h4>
-                            <ul>
-                                <li>✓ Your current location and booking route</li>
-                                <li>✓ Driver and vehicle information</li>
-                                <li>✓ Trip details and status</li>
-                                <li>✓ Timestamp of the incident</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button onclick="hideUrgentHelpModal()" class="btn-secondary">
-                            Cancel
-                        </button>
-                        <button onclick="sendUrgentHelp()" class="btn btn-danger" style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-paper-plane"></i>
-                            Send Urgent Help Request
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-                                                            <!-- Complaint Modal -->
-            <div id="complaintModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 style="color: #ffc107; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-flag"></i>
-                            Submit Complaint
-                        </h3>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label>Complaint Type</label>
-                            <select id="complaintType">
-                                <option value="service_issue">Service Quality</option>
-                                <option value="safety_concern">Safety Concern</option>
-                                <option value="payment_issue">Payment Issue</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Severity Level</label>
-                            <select id="complaintSeverity">
-                                <option value="low">Low - Minor Issue</option>
-                                <option value="medium">Medium - Concerning</option>
-                                <option value="high">High - Serious Issue</option>
-                                <option value="critical">Critical - Requires Immediate Attention</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea id="complaintDescription" placeholder="Please describe the issue in detail..."></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button onclick="hideComplaintModal()" class="btn-secondary">
-                            Cancel
-                        </button>
-                        <button onclick="sendComplaint()" class="btn-warning">
-                            <i class="fas fa-paper-plane"></i>
-                            Submit Complaint
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-                                                            <!-- Completion Status -->
-            <div class="info-card">
-                <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
-                <div id="completionStatus">
-                    <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
+    <div class="job-tracking-wrapper">
+        <!-- Map Section -->
+        <div class="map-section" id="mapSection">
+            <div class="map-container">
+                <div class="tracking-status">
+                    <div class="tracking-indicator"></div>
+                    <span>Live GPS Tracking Active</span>
                 </div>
                 
+                <div class="map-controls">
+                    <button class="zoom-control" onclick="driverMap.zoomIn()">+</button>
+                    <button class="zoom-control" onclick="driverMap.zoomOut()">-</button>
+                </div>
+                
+                <div id="jobMap"></div>
             </div>
         </div>
 
-                                                            <!-- Map -->
-        <div class="map-container">
-                                                            <!-- Tracking Status -->
-            <div class="tracking-status">
-                <div class="tracking-indicator"></div>
-                <span>Live GPS Tracking Active</span>
-            </div>
-                                                            <!-- Map Controls -->
-            <div class="map-controls">
-                <button class="zoom-control" onclick="map.zoomIn()">+</button>
-                <button class="zoom-control" onclick="map.zoomOut()">-</button>
-            </div>
+        <!-- Sidebar Section -->
+        <div class="sidebar-section" id="sidebarSection">
+            <div class="drag-handle" id="dragHandle"></div>
+            <div class="job-sidebar">
+                <!-- Cancellation Alert Section -->
+                <div id="cancellationAlert" class="alert-section" style="display: none;">
+                    <div class="alert alert-danger">
+                        <div class="alert-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Booking Cancelled</h3>
+                        </div>
+                        <div class="alert-body">
+                            <p id="cancellationMessage"></p>
+                            <p><strong>This trip has been cancelled by the passenger.</strong></p>
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn btn-primary" onclick="handleCancellation()">
+                                <i class="fas fa-check"></i>
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                                                            <!-- Map -->
-            <div id="jobMap"></div>
-            
-                                                            <!-- Actions -->
-            <div class="job-actions">
-                <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn">
-                    <i class="fas fa-check-circle"></i>
-                    Confirm Completion
-                </button>
-                <a href="{{ route('driver.dashboard') }}" class="btn btn-danger">
-                    <i class="fas fa-times"></i>
-                    Cancel Job
-                </a>
+                <div class="job-header">
+                    <h1>
+                        <i class="fas fa-route"></i>
+                        Active Job
+                    </h1>
+                    <span class="status-badge">IN PROGRESS</span>
+                    <p style="margin-top: 10px;">Real-time location tracking active</p>
+                </div>
+
+                <!-- Passenger Info -->
+                <div class="info-card">
+                    <h3><i class="fas fa-user"></i> Passenger Details</h3>
+                    <p>
+                        <strong><i class="fas fa-user-circle"></i> Name:</strong> 
+                        {{ $booking->passenger->fullname ?? 'N/A' }}
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-phone"></i> Phone:</strong> 
+                        {{ $booking->passenger->phone ?? 'N/A' }}
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-car"></i> Service:</strong> 
+                        {{ $booking->getServiceTypeDisplay() }}
+                    </p>
+                </div>
+
+                <!-- Trip Info -->
+                <div class="info-card">
+                    <h3><i class="fas fa-route"></i> Trip Details</h3>
+                    <p>
+                        <strong><i class="fas fa-map-marker-alt" style="color: #28a745;"></i> Pickup:</strong> 
+                        {{ $booking->pickupLocation }}
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> Drop-off:</strong> 
+                        {{ $booking->dropoffLocation }}
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-money-bill-wave"></i> Fare:</strong> 
+                        ₱{{ number_format($booking->fare, 2) }}
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-credit-card"></i> Payment:</strong> 
+                        {{ $booking->getPaymentMethodDisplay() }}
+                    </p>
+                    @if($booking->description)
+                    <p>
+                        <strong><i class="fas fa-sticky-note"></i> Notes:</strong> 
+                        {{ $booking->description }}
+                    </p>
+                    @endif
+                </div>
+
+                <!-- Report/Help Section -->
+                <div class="info-card">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
+                    <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Urgent Help Button -->
+                        <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <i class="fas fa-life-ring"></i>
+                            Request Urgent Help
+                        </button>
+                        <!-- Complaint Button -->
+                        <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
+                            <i class="fas fa-flag"></i>
+                            Submit Complaint
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Urgent Help Modal -->
+                <div id="urgentHelpModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>
+                                <i class="fas fa-life-ring"></i>
+                                Request Urgent Help
+                            </h3>
+                            <p>
+                                This will immediately notify administrators with your current location and booking details.
+                            </p>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Additional Information (Optional)</label>
+                                <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..."></textarea>
+                            </div>
+                            
+                            <div class="data-preview">
+                                <h4>What will be sent to admin:</h4>
+                                <ul>
+                                    <li>✓ Your current location and booking route</li>
+                                    <li>✓ Driver and vehicle information</li>
+                                    <li>✓ Trip details and status</li>
+                                    <li>✓ Timestamp of the incident</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button onclick="hideUrgentHelpModal()" class="btn-secondary">
+                                Cancel
+                            </button>
+                            <button onclick="sendUrgentHelp()" class="btn-danger">
+                                <i class="fas fa-paper-plane"></i>
+                                Send Urgent Help Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complaint Modal -->
+                <div id="complaintModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>
+                                <i class="fas fa-flag"></i>
+                                Submit Complaint
+                            </h3>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Complaint Type</label>
+                                <select id="complaintType" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; font-size: 0.9rem;">
+                                    <option value="service_issue">Service Quality</option>
+                                    <option value="safety_concern">Safety Concern</option>
+                                    <option value="payment_issue">Payment Issue</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Severity Level</label>
+                                <select id="complaintSeverity" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; font-size: 0.9rem;">
+                                    <option value="low">Low - Minor Issue</option>
+                                    <option value="medium">Medium - Concerning</option>
+                                    <option value="high">High - Serious Issue</option>
+                                    <option value="critical">Critical - Requires Immediate Attention</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="complaintDescription" placeholder="Please describe the issue in detail..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button onclick="hideComplaintModal()" class="btn-secondary">
+                                Cancel
+                            </button>
+                            <button onclick="sendComplaint()" class="btn-warning">
+                                <i class="fas fa-paper-plane"></i>
+                                Submit Complaint
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completion Status -->
+                <div class="info-card">
+                    <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
+                    <div id="completionStatus">
+                        <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
+                    </div>
+                        <div class="modal-footer">
+                        <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn">
+                        <i class="fas fa-check-circle"></i>
+                            Confirm Completion
+                        </button>
+                        <a href="{{ route('driver.dashboard') }}" class="btn btn-danger">
+                            <i class="fas fa-times"></i>
+                             Cancel Job
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+    // Add this section for the collapsible UI functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapSection = document.getElementById('mapSection');
+        const sidebarSection = document.getElementById('sidebarSection');
+        const dragHandle = document.getElementById('dragHandle');
+        const jobSidebar = document.querySelector('.job-sidebar');
+        let isCollapsed = false;
+        let startY = 0;
+        let startHeight = 0;
+        
+        // Initialize with expanded view on mobile
+        if (window.innerWidth < 768) {
+            mapSection.classList.remove('collapsed');
+            sidebarSection.classList.remove('expanded');
+        } else {
+            mapSection.classList.remove('collapsed');
+            sidebarSection.classList.remove('expanded');
+        }
+        
+        // Drag handle functionality
+        dragHandle.addEventListener('touchstart', startDrag);
+        dragHandle.addEventListener('mousedown', startDrag);
+        
+        function startDrag(e) {
+            if (window.innerWidth >= 768) return;
+            
+            e.preventDefault();
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            startY = clientY;
+            startHeight = mapSection.offsetHeight;
+            
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('mouseup', endDrag);
+        }
+        
+        function drag(e) {
+            if (window.innerWidth >= 768) return;
+            
+            e.preventDefault();
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const deltaY = startY - clientY;
+            const newHeight = startHeight + deltaY;
+            const windowHeight = window.innerHeight;
+            const navbarHeight = document.querySelector('.navbar').offsetHeight;
+            const maxHeight = windowHeight - navbarHeight - 100;
+            const minHeight = 150;
+            
+            if (newHeight > maxHeight) {
+                mapSection.style.height = maxHeight + 'px';
+            } else if (newHeight < minHeight) {
+                mapSection.style.height = minHeight + 'px';
+            } else {
+                mapSection.style.height = newHeight + 'px';
+            }
+            
+            // Toggle collapsed class based on height
+            const currentHeight = parseInt(mapSection.style.height);
+            const threshold = (maxHeight + minHeight) / 3;
+            
+            if (currentHeight < threshold) {
+                if (!isCollapsed) {
+                    mapSection.classList.add('collapsed');
+                    isCollapsed = true;
+                }
+            } else {
+                if (isCollapsed) {
+                    mapSection.classList.remove('collapsed');
+                    isCollapsed = false;
+                }
+            }
+        }
+        
+        function endDrag() {
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchend', endDrag);
+            document.removeEventListener('mouseup', endDrag);
+
+            if (window.innerWidth < 768) {
+                const currentHeight = mapSection.offsetHeight;
+                const windowHeight = window.innerHeight;
+                const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                const maxHeight = windowHeight - navbarHeight - 100;
+                
+                if (currentHeight < maxHeight * 0.4) {
+                    mapSection.style.height = '40vh';
+                    mapSection.classList.add('collapsed');
+                    isCollapsed = true;
+                } else if (currentHeight > maxHeight * 0.6) {
+                    mapSection.style.height = '70vh';
+                    mapSection.classList.remove('collapsed');
+                    isCollapsed = false;
+                } else {
+                    mapSection.style.height = '50vh';
+                    mapSection.classList.remove('collapsed');
+                    isCollapsed = false;
+                }
+            }
+        }
+
+        let lastScrollTop = 0;
+        jobSidebar.addEventListener('scroll', function() {
+            if (window.innerWidth >= 768) return;
+            
+            const scrollTop = this.scrollTop;
+            const scrollHeight = this.scrollHeight;
+            const clientHeight = this.clientHeight;
+
+            if (scrollTop > lastScrollTop && scrollTop > 50) {
+                if (!isCollapsed) {
+                    mapSection.classList.add('collapsed');
+                    mapSection.style.height = '30vh';
+                    isCollapsed = true;
+                }
+            } 
+
+            else if (scrollTop < lastScrollTop && scrollTop < 30) {
+                if (isCollapsed) {
+                    mapSection.classList.remove('collapsed');
+                    mapSection.style.height = '70vh';
+                    isCollapsed = false;
+                }
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+        
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                mapSection.style.height = '';
+                mapSection.classList.remove('collapsed');
+                sidebarSection.classList.remove('expanded');
+                isCollapsed = false;
+            } else {
+                mapSection.style.height = '70vh';
+                mapSection.classList.remove('collapsed');
+                isCollapsed = false;
+            }
+        });
+    });
+
+    // Modal handling functions
+    function showUrgentHelpModal() {
+        document.getElementById('urgentHelpModal').style.display = 'flex';
+    }
+
+    function hideUrgentHelpModal() {
+        document.getElementById('urgentHelpModal').style.display = 'none';
+        document.getElementById('urgentHelpNotes').value = '';
+    }
+
+    function showComplaintModal() {
+        document.getElementById('complaintModal').style.display = 'flex';
+    }
+
+    function hideComplaintModal() {
+        document.getElementById('complaintModal').style.display = 'none';
+        document.getElementById('complaintDescription').value = '';
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            document.getElementById('urgentHelpModal').style.display = 'none';
+            document.getElementById('complaintModal').style.display = 'none';
+        }
+    });
+    </script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="{{ asset('js/driver/job-tracking.js') }}"></script>
     <script>
@@ -1043,9 +1469,6 @@
                     <p style="margin: 5px 0 0 0;">${message}</p>
                 </div>
             </div>
-            <button onclick="redirectToDashboard()" style="margin-top: 10px; padding: 8px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Return to Dashboard
-            </button>
         `;
         alertSection.style.display = 'block';
     }
@@ -1685,17 +2108,7 @@
             z-index: 1000;
         `;
         
-        controls.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 8px;">📍 Manual Controls</div>
-            <button onclick="simulateMovement()" style="padding: 5px 10px; margin: 2px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Simulate Move
-            </button>
-            <button onclick="forceLocationUpdate()" style="padding: 5px 10px; margin: 2px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Force Update
-            </button>
-        `;
-        
-        document.body.appendChild(controls);
+
     }
 
     function simulateMovement() {
@@ -1876,7 +2289,6 @@
     `;
     document.head.appendChild(style);
 
-    // Add manual controls for testing
     setTimeout(addManualControls, 2000);
     </script>
 </body>

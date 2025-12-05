@@ -31,6 +31,8 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1002;
+            position: relative;
         }
 
         .nav-brand {
@@ -64,6 +66,234 @@
         .nav-link:hover {
             background: rgba(220, 53, 69, 0.1);
             color: #dc3545;
+        }
+
+        .tracking-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            position: relative;
+        }
+
+        .map-section {
+            height: 70vh;
+            position: relative;
+            transition: height 0.4s ease;
+            z-index: 1;
+            background: white;
+        }
+
+        .map-section.collapsed {
+            height: 40vh;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #trackingMap {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tracking-status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,249,250,0.98) 100%);
+            padding: 14px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #212529;
+            border: 1px solid rgba(0,0,0,0.08);
+            max-width: calc(100% - 40px);
+        }
+
+        .tracking-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+
+        .tracking-indicator.completed {
+            background: #6c757d;
+            animation: none;
+        }
+
+        .tracking-indicator.cancelled {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.6;
+                transform: scale(1.15);
+            }
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-control {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-control:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-section {
+            flex: 1;
+            background: white;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 1001;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drag-handle {
+            width: 60px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 12px auto;
+            cursor: grab;
+            transition: background 0.3s ease;
+        }
+
+        .drag-handle:hover {
+            background: #007bff;
+        }
+
+        .tracking-sidebar {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 24px 24px;
+        }
+
+        .tracking-header {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .tracking-header h1 {
+            font-size: 1.5rem;
+            color: #212529;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .tracking-header h1 i {
+            color: #dc3545;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 123, 255, 0.1);
+            color: #007bff;
+        }
+
+        .status-badge.in-progress {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-badge.completed {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        .status-badge.cancelled {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .info-card h3 {
+            color: #212529;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card h3 i {
+            color: #007bff;
+        }
+
+        .info-card p {
+            margin: 8px 0;
+            color: #495057;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-card p strong {
+            color: #212529;
+            font-weight: 600;
         }
 
         .cancel-section {
@@ -154,161 +384,6 @@
             box-shadow: 0 2px 5px rgba(114, 28, 36, 0.1);
         }
 
-        .tracking-container {
-            display: grid;
-            grid-template-columns: 380px 1fr;
-            height: calc(100vh - 80px);
-        }
-
-        .tracking-sidebar {
-            background: white;
-            border-right: 1px solid #e9ecef;
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .tracking-header {
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f8f9fa;
-        }
-
-        .tracking-header h1 {
-            font-size: 1.5rem;
-            color: #212529;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-
-        .tracking-header h1 i {
-            color: #dc3545;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: rgba(0, 123, 255, 0.1);
-            color: #007bff;
-        }
-
-        .status-badge.in-progress {
-            background: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .status-badge.completed {
-            background: rgba(108, 117, 125, 0.1);
-            color: #6c757d;
-        }
-
-        .status-badge.cancelled {
-            background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-        }
-
-        .info-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-
-        .info-card:hover {
-            border-color: #007bff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .info-card h3 {
-            color: #212529;
-            margin-bottom: 16px;
-            font-size: 1.05rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-card h3 i {
-            color: #007bff;
-        }
-
-        .info-card p {
-            margin: 8px 0;
-            color: #495057;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .info-card p strong {
-            color: #212529;
-            font-weight: 600;
-        }
-
-        .map-container {
-            position: relative;
-            background: white;
-        }
-
-        #trackingMap {
-            height: 100%;
-            width: 100%;
-        }
-
-        .tracking-status {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,249,250,0.98) 100%);
-            padding: 14px 18px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #212529;
-            border: 1px solid rgba(0,0,0,0.08);
-        }
-
-        .tracking-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #28a745;
-            animation: pulse 2s infinite;
-        }
-
-        .tracking-indicator.completed {
-            background: #6c757d;
-            animation: none;
-        }
-
-        .tracking-indicator.cancelled {
-            background: #dc3545;
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { 
-                opacity: 1; 
-                transform: scale(1);
-            }
-            50% { 
-                opacity: 0.6;
-                transform: scale(1.15);
-            }
-        }
-
         .driver-info {
             background: #f8f9fa;
             padding: 12px;
@@ -351,37 +426,6 @@
             border-radius: 8px;
             border-left: 3px solid #007bff;
             margin-top: 10px;
-        }
-
-        .map-controls {
-            position: absolute;
-            top: 70px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .zoom-control {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-        }
-
-        .zoom-control:hover {
-            background: #f8f9fa;
-            transform: translateY(-1px);
         }
 
         .btn {
@@ -503,29 +547,157 @@
             border-radius: 10px;
         }
 
-        @media (max-width: 768px) {
-            .tracking-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .tracking-wrapper {
+                flex-direction: row;
             }
 
-            .tracking-sidebar {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-                max-height: 40vh;
+            .map-section {
+                height: 100%;
+                width: 60%;
+                transition: width 0.4s ease;
+            }
+
+            .map-section.collapsed {
+                height: 100%;
+                width: 40%;
+            }
+
+            .sidebar-section {
+                width: 40%;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+                border-left: 1px solid #e9ecef;
+                box-shadow: none;
+            }
+
+            .sidebar-section.expanded {
+                width: 60%;
+            }
+
+            .drag-handle {
+                display: none;
             }
 
             .tracking-status {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                padding: 10px 14px;
+                max-width: 300px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .map-section {
+                width: 65%;
+            }
+
+            .map-section.collapsed {
+                width: 35%;
+            }
+
+            .sidebar-section {
+                width: 35%;
+            }
+
+            .sidebar-section.expanded {
+                width: 65%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .nav-brand {
+                font-size: 1.5rem;
+            }
+
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            .map-section {
+                height: 50vh;
+            }
+
+            .map-section.collapsed {
+                height: 30vh;
+            }
+
+            .tracking-status {
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                padding: 12px 16px;
                 font-size: 0.85rem;
             }
 
             .map-controls {
                 top: 60px;
-                right: 10px;
+                right: 15px;
+            }
+
+            .info-card {
+                padding: 16px;
+            }
+
+            .cancel-section {
+                padding: 16px;
+            }
+
+            .btn, .btn-warning {
+                padding: 10px 16px;
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -540,214 +712,387 @@
         </div>
     </nav>
 
-    <div class="tracking-container">
-        <div class="tracking-sidebar">
-            <a href="{{ route('passenger.pending.bookings') }}" class="back-link">
-                <i class="fas fa-arrow-left"></i>
-                Back to My Bookings
-            </a>
-
-            <div class="tracking-header">
-                <h1>
-                    <i class="fas fa-route"></i>
-                    Active Trip
-                </h1>
-                <span class="status-badge in-progress" id="overallStatusBadge">IN PROGRESS</span>
-                <p style="margin-top: 10px;">Real-time driver location tracking</p>
-            </div>
-                                                            <!-- Report/Help Section -->
-            <div class="info-card">
-                <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
-                <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
-                                                            <!-- Urgent Help Button -->
-                    <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
-                        <i class="fas fa-life-ring"></i>
-                        Request Urgent Help
-                    </button>
-                    
-                                                            <!-- Complaint Button -->
-                    <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
-                        <i class="fas fa-flag"></i>
-                        Submit Complaint
-                    </button>
+    <div class="tracking-wrapper">
+        <div class="map-section" id="mapSection">
+            <div class="map-container">
+                <div class="tracking-status">
+                    <div class="tracking-indicator" id="trackingIndicator"></div>
+                    <span id="trackingStatusText">Live Driver Tracking Active</span>
                 </div>
+                
+                <div class="map-controls">
+                    <button class="zoom-control" onclick="map.zoomIn()">+</button>
+                    <button class="zoom-control" onclick="map.zoomOut()">-</button>
+                    <button class="zoom-control" onclick="testDriverLocation()" style="background: #007bff; color: white;">⟳</button>
+                </div>
+                
+                <div id="trackingMap"></div>
             </div>
+        </div>
 
-                                                            <!-- Urgent Help Modal -->
-            <div id="urgentHelpModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-                <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                    <div class="modal-header" style="border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 20px;">
-                        <h3 style="color: #dc3545; display: flex; align-items: center; gap: 10px;">
+        <div class="sidebar-section" id="sidebarSection">
+            <div class="drag-handle" id="dragHandle"></div>
+            <div class="tracking-sidebar">
+                <a href="{{ route('passenger.pending.bookings') }}" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to My Bookings
+                </a>
+
+                <div class="tracking-header">
+                    <h1>
+                        <i class="fas fa-route"></i>
+                        Active Trip
+                    </h1>
+                    <span class="status-badge in-progress" id="overallStatusBadge">IN PROGRESS</span>
+                    <p style="margin-top: 10px;">Real-time driver location tracking</p>
+                </div>
+
+                <!-- Report/Help Section -->
+                <div class="info-card">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
+                    <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Urgent Help Button -->
+                        <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
                             <i class="fas fa-life-ring"></i>
                             Request Urgent Help
-                        </h3>
-                        <p style="color: #6c757d; margin-top: 8px; font-size: 0.9rem;">
-                            This will immediately notify administrators with your current location and booking details.
-                        </p>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
-                        </div>
-                        
-                        <div class="form-group">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Additional Information (Optional)</label>
-                            <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..." style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; resize: vertical; min-height: 100px;"></textarea>
-                        </div>
-                        
-                        <div class="data-preview" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px;">
-                            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: #495057;">What will be sent to admin:</h4>
-                            <ul style="font-size: 0.8rem; color: #6c757d; list-style: none; padding: 0;">
-                                <li>✓ Your current location and booking route</li>
-                                <li>✓ Driver and vehicle information</li>
-                                <li>✓ Trip details and status</li>
-                                <li>✓ Timestamp of the incident</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 20px;">
-                        <button onclick="hideUrgentHelpModal()" class="btn btn-secondary" style="padding: 10px 20px; border: 1px solid #6c757d; background: transparent; color: #6c757d; border-radius: 6px; cursor: pointer;">
-                            Cancel
                         </button>
-                        <button onclick="sendUrgentHelp()" class="btn btn-danger" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-paper-plane"></i>
-                            Send Urgent Help Request
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-                                                                        <!-- Complaint Modal -->
-            <div id="complaintModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-                <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                    <div class="modal-header" style="border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 20px;">
-                        <h3 style="color: #ffc107; display: flex; align-items: center; gap: 10px;">
+                        
+                        <!-- Complaint Button -->
+                        <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
                             <i class="fas fa-flag"></i>
                             Submit Complaint
-                        </h3>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Complaint Type</label>
-                            <select id="complaintType" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px;">
-                                <option value="driver_behavior">Driver Behavior</option>
-                                <option value="service_issue">Service Quality</option>
-                                <option value="safety_concern">Safety Concern</option>
-                                <option value="payment_issue">Payment Issue</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Severity Level</label>
-                            <select id="complaintSeverity" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px;">
-                                <option value="low">Low - Minor Issue</option>
-                                <option value="medium">Medium - Concerning</option>
-                                <option value="high">High - Serious Issue</option>
-                                <option value="critical">Critical - Requires Immediate Attention</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description</label>
-                            <textarea id="complaintDescription" placeholder="Please describe the issue in detail..." style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; resize: vertical; min-height: 150px;"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 20px;">
-                        <button onclick="hideComplaintModal()" class="btn btn-secondary" style="padding: 10px 20px; border: 1px solid #6c757d; background: transparent; color: #6c757d; border-radius: 6px; cursor: pointer;">
-                            Cancel
-                        </button>
-                        <button onclick="sendComplaint()" class="btn btn-warning" style="padding: 10px 20px; background: #ffc107; color: #212529; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-paper-plane"></i>
-                            Submit Complaint
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="info-card">
-                <h3><i class="fas fa-history"></i> Trip Status</h3>
-                <div id="statusTimeline">
-                    <div class="status-item active">
-                        <div class="status-icon in-progress">
-                            <i class="fas fa-sync-alt fa-spin"></i>
+                <!-- Urgent Help Modal -->
+                <div id="urgentHelpModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>
+                                <i class="fas fa-life-ring"></i>
+                                Request Urgent Help
+                            </h3>
+                            <p style="color: #6c757d; margin-top: 8px; font-size: 0.9rem;">
+                                This will immediately notify administrators with your current location and booking details.
+                            </p>
                         </div>
-                        <div class="status-details">
-                            <strong>Loading status...</strong>
-                            <div class="status-time">Updating...</div>
+                        
+                        <div class="modal-body">
+                            <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
+                            </div>
+                            
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Additional Information (Optional)</label>
+                                <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..." style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; resize: vertical; min-height: 100px;"></textarea>
+                            </div>
+                            
+                            <div class="data-preview" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: #495057;">What will be sent to admin:</h4>
+                                <ul style="font-size: 0.8rem; color: #6c757d; list-style: none; padding: 0;">
+                                    <li>✓ Your current location and booking route</li>
+                                    <li>✓ Driver and vehicle information</li>
+                                    <li>✓ Trip details and status</li>
+                                    <li>✓ Timestamp of the incident</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button onclick="hideUrgentHelpModal()" class="btn btn-secondary" style="padding: 10px 20px; border: 1px solid #6c757d; background: transparent; color: #6c757d; border-radius: 6px; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button onclick="sendUrgentHelp()" class="btn btn-danger" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-paper-plane"></i>
+                                Send Urgent Help Request
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="info-card">
-                <h3><i class="fas fa-user"></i> Driver Details</h3>
-                <p><strong><i class="fas fa-user-circle"></i> Name:</strong> {{ $booking->driver->fullname ?? 'N/A' }}</p>
-                <p><strong><i class="fas fa-phone"></i> Phone:</strong> {{ $booking->driver->phone ?? 'N/A' }}</p>
-                <p><strong><i class="fas fa-car"></i> Vehicle:</strong> {{ $booking->driver->vehicleMake ?? 'N/A' }} {{ $booking->driver->vehicleModel ?? '' }} ({{ $booking->driver->plateNumber ?? 'N/A' }})</p>
-                <p><strong><i class="fas fa-chart-line"></i> Completed Trips:</strong> {{ $booking->driver->completedBooking ?? '0' }}</p>
-            </div>
-
-            <div class="info-card">
-                <h3><i class="fas fa-route"></i> Trip Details</h3>
-                <p><strong><i class="fas fa-car"></i> Service:</strong> {{ $booking->getServiceTypeDisplay() }}</p>
-                <p><strong><i class="fas fa-map-marker-alt" style="color: #28a745;"></i> Pickup:</strong> {{ $booking->pickupLocation }}</p>
-                <p><strong><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> Drop-off:</strong> {{ $booking->dropoffLocation }}</p>
-                <p><strong><i class="fas fa-money-bill-wave"></i> Fare:</strong> ₱{{ number_format($booking->fare, 2) }}</p>
-                <p><strong><i class="fas fa-credit-card"></i> Payment:</strong> {{ $booking->getPaymentMethodDisplay() }}</p>
-                @if($booking->description)
-                <p><strong><i class="fas fa-sticky-note"></i> Notes:</strong> {{ $booking->description }}</p>
-                @endif
-            </div>
-
-            <div class="info-card">
-                <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
-                <div id="completionStatus">
-                    <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
-                </div>
-                <div id="completionActions" style="margin-top: 15px;">
-                    <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
-                        <i class="fas fa-check"></i>
-                        Confirm Trip Completion
-                    </button>
-                    <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
-                </div>
-                <div class="cancel-section">
-                    <div class="cancel-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Need to cancel this trip?
+                <!-- Complaint Modal -->
+                <div id="complaintModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>
+                                <i class="fas fa-flag"></i>
+                                Submit Complaint
+                            </h3>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Complaint Type</label>
+                                <select id="complaintType" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px;">
+                                    <option value="driver_behavior">Driver Behavior</option>
+                                    <option value="service_issue">Service Quality</option>
+                                    <option value="safety_concern">Safety Concern</option>
+                                    <option value="payment_issue">Payment Issue</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Severity Level</label>
+                                <select id="complaintSeverity" style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px;">
+                                    <option value="low">Low - Minor Issue</option>
+                                    <option value="medium">Medium - Concerning</option>
+                                    <option value="high">High - Serious Issue</option>
+                                    <option value="critical">Critical - Requires Immediate Attention</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description</label>
+                                <textarea id="complaintDescription" placeholder="Please describe the issue in detail..." style="width: 100%; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; resize: vertical; min-height: 150px;"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button onclick="hideComplaintModal()" class="btn btn-secondary" style="padding: 10px 20px; border: 1px solid #6c757d; background: transparent; color: #6c757d; border-radius: 6px; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button onclick="sendComplaint()" class="btn btn-warning" style="padding: 10px 20px; background: #ffc107; color: #212529; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-paper-plane"></i>
+                                Submit Complaint
+                            </button>
+                        </div>
                     </div>
-                    <p class="cancel-note">
-                        This action will immediately end the trip and notify the driver.
-                    </p>
-                    <button class="btn-warning" onclick="cancelOngoingBooking()" id="cancelBookingBtn">
-                        <i class="fas fa-times-circle"></i>
-                        Cancel Ongoing Trip
-                    </button>
-                    <div id="cancelMessage"></div>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-history"></i> Trip Status</h3>
+                    <div id="statusTimeline">
+                        <div class="status-item active">
+                            <div class="status-icon in-progress">
+                                <i class="fas fa-sync-alt fa-spin"></i>
+                            </div>
+                            <div class="status-details">
+                                <strong>Loading status...</strong>
+                                <div class="status-time">Updating...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-user"></i> Driver Details</h3>
+                    <p><strong><i class="fas fa-user-circle"></i> Name:</strong> {{ $booking->driver->fullname ?? 'N/A' }}</p>
+                    <p><strong><i class="fas fa-phone"></i> Phone:</strong> {{ $booking->driver->phone ?? 'N/A' }}</p>
+                    <p><strong><i class="fas fa-car"></i> Vehicle:</strong> {{ $booking->driver->vehicleMake ?? 'N/A' }} {{ $booking->driver->vehicleModel ?? '' }} ({{ $booking->driver->plateNumber ?? 'N/A' }})</p>
+                    <p><strong><i class="fas fa-chart-line"></i> Completed Trips:</strong> {{ $booking->driver->completedBooking ?? '0' }}</p>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-route"></i> Trip Details</h3>
+                    <p><strong><i class="fas fa-car"></i> Service:</strong> {{ $booking->getServiceTypeDisplay() }}</p>
+                    <p><strong><i class="fas fa-map-marker-alt" style="color: #28a745;"></i> Pickup:</strong> {{ $booking->pickupLocation }}</p>
+                    <p><strong><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> Drop-off:</strong> {{ $booking->dropoffLocation }}</p>
+                    <p><strong><i class="fas fa-money-bill-wave"></i> Fare:</strong> ₱{{ number_format($booking->fare, 2) }}</p>
+                    <p><strong><i class="fas fa-credit-card"></i> Payment:</strong> {{ $booking->getPaymentMethodDisplay() }}</p>
+                    @if($booking->description)
+                    <p><strong><i class="fas fa-sticky-note"></i> Notes:</strong> {{ $booking->description }}</p>
+                    @endif
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
+                    <div id="completionStatus">
+                        <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
+                    </div>
+                    <div id="completionActions" style="margin-top: 15px;">
+                        <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
+                            <i class="fas fa-check"></i>
+                            Confirm Trip Completion
+                        </button>
+                        <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                    </div>
+                    <div class="cancel-section">
+                        <div class="cancel-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Need to cancel this trip?
+                        </div>
+                        <p class="cancel-note">
+                            This action will immediately end the trip and notify the driver.
+                        </p>
+                        <button class="btn-warning" onclick="cancelOngoingBooking()" id="cancelBookingBtn">
+                            <i class="fas fa-times-circle"></i>
+                            Cancel Ongoing Trip
+                        </button>
+                        <div id="cancelMessage"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="map-container">
-            <div class="tracking-status">
-                <div class="tracking-indicator" id="trackingIndicator"></div>
-                <span id="trackingStatusText">Live Driver Tracking Active</span>
-            </div>
-            
-        <div class="map-controls">
-            <button class="zoom-control" onclick="map.zoomIn()">+</button>
-            <button class="zoom-control" onclick="map.zoomOut()">-</button>
-            <button class="zoom-control" onclick="testDriverLocation()" style="background: #007bff; color: white;">⟳</button>
-        </div>
-            <div id="trackingMap"></div>
         </div>
     </div>
+
+<script>
+    // Add this section to the existing script - place it at the top of the script section
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapSection = document.getElementById('mapSection');
+        const sidebarSection = document.getElementById('sidebarSection');
+        const dragHandle = document.getElementById('dragHandle');
+        const trackingSidebar = document.querySelector('.tracking-sidebar');
+        let isCollapsed = false;
+        let startY = 0;
+        let startHeight = 0;
+        
+        // Initialize with expanded view on mobile
+        if (window.innerWidth < 768) {
+            mapSection.classList.remove('collapsed');
+            sidebarSection.classList.remove('expanded');
+        } else {
+            mapSection.classList.remove('collapsed');
+            sidebarSection.classList.remove('expanded');
+        }
+        
+        // Drag handle functionality
+        dragHandle.addEventListener('touchstart', startDrag);
+        dragHandle.addEventListener('mousedown', startDrag);
+        
+        function startDrag(e) {
+            if (window.innerWidth >= 768) return; // Only on mobile
+            
+            e.preventDefault();
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            startY = clientY;
+            startHeight = mapSection.offsetHeight;
+            
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('mouseup', endDrag);
+        }
+        
+        function drag(e) {
+            if (window.innerWidth >= 768) return;
+            
+            e.preventDefault();
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const deltaY = startY - clientY;
+            const newHeight = startHeight + deltaY;
+            const windowHeight = window.innerHeight;
+            const navbarHeight = document.querySelector('.navbar').offsetHeight;
+            const maxHeight = windowHeight - navbarHeight - 100;
+            const minHeight = 150;
+            
+            if (newHeight > maxHeight) {
+                mapSection.style.height = maxHeight + 'px';
+            } else if (newHeight < minHeight) {
+                mapSection.style.height = minHeight + 'px';
+            } else {
+                mapSection.style.height = newHeight + 'px';
+            }
+            
+            // Toggle collapsed class based on height
+            const currentHeight = parseInt(mapSection.style.height);
+            const threshold = (maxHeight + minHeight) / 3;
+            
+            if (currentHeight < threshold) {
+                if (!isCollapsed) {
+                    mapSection.classList.add('collapsed');
+                    isCollapsed = true;
+                }
+            } else {
+                if (isCollapsed) {
+                    mapSection.classList.remove('collapsed');
+                    isCollapsed = false;
+                }
+            }
+        }
+        
+        function endDrag() {
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchend', endDrag);
+            document.removeEventListener('mouseup', endDrag);
+            
+            // Snap to nearest state
+            if (window.innerWidth < 768) {
+                const currentHeight = mapSection.offsetHeight;
+                const windowHeight = window.innerHeight;
+                const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                const maxHeight = windowHeight - navbarHeight - 100;
+                
+                if (currentHeight < maxHeight * 0.4) {
+                    // Snap to collapsed
+                    mapSection.style.height = '30vh';
+                    mapSection.classList.add('collapsed');
+                    isCollapsed = true;
+                } else if (currentHeight > maxHeight * 0.6) {
+                    // Snap to expanded
+                    mapSection.style.height = '70vh';
+                    mapSection.classList.remove('collapsed');
+                    isCollapsed = false;
+                } else {
+                    // Snap to middle
+                    mapSection.style.height = '50vh';
+                    mapSection.classList.remove('collapsed');
+                    isCollapsed = false;
+                }
+            }
+        }
+        
+        // Scroll behavior for sidebar
+        let lastScrollTop = 0;
+        trackingSidebar.addEventListener('scroll', function() {
+            if (window.innerWidth >= 768) return; // Only on mobile
+            
+            const scrollTop = this.scrollTop;
+            const scrollHeight = this.scrollHeight;
+            const clientHeight = this.clientHeight;
+            
+            // Scrolling down
+            if (scrollTop > lastScrollTop && scrollTop > 50) {
+                // Collapse map when scrolling down
+                if (!isCollapsed) {
+                    mapSection.classList.add('collapsed');
+                    mapSection.style.height = '30vh';
+                    isCollapsed = true;
+                }
+            } 
+            // Scrolling up and near top
+            else if (scrollTop < lastScrollTop && scrollTop < 30) {
+                // Expand map when scrolling to top
+                if (isCollapsed) {
+                    mapSection.classList.remove('collapsed');
+                    mapSection.style.height = '70vh';
+                    isCollapsed = false;
+                }
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                // Reset for desktop
+                mapSection.style.height = '';
+                mapSection.classList.remove('collapsed');
+                sidebarSection.classList.remove('expanded');
+                isCollapsed = false;
+            } else {
+                // Reset for mobile
+                mapSection.style.height = '70vh';
+                mapSection.classList.remove('collapsed');
+                isCollapsed = false;
+            }
+        });
+        
+        // Initialize map and tracking
+        console.log('DOM loaded, initializing tracking...');
+        console.log('App URLs configured:', APP_URLS);
+        console.log('Booking ID:', bookingData.id);
+        
+        initMap();
+        updateBookingStatus();
+        
+        console.log('Report system initialized for booking:', bookingData.id);
+    });
+</script>
 <script>
     let map;
     let driverMarker;
@@ -775,7 +1120,6 @@
     const bookingData = {
         id: {{ $booking->bookingID }},
         driver_id: {{ $booking->driver->id ?? 0 }},
-        passenger_id: {{ Auth::guard('passenger')->id() }}, // Add passenger ID
         pickup: {
             lat: {{ $booking->pickupLatitude }},
             lng: {{ $booking->pickupLongitude }},
@@ -786,9 +1130,7 @@
             lng: {{ $booking->dropoffLongitude }},
             address: `{{ $booking->dropoffLocation }}`
         },
-        csrfToken: '{{ csrf_token() }}',
-        user_type: 'passenger',
-        user_id: {{ Auth::guard('passenger')->id() }} 
+        csrfToken: '{{ csrf_token() }}'
     };
 
     const statusConfig = {
@@ -1295,129 +1637,118 @@
         document.getElementById('complaintDescription').value = '';
     }
 
-function sendUrgentHelp() {
-    const notes = document.getElementById('urgentHelpNotes').value;
-    
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-    btn.disabled = true;
+    function sendUrgentHelp() {
+        const notes = document.getElementById('urgentHelpNotes').value;
+        
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
 
-    const url = APP_URLS.report.urgentHelp;
-    console.log('Sending urgent help to:', url);
-    console.log('User data:', {
-        booking_id: bookingData.id,
-        user_type: bookingData.user_type,
-        user_id: bookingData.user_id
-    });
+        const url = APP_URLS.report.urgentHelp;
+        console.log('Sending urgent help to:', url);
 
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': bookingData.csrfToken
-        },
-        body: JSON.stringify({
-            booking_id: bookingData.id,
-            additional_notes: notes,
-            user_type: bookingData.user_type,
-            user_id: bookingData.user_id
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken
+            },
+            body: JSON.stringify({
+                booking_id: bookingData.id,
+                additional_notes: notes,
+                user_type: 'passenger'
+            })
         })
-    })
-    .then(response => {
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Urgent help response:', data);
-        if (data.success) {
-            showNotification('success', data.message || 'Help request sent successfully!');
-            hideUrgentHelpModal();
-        } else {
-            throw new Error(data.message || 'Failed to send help request');
-        }
-    })
-    .catch(error => {
-        console.error('Error sending urgent help:', error);
-        showNotification('error', error.message || 'Failed to send help request. Please try again.');
-    })
-    .finally(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
-}
-
-function sendComplaint() {
-    const type = document.getElementById('complaintType').value;
-    const severity = document.getElementById('complaintSeverity').value;
-    const description = document.getElementById('complaintDescription').value;
-
-    if (!description.trim()) {
-        showNotification('error', 'Please provide a description of the issue');
-        return;
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Urgent help response:', data);
+            if (data.success) {
+                showNotification('success', data.message || 'Help request sent successfully!');
+                hideUrgentHelpModal();
+            } else {
+                throw new Error(data.message || 'Failed to send help request');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending urgent help:', error);
+            showNotification('error', error.message || 'Failed to send help request. Please try again.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
     }
 
-    if (description.trim().length < 10) {
-        showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
-        return;
+    function sendComplaint() {
+        const type = document.getElementById('complaintType').value;
+        const severity = document.getElementById('complaintSeverity').value;
+        const description = document.getElementById('complaintDescription').value;
+
+        if (!description.trim()) {
+            showNotification('error', 'Please provide a description of the issue');
+            return;
+        }
+
+        if (description.trim().length < 10) {
+            showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
+            return;
+        }
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        btn.disabled = true;
+
+        const url = APP_URLS.report.complaint;
+        console.log('Sending complaint to:', url);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken
+            },
+            body: JSON.stringify({
+                booking_id: bookingData.id,
+                complaint_type: type,
+                severity: severity,
+                description: description,
+                user_type: 'passenger'
+            })
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Complaint response:', data);
+            if (data.success) {
+                showNotification('success', data.message || 'Complaint submitted successfully!');
+                hideComplaintModal();
+            } else {
+                throw new Error(data.message || 'Failed to submit complaint');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting complaint:', error);
+            showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
     }
 
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    btn.disabled = true;
-
-    const url = APP_URLS.report.complaint;
-    console.log('Sending complaint to:', url);
-    console.log('User data:', {
-        booking_id: bookingData.id,
-        user_type: bookingData.user_type,
-        user_id: bookingData.user_id
-    });
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': bookingData.csrfToken
-        },
-        body: JSON.stringify({
-            booking_id: bookingData.id,
-            complaint_type: type,
-            severity: severity,
-            description: description,
-            user_type: bookingData.user_type,
-            user_id: bookingData.user_id
-        })
-    })
-    .then(response => {
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Complaint response:', data);
-        if (data.success) {
-            showNotification('success', data.message || 'Complaint submitted successfully!');
-            hideComplaintModal();
-        } else {
-            throw new Error(data.message || 'Failed to submit complaint');
-        }
-    })
-    .catch(error => {
-        console.error('Error submitting complaint:', error);
-        showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
-    })
-    .finally(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
-}
     function showNotification(type, message, duration = 5000) {
         const existingNotifications = document.querySelectorAll('.custom-notification');
         existingNotifications.forEach(notification => notification.remove());

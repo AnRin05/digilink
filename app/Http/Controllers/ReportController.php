@@ -8,7 +8,6 @@ use App\Models\Driver;
 use App\Models\Passenger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
@@ -16,38 +15,22 @@ class ReportController extends Controller
     public function sendUrgentHelp(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
+            $request->validate([
                 'booking_id' => 'required|exists:bookings,bookingID',
                 'additional_notes' => 'nullable|string|max:1000',
-                'user_type' => 'required|in:driver,passenger',
-                'user_id' => 'required|integer'
             ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid request data',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
 
             $booking = Booking::with(['passenger', 'driver'])->findOrFail($request->booking_id);
 
-            // Get reporter info based on user_type
-            $reporterType = $request->user_type;
-            $reporterId = $request->user_id;
-            
-            if ($reporterType === 'driver') {
-                $reporter = Driver::find($reporterId);
+            // Determine reporter type and get reporter info
+            if (Auth::guard('driver')->check()) {
+                $reporterType = 'driver';
+                $reporterId = Auth::guard('driver')->id();
+                $reporter = Auth::guard('driver')->user();
             } else {
-                $reporter = Passenger::find($reporterId);
-            }
-
-            if (!$reporter) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Reporter not found'
-                ], 404);
+                $reporterType = 'passenger';
+                $reporterId = Auth::guard('passenger')->id();
+                $reporter = Auth::guard('passenger')->user();
             }
 
             $locationData = $this->collectLocationData($booking, $reporterType);
@@ -63,7 +46,7 @@ class ReportController extends Controller
                 'reporter_type' => $reporterType,
                 'reporter_id' => $reporterId,
                 'reporter_name' => $reporter->fullname,
-                'reporter_phone' => $reporter->phone ?? 'N/A',
+                'reporter_phone' => $reporter->phone,
                 'booking_id' => $booking->bookingID,
                 'location_data' => $locationData,
                 'booking_data' => $bookingData,
@@ -97,40 +80,24 @@ class ReportController extends Controller
     public function sendComplaint(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
+            $request->validate([
                 'booking_id' => 'required|exists:bookings,bookingID',
                 'complaint_type' => 'required|in:driver_behavior,service_issue,safety_concern,payment_issue,other',
                 'description' => 'required|string|max:2000',
                 'severity' => 'required|in:low,medium,high,critical',
-                'user_type' => 'required|in:driver,passenger',
-                'user_id' => 'required|integer'
             ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid request data',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
 
             $booking = Booking::with(['passenger', 'driver'])->findOrFail($request->booking_id);
 
-            // Get reporter info based on user_type
-            $reporterType = $request->user_type;
-            $reporterId = $request->user_id;
-            
-            if ($reporterType === 'driver') {
-                $reporter = Driver::find($reporterId);
+            // Determine reporter type and get reporter info
+            if (Auth::guard('driver')->check()) {
+                $reporterType = 'driver';
+                $reporterId = Auth::guard('driver')->id();
+                $reporter = Auth::guard('driver')->user();
             } else {
-                $reporter = Passenger::find($reporterId);
-            }
-
-            if (!$reporter) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Reporter not found'
-                ], 404);
+                $reporterType = 'passenger';
+                $reporterId = Auth::guard('passenger')->id();
+                $reporter = Auth::guard('passenger')->user();
             }
 
             $locationData = $this->collectLocationData($booking, $reporterType);
@@ -144,7 +111,7 @@ class ReportController extends Controller
                 'reporter_type' => $reporterType,
                 'reporter_id' => $reporterId,
                 'reporter_name' => $reporter->fullname,
-                'reporter_phone' => $reporter->phone ?? 'N/A',
+                'reporter_phone' => $reporter->phone,
                 'booking_id' => $booking->bookingID,
                 'location_data' => $locationData,
                 'booking_data' => $bookingData,
