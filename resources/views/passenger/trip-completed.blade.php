@@ -479,114 +479,269 @@
             </div>
         </div>
     </div>
-
 <script>
-    let map;
-    let driverMarker;
-    let pickupMarker;
-    let dropoffMarker;
-    let updateInterval;
-    let statusInterval;
+// ==================== CONFIGURATION ====================
+const CONFIG = {
+    UPDATE_INTERVAL: 3000,
+    STATUS_UPDATE_INTERVAL: 5000,
+    API_TIMEOUT: 10000,
+    MAX_RETRIES: 3,
+    RETRY_DELAY: 2000
+};
 
-    // URL configuration - works on both local and Railway
-    const APP_URLS = {
-        base: "{{ url('/') }}",
-        passenger: {
-            confirmCompletion: "{{ url('/passenger/confirm-completion') }}",
-            getBookingLocation: "{{ url('/passenger/get-booking-location') }}",
-            getDriverLocation: "{{ url('/passenger/get-driver-location') }}",
-            cancelBooking: "{{ url('/passenger/cancel-ongoing-booking') }}",
-            tripCompleted: "{{ url('/passenger/trip-completed') }}"
-        },
-        report: {
-            urgentHelp: "{{ url('/report/urgent-help') }}",
-            complaint: "{{ url('/report/complaint') }}"
+// API endpoints - relative paths work on both local and Railway
+const API_ENDPOINTS = {
+    confirmCompletion: "/passenger/confirm-completion",
+    getBookingLocation: "/passenger/get-booking-location",
+    getDriverLocation: "/passenger/get-driver-location",
+    cancelBooking: "/passenger/cancel-ongoing-booking",
+    tripCompleted: "/passenger/trip-completed",
+    urgentHelp: "/report/urgent-help",
+    complaint: "/report/complaint"
+};
+
+// Booking data
+const bookingData = {
+    id: {{ $booking->bookingID }},
+    driver_id: {{ $booking->driver->id ?? 0 }},
+    pickup: {
+        lat: {{ $booking->pickupLatitude }},
+        lng: {{ $booking->pickupLongitude }},
+        address: `{{ $booking->pickupLocation }}`
+    },
+    dropoff: {
+        lat: {{ $booking->dropoffLatitude }},
+        lng: {{ $booking->dropoffLongitude }},
+        address: `{{ $booking->dropoffLocation }}`
+    },
+    csrfToken: window.AppConfig.csrfToken
+};
+
+// Status configuration
+const statusConfig = {
+    'pending': {
+        badge: 'pending',
+        text: 'PENDING',
+        indicator: 'pending',
+        timeline: {
+            icon: 'pending',
+            title: 'Booking Request Sent',
+            description: 'Waiting for driver to accept your booking'
+        }
+    },
+    'accepted': {
+        badge: 'in-progress',
+        text: 'ACCEPTED',
+        indicator: 'in-progress',
+        timeline: {
+            icon: 'accepted',
+            title: 'Booking Accepted',
+            description: 'Driver is on the way to pickup location'
+        }
+    },
+    'in_progress': {
+        badge: 'in-progress',
+        text: 'IN PROGRESS',
+        indicator: 'in-progress',
+        timeline: {
+            icon: 'in-progress',
+            title: 'Trip in Progress',
+            description: 'Driver is taking you to your destination'
+        }
+    },
+    'completed': {
+        badge: 'completed',
+        text: 'COMPLETED',
+        indicator: 'completed',
+        timeline: {
+            icon: 'completed',
+            title: 'Trip Completed',
+            description: 'You have reached your destination'
+        }
+    },
+    'cancelled': {
+        badge: 'cancelled',
+        text: 'CANCELLED',
+        indicator: 'cancelled',
+        timeline: {
+            icon: 'cancelled',
+            title: 'Trip Cancelled',
+            description: 'This trip has been cancelled'
+        }
+    }
+};
+
+// ==================== GLOBAL VARIABLES ====================
+let map;
+let driverMarker;
+let pickupMarker;
+let dropoffMarker;
+let updateInterval;
+let statusInterval;
+let retryCount = 0;
+let isOnline = navigator.onLine;
+
+// ==================== UTILITY FUNCTIONS ====================
+function log(message, data = null, type = 'info') {
+    const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+    const logMessage = `[${timestamp}] ${message}`;
+    
+    console[type](logMessage, data || '');
+    
+    // Also log to debug panel if it exists
+    const debugLog = document.getElementById('debugLog');
+    if (debugLog) {
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-${type}`;
+        logEntry.textContent = logMessage;
+        debugLog.appendChild(logEntry);
+        debugLog.scrollTop = debugLog.scrollHeight;
+    }
+}
+
+function showNotification(type, message, duration = 5000) {
+    log(`Notification: ${type} - ${message}`);
+    
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'custom-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10001;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+            <span>${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: auto; padding: 0; font-size: 1rem;">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, duration);
+}
+
+function getApiUrl(endpoint, id = null) {
+    let url = API_ENDPOINTS[endpoint];
+    if (id) {
+        url += `/${id}`;
+    }
+    
+    // Add timestamp to prevent caching
+    const timestamp = Date.now();
+    return `${url}?_t=${timestamp}`;
+}
+
+async function safeFetch(url, options = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CONFIG.API_TIMEOUT);
+    
+    const fetchOptions = {
+        ...options,
+        signal: controller.signal,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': bookingData.csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            ...options.headers
         }
     };
-
-    const bookingData = {
-        id: {{ $booking->bookingID }},
-        driver_id: {{ $booking->driver->id ?? 0 }},
-        pickup: {
-            lat: {{ $booking->pickupLatitude }},
-            lng: {{ $booking->pickupLongitude }},
-            address: `{{ $booking->pickupLocation }}`
-        },
-        dropoff: {
-            lat: {{ $booking->dropoffLatitude }},
-            lng: {{ $booking->dropoffLongitude }},
-            address: `{{ $booking->dropoffLocation }}`
-        },
-        csrfToken: '{{ csrf_token() }}'
-    };
-
-    const statusConfig = {
-        'pending': {
-            badge: 'pending',
-            text: 'PENDING',
-            indicator: 'pending',
-            timeline: {
-                icon: 'pending',
-                title: 'Booking Request Sent',
-                description: 'Waiting for driver to accept your booking'
-            }
-        },
-        'accepted': {
-            badge: 'in-progress',
-            text: 'ACCEPTED',
-            indicator: 'in-progress',
-            timeline: {
-                icon: 'accepted',
-                title: 'Booking Accepted',
-                description: 'Driver is on the way to pickup location'
-            }
-        },
-        'in_progress': {
-            badge: 'in-progress',
-            text: 'IN PROGRESS',
-            indicator: 'in-progress',
-            timeline: {
-                icon: 'in-progress',
-                title: 'Trip in Progress',
-                description: 'Driver is taking you to your destination'
-            }
-        },
-        'completed': {
-            badge: 'completed',
-            text: 'COMPLETED',
-            indicator: 'completed',
-            timeline: {
-                icon: 'completed',
-                title: 'Trip Completed',
-                description: 'You have reached your destination'
-            }
-        },
-        'cancelled': {
-            badge: 'cancelled',
-            text: 'CANCELLED',
-            indicator: 'cancelled',
-            timeline: {
-                icon: 'cancelled',
-                title: 'Trip Cancelled',
-                description: 'This trip has been cancelled'
-            }
-        }
-    };
-
-    function initMap() {
-        console.log('Initializing map for booking:', bookingData.id);
-        console.log('Base URL:', APP_URLS.base);
+    
+    try {
+        log(`Fetching: ${url}`);
+        const response = await fetch(url, fetchOptions);
+        clearTimeout(timeoutId);
         
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            log('Non-JSON response', text.substring(0, 200), 'warn');
+            throw new Error('Server returned non-JSON response');
+        }
+        
+        const data = await response.json();
+        log(`Response from ${url}`, data);
+        return data;
+        
+    } catch (error) {
+        clearTimeout(timeoutId);
+        log(`Fetch error: ${url}`, error.message, 'error');
+        
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout. Please check your internet connection.');
+        }
+        
+        throw error;
+    }
+}
+
+function updateNetworkStatus(online) {
+    const networkStatus = document.getElementById('networkStatus');
+    const networkStatusText = document.getElementById('networkStatusText');
+    
+    if (networkStatus && networkStatusText) {
+        if (online) {
+            networkStatus.className = 'network-status network-online';
+            networkStatusText.textContent = 'Online';
+            networkStatus.style.display = 'block';
+            setTimeout(() => {
+                networkStatus.style.display = 'none';
+            }, 3000);
+        } else {
+            networkStatus.className = 'network-status network-offline';
+            networkStatusText.textContent = 'Offline';
+            networkStatus.style.display = 'block';
+        }
+    }
+}
+
+// ==================== MAP FUNCTIONS ====================
+function initMap() {
+    log('Initializing map...', bookingData);
+    
+    try {
         map = L.map('trackingMap', {
-            zoomControl: false
+            zoomControl: false,
+            preferCanvas: true // Better performance
         }).setView([bookingData.pickup.lat, bookingData.pickup.lng], 13);
 
+        // Use HTTPS for Railway
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19,
             detectRetina: true
         }).addTo(map);
 
+        // Pickup marker
         const pickupIcon = L.divIcon({
             className: 'pickup-marker',
             html: `
@@ -611,6 +766,7 @@
                 </div>
             `);
 
+        // Dropoff marker
         const dropoffIcon = L.divIcon({
             className: 'dropoff-marker',
             html: `
@@ -634,239 +790,27 @@
                     ${bookingData.dropoff.address}
                 </div>
             `);
+
+        log('Map initialized successfully');
         
+        // Start tracking
         startTrackingUpdates();
         startStatusUpdates();
-    }
-
-    function confirmCompletion() {
-        if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
-            return;
-        }
-
-        const confirmBtn = document.getElementById('confirmCompletionBtn');
-        const originalText = confirmBtn.innerHTML;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
-        confirmBtn.disabled = true;
-
-        const url = `${APP_URLS.passenger.confirmCompletion}/${bookingData.id}`;
-        console.log('Confirming completion at:', url);
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': bookingData.csrfToken
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            console.log('Completion response:', data);
-            if (data.success) {
-                updateCompletionStatus(data.completion_status, data.is_completed);
-                showCompletionMessage(data.message, 'success');
-                
-                // ALWAYS redirect to trip-completed page after successful confirmation
-                console.log('Redirecting to trip completed page...');
-                stopTracking();
-                updateStatusDisplay('completed');
-                
-                // Immediate redirect without delay
-                window.location.href = `${APP_URLS.passenger.tripCompleted}/${bookingData.id}`;
-                
-            } else {
-                throw new Error(data.message || 'Failed to confirm completion');
-            }
-        })
-        .catch(error => {
-            console.error('Error confirming completion:', error);
-            showCompletionMessage(error.message, 'error');
-            confirmBtn.innerHTML = originalText;
-            confirmBtn.disabled = false;
-        });
-    }
-
-    function startTrackingUpdates() {
-        console.log('Starting tracking updates...');
-        updateDriverLocation();
-        updateInterval = setInterval(updateDriverLocation, 3000);
-    }
-
-    function startStatusUpdates() {
-        updateBookingStatus();
-        statusInterval = setInterval(updateBookingStatus, 10000);
-    }
-
-    function updateBookingStatus() {
-        const url = `${APP_URLS.passenger.getBookingLocation}/${bookingData.id}?_t=${Date.now()}`;
-        console.log('Fetching booking status from:', url);
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                console.log('Status update response:', data);
-                if (data.success) {
-                    updateStatusDisplay(data.booking.status);
-                    
-                    // Update completion status based on backend data
-                    if (data.booking.completion_verified) {
-                        updateCompletionStatus(data.booking.completion_verified, data.booking.status === 'completed');
-                    }
-                    
-                    // If booking is completed OR passenger has confirmed, redirect to trip completed page
-                    if (data.booking.status === 'completed' || 
-                        data.booking.completion_verified === 'passenger_confirmed' ||
-                        data.booking.completion_verified === 'both_confirmed') {
-                        stopTracking();
-                        setTimeout(() => {
-                            window.location.href = `${APP_URLS.passenger.tripCompleted}/${bookingData.id}`;
-                        }, 1000);
-                    }
-                    
-                    if (data.booking.status === 'cancelled') {
-                        stopTracking();
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching booking status:', error);
-            });
-    }
-
-    function updateDriverLocation() {
-        const url = `${APP_URLS.passenger.getDriverLocation}/${bookingData.id}?_t=${Date.now()}`;
-        console.log('Fetching driver location from:', url);
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Driver location API response:', data);
-                
-                if (data.success) {
-                    updateStatusDisplay(data.booking.status);
-                    
-                    if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
-                        const driverLat = parseFloat(data.driver.current_lat);
-                        const driverLng = parseFloat(data.driver.current_lng);
-                        
-                        if (!isNaN(driverLat) && !isNaN(driverLng)) {
-                            updateDriverPosition(driverLat, driverLng);
-                            updateDistanceInfo(data.distance_info);
-                            updateLocationStatus('success', `Live GPS tracking active - ${data.driver.name}`);
-                        }
-                    } else {
-                        updateLocationStatus('waiting', 'Waiting for driver location updates...');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching driver location:', error);
-                updateLocationStatus('error', 'Unable to fetch driver location');
-            });
-    }
-
-    function updateStatusDisplay(status) {
-        const config = statusConfig[status] || statusConfig.in_progress;
         
-        const statusBadge = document.getElementById('overallStatusBadge');
-        if (statusBadge) {
-            statusBadge.textContent = config.text;
-            statusBadge.className = `status-badge ${config.badge}`;
-        }
-        
-        const trackingIndicator = document.getElementById('trackingIndicator');
-        if (trackingIndicator) {
-            trackingIndicator.className = `tracking-indicator ${config.indicator}`;
-        }
-        
-        const trackingStatusText = document.getElementById('trackingStatusText');
-        if (trackingStatusText) {
-            trackingStatusText.textContent = getStatusText(status);
-        }
-        
-        updateStatusTimeline(status);
-        
-        const cancelBtn = document.getElementById('cancelBookingBtn');
-        if (cancelBtn && (status === 'completed' || status === 'cancelled')) {
-            cancelBtn.style.display = 'none';
-        }
-        
-        const confirmBtn = document.getElementById('confirmCompletionBtn');
-        if (confirmBtn && status === 'completed') {
-            confirmBtn.style.display = 'none';
-        }
+    } catch (error) {
+        log('Error initializing map', error.message, 'error');
+        showNotification('error', 'Failed to initialize map. Please refresh the page.');
     }
+}
 
-    function getStatusText(status) {
-        const statusTexts = {
-            'pending': 'Waiting for Driver Acceptance',
-            'accepted': 'Driver is Coming to Pickup',
-            'in_progress': 'Live Driver Tracking Active',
-            'completed': 'Trip Completed',
-            'cancelled': 'Trip Cancelled'
-        };
-        return statusTexts[status] || 'Live Driver Tracking Active';
-    }
-
-    function updateStatusTimeline(currentStatus) {
-        const timeline = document.getElementById('statusTimeline');
-        if (!timeline) return;
-
-        const statuses = ['pending', 'accepted', 'in_progress', 'completed'];
-        
-        let timelineHTML = '';
-        
-        statuses.forEach(status => {
-            const config = statusConfig[status];
-            const isActive = status === currentStatus;
-            const isPast = statuses.indexOf(status) < statuses.indexOf(currentStatus);
-            
-            timelineHTML += `
-                <div class="status-item ${isActive ? 'active' : ''}">
-                    <div class="status-icon ${config.timeline.icon} ${isPast ? 'completed' : ''}">
-                        ${isActive && status !== 'completed' ? '<i class="fas fa-sync-alt fa-spin"></i>' : 
-                        isPast ? '<i class="fas fa-check"></i>' : 
-                        `<i class="fas fa-${getStatusIcon(status)}"></i>`}
-                    </div>
-                    <div class="status-details">
-                        <strong>${config.timeline.title}</strong>
-                        <div class="status-time">${config.timeline.description}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        timeline.innerHTML = timelineHTML;
-    }
-
-    function getStatusIcon(status) {
-        const icons = {
-            'pending': 'clock',
-            'accepted': 'user-check',
-            'in_progress': 'car',
-            'completed': 'flag-checkered'
-        };
-        return icons[status] || 'info-circle';
-    }
-
-    function updateDriverPosition(lat, lng) {
+function updateDriverPosition(lat, lng, driverInfo = null) {
+    try {
         if (!driverMarker) {
             const driverIcon = L.divIcon({
                 className: 'driver-marker',
                 html: `
                     <div style="position: relative;">
-                        <div style="background:#212529; border:3px solid white; border-radius:50%; width:16px; height:16px; box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+                        <div style="background:#212529; border:3px solid white; border-radius:50%; width:20px; height:20px; box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
                         <div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); background: #212529; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: bold; white-space: nowrap;">
                             DRIVER
                         </div>
@@ -876,232 +820,492 @@
                 iconAnchor: [8, 16]
             });
 
-            driverMarker = L.marker([lat, lng], { icon: driverIcon })
-                .addTo(map)
-                .bindPopup(`
-                    <div style="text-align: center; min-width: 200px;">
-                        <strong>🚗 YOUR DRIVER</strong><br>
-                        <hr style="margin: 5px 0;">
-                        {{ $booking->driver->fullname ?? 'Driver' }}<br>
-                        {{ $booking->driver->vehicleMake ?? '' }} {{ $booking->driver->vehicleModel ?? '' }}
-                    </div>
-                `);
+            driverMarker = L.marker([lat, lng], { 
+                icon: driverIcon,
+                zIndexOffset: 1000 // Ensure driver marker is on top
+            })
+            .addTo(map)
+            .bindPopup(`
+                <div style="text-align: center; min-width: 200px;">
+                    <strong>🚗 YOUR DRIVER</strong><br>
+                    <hr style="margin: 5px 0;">
+                    ${driverInfo?.name || '{{ $booking->driver->fullname ?? "Driver" }}'}<br>
+                    ${driverInfo?.vehicle || '{{ $booking->driver->vehicleMake ?? "" }} {{ $booking->driver->vehicleModel ?? "" }}'}
+                </div>
+            `);
 
+            // Fit all markers in view
             const group = new L.featureGroup([pickupMarker, dropoffMarker, driverMarker]);
             map.fitBounds(group.getBounds().pad(0.2));
+            
+            log('Driver marker created', { lat, lng });
         } else {
             driverMarker.setLatLng([lat, lng]);
+            log('Driver marker updated', { lat, lng });
+        }
+    } catch (error) {
+        log('Error updating driver position', error.message, 'error');
+    }
+}
+
+// ==================== API FUNCTIONS ====================
+async function updateDriverLocation() {
+    if (!isOnline) {
+        log('Offline - skipping driver location update', null, 'warn');
+        showNotification('warning', 'You are offline. Reconnecting...');
+        return;
+    }
+
+    try {
+        const url = getApiUrl('getDriverLocation', bookingData.id);
+        const data = await safeFetch(url);
+        
+        if (data.success) {
+            retryCount = 0; // Reset retry count on success
+            
+            // Update status display
+            updateStatusDisplay(data.booking.status);
+            
+            // Update completion status
+            if (data.booking.completion_verified) {
+                updateCompletionStatus(data.booking.completion_verified, data.booking.status === 'completed');
+            }
+            
+            // Check for driver location
+            if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
+                const driverLat = parseFloat(data.driver.current_lat);
+                const driverLng = parseFloat(data.driver.current_lng);
+                
+                if (!isNaN(driverLat) && !isNaN(driverLng)) {
+                    updateDriverPosition(driverLat, driverLng, {
+                        name: data.driver.name,
+                        vehicle: data.driver.vehicle
+                    });
+                    
+                    if (data.distance_info) {
+                        updateDistanceInfo(data.distance_info);
+                    }
+                    
+                    updateLocationStatus('success', `Driver location updated - ${data.driver.name}`);
+                    
+                    // Check if trip should redirect
+                    if (data.booking.status === 'completed' || 
+                        data.booking.completion_verified === 'passenger_confirmed' ||
+                        data.booking.completion_verified === 'both_confirmed') {
+                        handleTripCompletion();
+                    }
+                } else {
+                    updateLocationStatus('waiting', 'Waiting for valid driver location...');
+                }
+            } else {
+                updateLocationStatus('waiting', 'Driver location not available yet...');
+            }
+            
+            // Check if cancelled
+            if (data.booking.status === 'cancelled') {
+                handleTripCancellation();
+            }
+        } else {
+            throw new Error(data.message || 'Failed to get driver location');
+        }
+        
+    } catch (error) {
+        log('Error in driver location update', error.message, 'error');
+        
+        retryCount++;
+        if (retryCount <= CONFIG.MAX_RETRIES) {
+            updateLocationStatus('error', `Connection error. Retrying... (${retryCount}/${CONFIG.MAX_RETRIES})`);
+            setTimeout(updateDriverLocation, CONFIG.RETRY_DELAY);
+        } else {
+            updateLocationStatus('error', 'Unable to connect to server. Please check your internet connection.');
+            showNotification('error', 'Connection lost. Please refresh the page.');
         }
     }
+}
 
-    function updateLocationStatus(type, message) {
-        const locationStatus = document.getElementById('locationStatus');
-        if (!locationStatus) return;
-
-        const statusIcons = {
-            'success': '<i class="fas fa-check-circle" style="color: #28a745;"></i>',
-            'waiting': '<i class="fas fa-clock" style="color: #6c757d;"></i>',
-            'error': '<i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>'
-        };
-
-        locationStatus.innerHTML = `<p>${statusIcons[type]} ${message}</p>`;
+async function updateBookingStatus() {
+    try {
+        const url = getApiUrl('getBookingLocation', bookingData.id);
+        const data = await safeFetch(url);
+        
+        if (data.success) {
+            updateStatusDisplay(data.booking.status);
+            
+            if (data.booking.completion_verified) {
+                updateCompletionStatus(data.booking.completion_verified, data.booking.status === 'completed');
+            }
+            
+            if (data.booking.status === 'completed' || 
+                data.booking.completion_verified === 'passenger_confirmed' ||
+                data.booking.completion_verified === 'both_confirmed') {
+                handleTripCompletion();
+            }
+            
+            if (data.booking.status === 'cancelled') {
+                handleTripCancellation();
+            }
+        }
+    } catch (error) {
+        log('Error updating booking status', error.message, 'error');
     }
+}
 
-    function updateDistanceInfo(distanceInfo) {
-        const distanceInfoElement = document.getElementById('distanceInfo');
-        if (distanceInfoElement && distanceInfo) {
-            distanceInfoElement.innerHTML = `
-                <div class="location-status">
-                    <p><i class="fas fa-route" style="color: #28a745;"></i> <strong>Driver to Pickup:</strong> ${distanceInfo.to_pickup_km || 'N/A'} km</p>
-                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_pickup_min || 'N/A'} min</p>
+// ==================== TRACKING CONTROL ====================
+function startTrackingUpdates() {
+    log('Starting tracking updates...');
+    updateDriverLocation();
+    updateInterval = setInterval(updateDriverLocation, CONFIG.UPDATE_INTERVAL);
+}
+
+function startStatusUpdates() {
+    updateBookingStatus();
+    statusInterval = setInterval(updateBookingStatus, CONFIG.STATUS_UPDATE_INTERVAL);
+}
+
+function stopTracking() {
+    log('Stopping tracking...');
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+    if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+    }
+}
+
+// ==================== UI UPDATE FUNCTIONS ====================
+function updateStatusDisplay(status) {
+    const config = statusConfig[status] || statusConfig.in_progress;
+    
+    // Update status badge
+    const statusBadge = document.getElementById('overallStatusBadge');
+    if (statusBadge) {
+        statusBadge.textContent = config.text;
+        statusBadge.className = `status-badge ${config.badge}`;
+    }
+    
+    // Update tracking indicator
+    const trackingIndicator = document.getElementById('trackingIndicator');
+    if (trackingIndicator) {
+        trackingIndicator.className = `tracking-indicator ${config.indicator}`;
+    }
+    
+    // Update tracking status text
+    const trackingStatusText = document.getElementById('trackingStatusText');
+    if (trackingStatusText) {
+        trackingStatusText.textContent = getStatusText(status);
+    }
+    
+    // Update timeline
+    updateStatusTimeline(status);
+    
+    // Update button visibility
+    const cancelBtn = document.getElementById('cancelBookingBtn');
+    if (cancelBtn && (status === 'completed' || status === 'cancelled')) {
+        cancelBtn.style.display = 'none';
+    }
+    
+    const confirmBtn = document.getElementById('confirmCompletionBtn');
+    if (confirmBtn && status === 'completed') {
+        confirmBtn.style.display = 'none';
+    }
+}
+
+function getStatusText(status) {
+    const statusTexts = {
+        'pending': 'Waiting for Driver Acceptance',
+        'accepted': 'Driver is Coming to Pickup',
+        'in_progress': 'Live Driver Tracking Active',
+        'completed': 'Trip Completed',
+        'cancelled': 'Trip Cancelled'
+    };
+    return statusTexts[status] || 'Live Driver Tracking Active';
+}
+
+function updateStatusTimeline(currentStatus) {
+    const timeline = document.getElementById('statusTimeline');
+    if (!timeline) return;
+
+    const statuses = ['pending', 'accepted', 'in_progress', 'completed'];
+    let timelineHTML = '';
+    
+    statuses.forEach(status => {
+        const config = statusConfig[status];
+        const isActive = status === currentStatus;
+        const isPast = statuses.indexOf(status) < statuses.indexOf(currentStatus);
+        
+        timelineHTML += `
+            <div class="status-item ${isActive ? 'active' : ''}">
+                <div class="status-icon ${config.timeline.icon} ${isPast ? 'completed' : ''}">
+                    ${isActive && status !== 'completed' ? '<i class="fas fa-sync-alt fa-spin"></i>' : 
+                    isPast ? '<i class="fas fa-check"></i>' : 
+                    `<i class="fas fa-${getStatusIcon(status)}"></i>`}
                 </div>
-                <div class="distance-info">
-                    <p><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> <strong>Driver to Drop-off:</strong> ${distanceInfo.to_dropoff_km || 'N/A'} km</p>
-                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_dropoff_min || 'N/A'} min</p>
+                <div class="status-details">
+                    <strong>${config.timeline.title}</strong>
+                    <div class="status-time">${config.timeline.description}</div>
                 </div>
-            `;
-        }
-    }
+            </div>
+        `;
+    });
+    
+    timeline.innerHTML = timelineHTML;
+}
 
-    function updateCompletionStatus(status, isCompleted) {
-        const completionStatus = document.getElementById('completionStatus');
-        if (!completionStatus) return;
+function getStatusIcon(status) {
+    const icons = {
+        'pending': 'clock',
+        'accepted': 'user-check',
+        'in_progress': 'car',
+        'completed': 'flag-checkered'
+    };
+    return icons[status] || 'info-circle';
+}
 
-        const statusMessages = {
-            'pending': `<div style="color: #6c757d;"><i class="fas fa-clock"></i> <strong>Status:</strong> Waiting for completion confirmation...</div>`,
-            'driver_confirmed': `<div style="color: #007bff;"><i class="fas fa-user-check"></i> <strong>Status:</strong> Driver has confirmed completion</div>`,
-            'passenger_confirmed': `<div style="color: #28a745;"><i class="fas fa-user-check"></i> <strong>Status:</strong> You have confirmed completion</div>`,
-            'both_confirmed': `<div style="color: #28a745;"><i class="fas fa-check-double"></i> <strong>Status:</strong> Trip completed successfully!</div>`
-        };
+function updateLocationStatus(type, message) {
+    const locationStatus = document.getElementById('locationStatus');
+    if (!locationStatus) return;
 
-        completionStatus.innerHTML = statusMessages[status] || statusMessages.pending;
+    const statusIcons = {
+        'success': '<i class="fas fa-check-circle" style="color: #28a745;"></i>',
+        'waiting': '<i class="fas fa-clock" style="color: #6c757d;"></i>',
+        'error': '<i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>',
+        'warning': '<i class="fas fa-exclamation-circle" style="color: #ffc107;"></i>'
+    };
 
-        if (isCompleted || status === 'both_confirmed') {
-            document.getElementById('confirmCompletionBtn').style.display = 'none';
-        }
-    }
+    locationStatus.innerHTML = `<p>${statusIcons[type]} ${message}</p>`;
+}
 
-    function showCompletionMessage(message, type) {
-        const completionMessage = document.getElementById('completionMessage');
-        if (!completionMessage) return;
-
-        completionMessage.innerHTML = `
-            <div style="color: ${type === 'success' ? '#28a745' : '#dc3545'}; font-weight: 600; padding: 10px; background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; border-radius: 8px; border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}
+function updateDistanceInfo(distanceInfo) {
+    const distanceInfoElement = document.getElementById('distanceInfo');
+    if (distanceInfoElement && distanceInfo) {
+        distanceInfoElement.innerHTML = `
+            <div class="location-status">
+                <p><i class="fas fa-route" style="color: #28a745;"></i> <strong>Driver to Pickup:</strong> ${distanceInfo.to_pickup_km || 'N/A'} km</p>
+                <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_pickup_min || 'N/A'} min</p>
+            </div>
+            <div class="distance-info">
+                <p><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> <strong>Driver to Drop-off:</strong> ${distanceInfo.to_dropoff_km || 'N/A'} km</p>
+                <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_dropoff_min || 'N/A'} min</p>
             </div>
         `;
     }
+}
 
-    function stopTracking() {
-        if (updateInterval) {
-            clearInterval(updateInterval);
-            updateInterval = null;
-        }
-        if (statusInterval) {
-            clearInterval(statusInterval);
-            statusInterval = null;
-        }
+function updateCompletionStatus(status, isCompleted) {
+    const completionStatus = document.getElementById('completionStatus');
+    if (!completionStatus) return;
+
+    const statusMessages = {
+        'pending': `<div style="color: #6c757d;"><i class="fas fa-clock"></i> <strong>Status:</strong> Waiting for completion confirmation...</div>`,
+        'driver_confirmed': `<div style="color: #007bff;"><i class="fas fa-user-check"></i> <strong>Status:</strong> Driver has confirmed completion</div>`,
+        'passenger_confirmed': `<div style="color: #28a745;"><i class="fas fa-user-check"></i> <strong>Status:</strong> You have confirmed completion</div>`,
+        'both_confirmed': `<div style="color: #28a745;"><i class="fas fa-check-double"></i> <strong>Status:</strong> Trip completed successfully!</div>`
+    };
+
+    completionStatus.innerHTML = statusMessages[status] || statusMessages.pending;
+
+    if (isCompleted || status === 'both_confirmed') {
+        const confirmBtn = document.getElementById('confirmCompletionBtn');
+        if (confirmBtn) confirmBtn.style.display = 'none';
+    }
+}
+
+function showCompletionMessage(message, type) {
+    const completionMessage = document.getElementById('completionMessage');
+    if (!completionMessage) return;
+
+    completionMessage.innerHTML = `
+        <div style="color: ${type === 'success' ? '#28a745' : '#dc3545'}; font-weight: 600; padding: 10px; background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; border-radius: 8px; border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}
+        </div>
+    `;
+}
+
+// ==================== EVENT HANDLERS ====================
+async function confirmCompletion() {
+    if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
+        return;
     }
 
-    function cancelOngoingBooking() {
-        if (!confirm('Are you sure you want to cancel this ongoing trip?\n\n⚠️ This action cannot be undone. The driver will be notified immediately.')) {
-            return;
-        }
+    const confirmBtn = document.getElementById('confirmCompletionBtn');
+    if (!confirmBtn) return;
+    
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
+    confirmBtn.disabled = true;
 
-        const cancelBtn = document.getElementById('cancelBookingBtn');
-        const originalText = cancelBtn.innerHTML;
-        cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
-        cancelBtn.disabled = true;
-
-        const url = `${APP_URLS.passenger.cancelBooking}/${bookingData.id}`;
-        console.log('Cancelling booking at:', url);
-
-        fetch(url, {
+    try {
+        const url = getApiUrl('confirmCompletion', bookingData.id);
+        const data = await safeFetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': bookingData.csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Cancel response:', data);
-            if (data.success) {
-                document.getElementById('cancelMessage').innerHTML = `<div class="cancel-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
-                stopTracking();
-                updateStatusDisplay('cancelled');
-                document.getElementById('confirmCompletionBtn').disabled = true;
-                document.getElementById('cancelBookingBtn').style.display = 'none';
-            } else {
-                throw new Error(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error cancelling booking:', error);
-            document.getElementById('cancelMessage').innerHTML = `<div class="cancel-error"><i class="fas fa-exclamation-triangle"></i> ${error.message}</div>`;
-            cancelBtn.innerHTML = originalText;
-            cancelBtn.disabled = false;
+            body: JSON.stringify({})
         });
-    }
-
-    function showUrgentHelpModal() {
-        document.getElementById('urgentHelpModal').style.display = 'flex';
-    }
-
-    function hideUrgentHelpModal() {
-        document.getElementById('urgentHelpModal').style.display = 'none';
-        document.getElementById('urgentHelpNotes').value = '';
-    }
-
-    function showComplaintModal() {
-        document.getElementById('complaintModal').style.display = 'flex';
-    }
-
-    function hideComplaintModal() {
-        document.getElementById('complaintModal').style.display = 'none';
-        document.getElementById('complaintType').value = 'driver_behavior';
-        document.getElementById('complaintSeverity').value = 'medium';
-        document.getElementById('complaintDescription').value = '';
-    }
-
-    function sendUrgentHelp() {
-        const notes = document.getElementById('urgentHelpNotes').value;
         
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        btn.disabled = true;
+        if (data.success) {
+            showNotification('success', data.message || 'Trip completed successfully!');
+            
+            // Handle completion
+            stopTracking();
+            updateStatusDisplay('completed');
+            
+            // Redirect to trip completed page
+            setTimeout(() => {
+                const tripCompletedUrl = getApiUrl('tripCompleted', bookingData.id);
+                window.location.href = tripCompletedUrl.replace('?_t=', '');
+            }, 1000);
+        } else {
+            throw new Error(data.message || 'Failed to confirm completion');
+        }
+    } catch (error) {
+        showNotification('error', error.message || 'Error confirming completion');
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+    }
+}
 
-        const url = APP_URLS.report.urgentHelp;
-        console.log('Sending urgent help to:', url);
+async function cancelOngoingBooking() {
+    if (!confirm('Are you sure you want to cancel this ongoing trip?\n\n⚠️ This action cannot be undone. The driver will be notified immediately.')) {
+        return;
+    }
 
-        fetch(url, {
+    const cancelBtn = document.getElementById('cancelBookingBtn');
+    if (!cancelBtn) return;
+    
+    const originalText = cancelBtn.innerHTML;
+    cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+    cancelBtn.disabled = true;
+
+    try {
+        const url = getApiUrl('cancelBooking', bookingData.id);
+        const data = await safeFetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': bookingData.csrfToken
-            },
+            body: JSON.stringify({})
+        });
+        
+        if (data.success) {
+            showNotification('success', data.message || 'Booking cancelled successfully!');
+            document.getElementById('cancelMessage').innerHTML = `<div class="cancel-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
+            stopTracking();
+            updateStatusDisplay('cancelled');
+            cancelBtn.style.display = 'none';
+            
+            const confirmBtn = document.getElementById('confirmCompletionBtn');
+            if (confirmBtn) confirmBtn.disabled = true;
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        showNotification('error', error.message || 'Error cancelling booking');
+        document.getElementById('cancelMessage').innerHTML = `<div class="cancel-error"><i class="fas fa-exclamation-triangle"></i> ${error.message}</div>`;
+        cancelBtn.innerHTML = originalText;
+        cancelBtn.disabled = false;
+    }
+}
+
+function handleTripCompletion() {
+    log('Handling trip completion...');
+    stopTracking();
+    updateStatusDisplay('completed');
+    
+    // Redirect to trip completed page
+    setTimeout(() => {
+        const tripCompletedUrl = getApiUrl('tripCompleted', bookingData.id);
+        window.location.href = tripCompletedUrl.replace('?_t=', '');
+    }, 2000);
+}
+
+function handleTripCancellation() {
+    log('Handling trip cancellation...');
+    stopTracking();
+    updateStatusDisplay('cancelled');
+    
+    const cancelBtn = document.getElementById('cancelBookingBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    
+    const confirmBtn = document.getElementById('confirmCompletionBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
+}
+
+// ==================== MODAL FUNCTIONS ====================
+function showUrgentHelpModal() {
+    document.getElementById('urgentHelpModal').style.display = 'flex';
+}
+
+function hideUrgentHelpModal() {
+    document.getElementById('urgentHelpModal').style.display = 'none';
+    document.getElementById('urgentHelpNotes').value = '';
+}
+
+function showComplaintModal() {
+    document.getElementById('complaintModal').style.display = 'flex';
+}
+
+function hideComplaintModal() {
+    document.getElementById('complaintModal').style.display = 'none';
+    document.getElementById('complaintType').value = 'driver_behavior';
+    document.getElementById('complaintSeverity').value = 'medium';
+    document.getElementById('complaintDescription').value = '';
+}
+
+async function sendUrgentHelp() {
+    const notes = document.getElementById('urgentHelpNotes').value;
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
+
+    try {
+        const url = getApiUrl('urgentHelp');
+        const data = await safeFetch(url, {
+            method: 'POST',
             body: JSON.stringify({
                 booking_id: bookingData.id,
                 additional_notes: notes,
                 user_type: 'passenger'
             })
-        })
-        .then(response => {
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Server returned non-JSON response');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Urgent help response:', data);
-            if (data.success) {
-                showNotification('success', data.message || 'Help request sent successfully!');
-                hideUrgentHelpModal();
-            } else {
-                throw new Error(data.message || 'Failed to send help request');
-            }
-        })
-        .catch(error => {
-            console.error('Error sending urgent help:', error);
-            showNotification('error', error.message || 'Failed to send help request. Please try again.');
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
         });
+        
+        if (data.success) {
+            showNotification('success', data.message || 'Help request sent successfully!');
+            hideUrgentHelpModal();
+        } else {
+            throw new Error(data.message || 'Failed to send help request');
+        }
+    } catch (error) {
+        showNotification('error', error.message || 'Failed to send help request. Please try again.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function sendComplaint() {
+    const type = document.getElementById('complaintType').value;
+    const severity = document.getElementById('complaintSeverity').value;
+    const description = document.getElementById('complaintDescription').value;
+
+    if (!description.trim()) {
+        showNotification('error', 'Please provide a description of the issue');
+        return;
     }
 
-    function sendComplaint() {
-        const type = document.getElementById('complaintType').value;
-        const severity = document.getElementById('complaintSeverity').value;
-        const description = document.getElementById('complaintDescription').value;
+    if (description.trim().length < 10) {
+        showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
+        return;
+    }
 
-        if (!description.trim()) {
-            showNotification('error', 'Please provide a description of the issue');
-            return;
-        }
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
 
-        if (description.trim().length < 10) {
-            showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
-            return;
-        }
-
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        btn.disabled = true;
-
-        const url = APP_URLS.report.complaint;
-        console.log('Sending complaint to:', url);
-
-        fetch(url, {
+    try {
+        const url = getApiUrl('complaint');
+        const data = await safeFetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': bookingData.csrfToken
-            },
             body: JSON.stringify({
                 booking_id: bookingData.id,
                 complaint_type: type,
@@ -1109,142 +1313,172 @@
                 description: description,
                 user_type: 'passenger'
             })
-        })
-        .then(response => {
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Server returned non-JSON response');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Complaint response:', data);
-            if (data.success) {
-                showNotification('success', data.message || 'Complaint submitted successfully!');
-                hideComplaintModal();
+        });
+        
+        if (data.success) {
+            showNotification('success', data.message || 'Complaint submitted successfully!');
+            hideComplaintModal();
+        } else {
+            throw new Error(data.message || 'Failed to submit complaint');
+        }
+    } catch (error) {
+        showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// ==================== DEBUG FUNCTIONS ====================
+function testDriverLocation() {
+    log('Testing driver location API...');
+    updateDriverLocation();
+}
+
+function simulateDriverMovement() {
+    if (!driverMarker) {
+        log('No driver marker to simulate', null, 'warn');
+        return;
+    }
+    
+    const currentLatLng = driverMarker.getLatLng();
+    const newLat = currentLatLng.lat + (Math.random() - 0.5) * 0.001;
+    const newLng = currentLatLng.lng + (Math.random() - 0.5) * 0.001;
+    
+    driverMarker.setLatLng([newLat, newLng]);
+    log('Simulated driver movement', { newLat, newLng });
+}
+
+async function testConnection() {
+    log('Testing connection to endpoints...');
+    
+    const endpoints = [
+        getApiUrl('getDriverLocation', bookingData.id),
+        getApiUrl('getBookingLocation', bookingData.id),
+        window.AppConfig.baseUrl + '/'
+    ];
+    
+    for (const url of endpoints) {
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (response.ok) {
+                log(`✓ ${url} - Connected (${response.status})`);
+                showNotification('success', `✓ ${new URL(url).pathname} - Connected`);
             } else {
-                throw new Error(data.message || 'Failed to submit complaint');
+                log(`✗ ${url} - Failed (${response.status})`, null, 'error');
+                showNotification('error', `✗ ${new URL(url).pathname} - Failed (${response.status})`);
             }
-        })
-        .catch(error => {
-            console.error('Error submitting complaint:', error);
-            showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+        } catch (error) {
+            log(`✗ ${url} - Error: ${error.message}`, null, 'error');
+            showNotification('error', `✗ ${new URL(url).pathname} - ${error.message}`);
+        }
+    }
+}
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    log('DOM loaded, initializing passenger tracking...');
+    log('App Config:', window.AppConfig);
+    
+    try {
+        // Initialize map
+        initMap();
+        
+        // Set up network event listeners
+        window.addEventListener('online', () => {
+            isOnline = true;
+            updateNetworkStatus(true);
+            log('Network status: Online');
+            
+            // Restart tracking if it was stopped
+            if (!updateInterval) {
+                startTrackingUpdates();
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateNetworkStatus(false);
+            log('Network status: Offline', null, 'warn');
+        });
+        
+        // Check initial network status
+        if (!navigator.onLine) {
+            handleOfflineStatus();
+        }
+        
+        // Show debug panel if in debug mode
+        if (window.AppConfig.debug) {
+            const debugPanel = document.getElementById('debugPanel');
+            if (debugPanel) {
+                debugPanel.style.display = 'block';
+            }
+        }
+        
+        log('Passenger tracking initialized successfully');
+        
+    } catch (error) {
+        log('Error during initialization', error.message, 'error');
+        showNotification('error', 'Failed to initialize tracking. Please refresh the page.');
+    }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    stopTracking();
+    log('Page unloading, cleaning up...');
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+});
+
+// Close modals with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.style.display = 'none';
         });
     }
+});
 
-    function showNotification(type, message, duration = 5000) {
-        const existingNotifications = document.querySelectorAll('.custom-notification');
-        existingNotifications.forEach(notification => notification.remove());
-
-        const notification = document.createElement('div');
-        notification.className = 'custom-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'};
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10001;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-        `;
-        
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-                <span>${message}</span>
-            </div>
-            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: auto; padding: 0; font-size: 1rem;">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.style.animation = 'slideOutRight 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, duration);
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-
-    // Test function for debugging
-    function testDriverLocation() {
-        console.log('Testing driver location update...');
-        console.log('Current URLs:', APP_URLS);
-        console.log('Booking data:', bookingData);
-        
-        // Force a location update
-        updateDriverLocation();
-        updateBookingStatus();
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
     }
-
-    document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    });
-
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                modal.style.display = 'none';
-            });
-        }
-    });
-
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        .modal {
-            transition: opacity 0.3s ease;
-        }
-        
-        .modal-content {
-            animation: modalSlideIn 0.3s ease;
-        }
-        
-        @keyframes modalSlideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    window.addEventListener('beforeunload', stopTracking);
-
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, initializing tracking...');
-        console.log('App URLs configured:', APP_URLS);
-        console.log('Booking ID:', bookingData.id);
-        
-        initMap();
-        updateBookingStatus();
-        
-        console.log('Report system initialized for booking:', bookingData.id);
-    });
+    
+    @keyframes modalSlideIn {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .custom-notification {
+        animation: slideInRight 0.3s ease;
+    }
+    
+    .modal-content {
+        animation: modalSlideIn 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
 </script>
 </body>
 </html>
