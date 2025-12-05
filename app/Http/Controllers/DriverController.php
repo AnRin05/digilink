@@ -580,107 +580,53 @@ class DriverController extends Controller
             ]);
         }
     }
-    public function updateLocation(Request $request)
-    {
-        if (!Auth::guard('driver')->check()) {
-            return response()->json(['success' => false, 'message' => 'Not authenticated']);
-        }
+public function updateLocation(Request $request)
+{
+    if (!Auth::guard('driver')->check()) {
+        return response()->json(['success' => false, 'message' => 'Not authenticated']);
+    }
 
-        $driver = Auth::guard('driver')->user();
+    $driver = Auth::guard('driver')->user();
 
-        $request->validate([
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'booking_id' => 'required|exists:bookings,bookingID'
+    $request->validate([
+        'latitude' => 'required|numeric|between:-90,90',
+        'longitude' => 'required|numeric|between:-180,180',
+        'booking_id' => 'required|exists:bookings,bookingID'
+    ]);
+
+    try {
+        $latitude = (float) $request->latitude;
+        $longitude = (float) $request->longitude;
+        $accuracy = $request->accuracy ? (float) $request->accuracy : null;
+        $source = $request->source ?? 'unknown';
+
+        /** @var \App\Models\driver $driver */
+        $driver->update([
+            'current_lat' => $latitude,
+            'current_lng' => $longitude,
+            'updated_at' => now()
         ]);
 
-        try {
-            $latitude = (float) $request->latitude;
-            $longitude = (float) $request->longitude;
-            $accuracy = $request->accuracy ? (float) $request->accuracy : null;
-            $source = $request->source ?? 'unknown';
+        return response()->json([
+            'success' => true,
+            'message' => 'Location updated successfully',
+            'location' => [
+                'lat' => (float) $driver->current_lat,
+                'lng' => (float) $driver->current_lng,
+                'location_name' => $driver->currentLocation
+            ],
+            'timestamp' => now()->toISOString()
+        ]);
 
-            Log::info("Driver location update request", [
-                'driver_id' => $driver->id,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'accuracy' => $accuracy,
-                'source' => $source,
-                'booking_id' => $request->booking_id
-            ]);
-
-            // Validate coordinates are reasonable (not in middle of ocean, etc.)
-            if (!$this->areValidCoordinates($latitude, $longitude)) {
-                Log::warning("Invalid coordinates received", [
-                    'driver_id' => $driver->id,
-                    'latitude' => $latitude,
-                    'longitude' => $longitude
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid coordinates provided'
-                ], 400);
-            }
-
-            $updateData = [
-                'current_lat' => $latitude,
-                'current_lng' => $longitude
-            ];
-
-            // Only update location name if coordinates changed significantly
-            $oldLat = $driver->current_lat;
-            $oldLng = $driver->current_lng;
-            
-            if ($oldLat && $oldLng) {
-                $distance = $this->calculateDistance($oldLat, $oldLng, $latitude, $longitude);
-                if ($distance > 1.0) { // If moved more than 1km, consider location changed
-                    $locationName = $this->getLocationName($latitude, $longitude);
-                    if ($locationName) {
-                        $updateData['currentLocation'] = $locationName;
-                    }
-                }
-            }
-             /** @var \App\Models\driver $driver */
-            $driver->update($updateData);
-
-            $driver->refresh();
-
-            Log::info("Driver location updated successfully", [
-                'driver_id' => $driver->id,
-                'old_lat' => $oldLat,
-                'old_lng' => $oldLng,
-                'new_lat' => $driver->current_lat,
-                'new_lng' => $driver->current_lng,
-                'location_name' => $driver->currentLocation,
-                'source' => $source
-            ]);
-
-            $this->broadcastLocationUpdate($request->booking_id, $latitude, $longitude);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Location updated successfully',
-                'location' => [
-                    'lat' => (float) $driver->current_lat,
-                    'lng' => (float) $driver->current_lng,
-                    'location_name' => $driver->currentLocation
-                ],
-                'timestamp' => now()->toISOString()
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error updating driver location: ' . $e->getMessage(), [
-                'driver_id' => $driver->id ?? 'unknown',
-                'latitude' => $request->latitude ?? 'unknown',
-                'longitude' => $request->longitude ?? 'unknown'
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update location: ' . $e->getMessage()
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        Log::error('Error updating driver location: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update location: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     private function areValidCoordinates($latitude, $longitude)
     {
@@ -750,8 +696,6 @@ class DriverController extends Controller
         }
     }
     
-    // Complete job method
-// In your DriverController or similar
 public function confirmCompletion($id)
 {
     if (!Auth::guard('driver')->check()) {

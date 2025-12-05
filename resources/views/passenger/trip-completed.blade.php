@@ -480,105 +480,771 @@
         </div>
     </div>
 
-    <script>
-        // Initialize rating system
-        document.addEventListener('DOMContentLoaded', function() {
-            initRatingSystem();
-        });
+<script>
+    let map;
+    let driverMarker;
+    let pickupMarker;
+    let dropoffMarker;
+    let updateInterval;
+    let statusInterval;
 
-        function initRatingSystem() {
-            const stars = document.querySelectorAll('.rating-star');
-            const selectedRating = document.getElementById('selectedRating');
-            
-            // Set default rating to 5
-            setRating(5);
-            
-            stars.forEach(star => {
-                star.addEventListener('click', function() {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    setRating(rating);
-                });
-            });
-            
-            function setRating(rating) {
-                selectedRating.value = rating;
-                stars.forEach((star, index) => {
-                    if (index < rating) {
-                        star.classList.add('active');
-                        star.textContent = '★';
-                    } else {
-                        star.classList.remove('active');
-                        star.textContent = '☆';
-                    }
-                });
+    // URL configuration - works on both local and Railway
+    const APP_URLS = {
+        base: "{{ url('/') }}",
+        passenger: {
+            confirmCompletion: "{{ url('/passenger/confirm-completion') }}",
+            getBookingLocation: "{{ url('/passenger/get-booking-location') }}",
+            getDriverLocation: "{{ url('/passenger/get-driver-location') }}",
+            cancelBooking: "{{ url('/passenger/cancel-ongoing-booking') }}",
+            tripCompleted: "{{ url('/passenger/trip-completed') }}"
+        },
+        report: {
+            urgentHelp: "{{ url('/report/urgent-help') }}",
+            complaint: "{{ url('/report/complaint') }}"
+        }
+    };
+
+    const bookingData = {
+        id: {{ $booking->bookingID }},
+        driver_id: {{ $booking->driver->id ?? 0 }},
+        pickup: {
+            lat: {{ $booking->pickupLatitude }},
+            lng: {{ $booking->pickupLongitude }},
+            address: `{{ $booking->pickupLocation }}`
+        },
+        dropoff: {
+            lat: {{ $booking->dropoffLatitude }},
+            lng: {{ $booking->dropoffLongitude }},
+            address: `{{ $booking->dropoffLocation }}`
+        },
+        csrfToken: '{{ csrf_token() }}'
+    };
+
+    const statusConfig = {
+        'pending': {
+            badge: 'pending',
+            text: 'PENDING',
+            indicator: 'pending',
+            timeline: {
+                icon: 'pending',
+                title: 'Booking Request Sent',
+                description: 'Waiting for driver to accept your booking'
+            }
+        },
+        'accepted': {
+            badge: 'in-progress',
+            text: 'ACCEPTED',
+            indicator: 'in-progress',
+            timeline: {
+                icon: 'accepted',
+                title: 'Booking Accepted',
+                description: 'Driver is on the way to pickup location'
+            }
+        },
+        'in_progress': {
+            badge: 'in-progress',
+            text: 'IN PROGRESS',
+            indicator: 'in-progress',
+            timeline: {
+                icon: 'in-progress',
+                title: 'Trip in Progress',
+                description: 'Driver is taking you to your destination'
+            }
+        },
+        'completed': {
+            badge: 'completed',
+            text: 'COMPLETED',
+            indicator: 'completed',
+            timeline: {
+                icon: 'completed',
+                title: 'Trip Completed',
+                description: 'You have reached your destination'
+            }
+        },
+        'cancelled': {
+            badge: 'cancelled',
+            text: 'CANCELLED',
+            indicator: 'cancelled',
+            timeline: {
+                icon: 'cancelled',
+                title: 'Trip Cancelled',
+                description: 'This trip has been cancelled'
             }
         }
+    };
 
-        function submitRating() {
-            const rating = document.getElementById('selectedRating').value;
-            const bookingId = {{ $booking->bookingID }};
-            const driverId = {{ $booking->driver->id ?? 0 }};
-            const btn = document.getElementById('submitRatingBtn');
-            const messageDiv = document.getElementById('ratingMessage');
-            
-            if (!rating) {
-                messageDiv.innerHTML = '<div class="rating-error">Please select a rating</div>';
-                return;
+    function initMap() {
+        console.log('Initializing map for booking:', bookingData.id);
+        console.log('Base URL:', APP_URLS.base);
+        
+        map = L.map('trackingMap', {
+            zoomControl: false
+        }).setView([bookingData.pickup.lat, bookingData.pickup.lng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+            detectRetina: true
+        }).addTo(map);
+
+        const pickupIcon = L.divIcon({
+            className: 'pickup-marker',
+            html: `
+                <div style="position: relative;">
+                    <div style="background:#28a745; border:3px solid white; border-radius:50%; width:20px; height:20px; box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+                    <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; white-space: nowrap;">
+                        PICKUP
+                    </div>
+                </div>
+            `,
+            iconSize: [20, 45],
+            iconAnchor: [10, 20]
+        });
+
+        pickupMarker = L.marker([bookingData.pickup.lat, bookingData.pickup.lng], { icon: pickupIcon })
+            .addTo(map)
+            .bindPopup(`
+                <div style="text-align: center; min-width: 200px;">
+                    <strong style="color: #28a745;">📍 PICKUP LOCATION</strong><br>
+                    <hr style="margin: 5px 0;">
+                    ${bookingData.pickup.address}
+                </div>
+            `);
+
+        const dropoffIcon = L.divIcon({
+            className: 'dropoff-marker',
+            html: `
+                <div style="position: relative;">
+                    <div style="background:#dc3545; border:3px solid white; border-radius:50%; width:20px; height:20px; box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+                    <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: #dc3545; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; white-space: nowrap;">
+                        DROP-OFF
+                    </div>
+                </div>
+            `,
+            iconSize: [20, 45],
+            iconAnchor: [10, 20]
+        });
+
+        dropoffMarker = L.marker([bookingData.dropoff.lat, bookingData.dropoff.lng], { icon: dropoffIcon })
+            .addTo(map)
+            .bindPopup(`
+                <div style="text-align: center; min-width: 200px;">
+                    <strong style="color: #dc3545;">🏁 DROP-OFF LOCATION</strong><br>
+                    <hr style="margin: 5px 0;">
+                    ${bookingData.dropoff.address}
+                </div>
+            `);
+        
+        startTrackingUpdates();
+        startStatusUpdates();
+    }
+
+    function confirmCompletion() {
+        if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
+            return;
+        }
+
+        const confirmBtn = document.getElementById('confirmCompletionBtn');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
+        confirmBtn.disabled = true;
+
+        const url = `${APP_URLS.passenger.confirmCompletion}/${bookingData.id}`;
+        console.log('Confirming completion at:', url);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken
             }
-            
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-            btn.disabled = true;
-            
-            fetch('/digilink/public/passenger/submit-rating', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    booking_id: bookingId,
-                    driver_id: driverId,
-                    rating: parseInt(rating)
-                })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Completion response:', data);
+            if (data.success) {
+                updateCompletionStatus(data.completion_status, data.is_completed);
+                showCompletionMessage(data.message, 'success');
+                
+                // ALWAYS redirect to trip-completed page after successful confirmation
+                console.log('Redirecting to trip completed page...');
+                stopTracking();
+                updateStatusDisplay('completed');
+                
+                // Immediate redirect without delay
+                window.location.href = `${APP_URLS.passenger.tripCompleted}/${bookingData.id}`;
+                
+            } else {
+                throw new Error(data.message || 'Failed to confirm completion');
+            }
+        })
+        .catch(error => {
+            console.error('Error confirming completion:', error);
+            showCompletionMessage(error.message, 'error');
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
+    }
+
+    function startTrackingUpdates() {
+        console.log('Starting tracking updates...');
+        updateDriverLocation();
+        updateInterval = setInterval(updateDriverLocation, 3000);
+    }
+
+    function startStatusUpdates() {
+        updateBookingStatus();
+        statusInterval = setInterval(updateBookingStatus, 10000);
+    }
+
+    function updateBookingStatus() {
+        const url = `${APP_URLS.passenger.getBookingLocation}/${bookingData.id}?_t=${Date.now()}`;
+        console.log('Fetching booking status from:', url);
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
             })
+            .then(data => {
+                console.log('Status update response:', data);
+                if (data.success) {
+                    updateStatusDisplay(data.booking.status);
+                    
+                    // Update completion status based on backend data
+                    if (data.booking.completion_verified) {
+                        updateCompletionStatus(data.booking.completion_verified, data.booking.status === 'completed');
+                    }
+                    
+                    // If booking is completed OR passenger has confirmed, redirect to trip completed page
+                    if (data.booking.status === 'completed' || 
+                        data.booking.completion_verified === 'passenger_confirmed' ||
+                        data.booking.completion_verified === 'both_confirmed') {
+                        stopTracking();
+                        setTimeout(() => {
+                            window.location.href = `${APP_URLS.passenger.tripCompleted}/${bookingData.id}`;
+                        }, 1000);
+                    }
+                    
+                    if (data.booking.status === 'cancelled') {
+                        stopTracking();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching booking status:', error);
+            });
+    }
+
+    function updateDriverLocation() {
+        const url = `${APP_URLS.passenger.getDriverLocation}/${bookingData.id}?_t=${Date.now()}`;
+        console.log('Fetching driver location from:', url);
+
+        fetch(url)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
+                console.log('Driver location API response:', data);
+                
                 if (data.success) {
-                    messageDiv.innerHTML = `<div class="rating-success">${data.message}</div>`;
+                    updateStatusDisplay(data.booking.status);
                     
-                    // Replace rating section with success message
-                    setTimeout(() => {
-                        document.getElementById('ratingSection').innerHTML = `
-                            <div class="rating-completed">
-                                <h4><i class="fas fa-check-circle"></i> Rating Submitted</h4>
-                                <p>Thank you for rating your driver! Your feedback helps us improve our service.</p>
-                                <p><strong>Your Rating:</strong> ${'★'.repeat(rating)}${'☆'.repeat(5-rating)} (${rating}/5)</p>
-                            </div>
-                        `;
-                    }, 1500);
-                } else {
-                    throw new Error(data.message);
+                    if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
+                        const driverLat = parseFloat(data.driver.current_lat);
+                        const driverLng = parseFloat(data.driver.current_lng);
+                        
+                        if (!isNaN(driverLat) && !isNaN(driverLng)) {
+                            updateDriverPosition(driverLat, driverLng);
+                            updateDistanceInfo(data.distance_info);
+                            updateLocationStatus('success', `Live GPS tracking active - ${data.driver.name}`);
+                        }
+                    } else {
+                        updateLocationStatus('waiting', 'Waiting for driver location updates...');
+                    }
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                messageDiv.innerHTML = '<div class="rating-error">Failed to submit rating. Please try again.</div>';
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Rating';
-                btn.disabled = false;
+                console.error('Error fetching driver location:', error);
+                updateLocationStatus('error', 'Unable to fetch driver location');
             });
+    }
+
+    function updateStatusDisplay(status) {
+        const config = statusConfig[status] || statusConfig.in_progress;
+        
+        const statusBadge = document.getElementById('overallStatusBadge');
+        if (statusBadge) {
+            statusBadge.textContent = config.text;
+            statusBadge.className = `status-badge ${config.badge}`;
+        }
+        
+        const trackingIndicator = document.getElementById('trackingIndicator');
+        if (trackingIndicator) {
+            trackingIndicator.className = `tracking-indicator ${config.indicator}`;
+        }
+        
+        const trackingStatusText = document.getElementById('trackingStatusText');
+        if (trackingStatusText) {
+            trackingStatusText.textContent = getStatusText(status);
+        }
+        
+        updateStatusTimeline(status);
+        
+        const cancelBtn = document.getElementById('cancelBookingBtn');
+        if (cancelBtn && (status === 'completed' || status === 'cancelled')) {
+            cancelBtn.style.display = 'none';
+        }
+        
+        const confirmBtn = document.getElementById('confirmCompletionBtn');
+        if (confirmBtn && status === 'completed') {
+            confirmBtn.style.display = 'none';
+        }
+    }
+
+    function getStatusText(status) {
+        const statusTexts = {
+            'pending': 'Waiting for Driver Acceptance',
+            'accepted': 'Driver is Coming to Pickup',
+            'in_progress': 'Live Driver Tracking Active',
+            'completed': 'Trip Completed',
+            'cancelled': 'Trip Cancelled'
+        };
+        return statusTexts[status] || 'Live Driver Tracking Active';
+    }
+
+    function updateStatusTimeline(currentStatus) {
+        const timeline = document.getElementById('statusTimeline');
+        if (!timeline) return;
+
+        const statuses = ['pending', 'accepted', 'in_progress', 'completed'];
+        
+        let timelineHTML = '';
+        
+        statuses.forEach(status => {
+            const config = statusConfig[status];
+            const isActive = status === currentStatus;
+            const isPast = statuses.indexOf(status) < statuses.indexOf(currentStatus);
+            
+            timelineHTML += `
+                <div class="status-item ${isActive ? 'active' : ''}">
+                    <div class="status-icon ${config.timeline.icon} ${isPast ? 'completed' : ''}">
+                        ${isActive && status !== 'completed' ? '<i class="fas fa-sync-alt fa-spin"></i>' : 
+                        isPast ? '<i class="fas fa-check"></i>' : 
+                        `<i class="fas fa-${getStatusIcon(status)}"></i>`}
+                    </div>
+                    <div class="status-details">
+                        <strong>${config.timeline.title}</strong>
+                        <div class="status-time">${config.timeline.description}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        timeline.innerHTML = timelineHTML;
+    }
+
+    function getStatusIcon(status) {
+        const icons = {
+            'pending': 'clock',
+            'accepted': 'user-check',
+            'in_progress': 'car',
+            'completed': 'flag-checkered'
+        };
+        return icons[status] || 'info-circle';
+    }
+
+    function updateDriverPosition(lat, lng) {
+        if (!driverMarker) {
+            const driverIcon = L.divIcon({
+                className: 'driver-marker',
+                html: `
+                    <div style="position: relative;">
+                        <div style="background:#212529; border:3px solid white; border-radius:50%; width:16px; height:16px; box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+                        <div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); background: #212529; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: bold; white-space: nowrap;">
+                            DRIVER
+                        </div>
+                    </div>
+                `,
+                iconSize: [16, 38],
+                iconAnchor: [8, 16]
+            });
+
+            driverMarker = L.marker([lat, lng], { icon: driverIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="text-align: center; min-width: 200px;">
+                        <strong>🚗 YOUR DRIVER</strong><br>
+                        <hr style="margin: 5px 0;">
+                        {{ $booking->driver->fullname ?? 'Driver' }}<br>
+                        {{ $booking->driver->vehicleMake ?? '' }} {{ $booking->driver->vehicleModel ?? '' }}
+                    </div>
+                `);
+
+            const group = new L.featureGroup([pickupMarker, dropoffMarker, driverMarker]);
+            map.fitBounds(group.getBounds().pad(0.2));
+        } else {
+            driverMarker.setLatLng([lat, lng]);
+        }
+    }
+
+    function updateLocationStatus(type, message) {
+        const locationStatus = document.getElementById('locationStatus');
+        if (!locationStatus) return;
+
+        const statusIcons = {
+            'success': '<i class="fas fa-check-circle" style="color: #28a745;"></i>',
+            'waiting': '<i class="fas fa-clock" style="color: #6c757d;"></i>',
+            'error': '<i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>'
+        };
+
+        locationStatus.innerHTML = `<p>${statusIcons[type]} ${message}</p>`;
+    }
+
+    function updateDistanceInfo(distanceInfo) {
+        const distanceInfoElement = document.getElementById('distanceInfo');
+        if (distanceInfoElement && distanceInfo) {
+            distanceInfoElement.innerHTML = `
+                <div class="location-status">
+                    <p><i class="fas fa-route" style="color: #28a745;"></i> <strong>Driver to Pickup:</strong> ${distanceInfo.to_pickup_km || 'N/A'} km</p>
+                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_pickup_min || 'N/A'} min</p>
+                </div>
+                <div class="distance-info">
+                    <p><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> <strong>Driver to Drop-off:</strong> ${distanceInfo.to_dropoff_km || 'N/A'} km</p>
+                    <p><i class="fas fa-clock" style="color: #6c757d;"></i> <strong>Est. Time:</strong> ${distanceInfo.est_time_to_dropoff_min || 'N/A'} min</p>
+                </div>
+            `;
+        }
+    }
+
+    function updateCompletionStatus(status, isCompleted) {
+        const completionStatus = document.getElementById('completionStatus');
+        if (!completionStatus) return;
+
+        const statusMessages = {
+            'pending': `<div style="color: #6c757d;"><i class="fas fa-clock"></i> <strong>Status:</strong> Waiting for completion confirmation...</div>`,
+            'driver_confirmed': `<div style="color: #007bff;"><i class="fas fa-user-check"></i> <strong>Status:</strong> Driver has confirmed completion</div>`,
+            'passenger_confirmed': `<div style="color: #28a745;"><i class="fas fa-user-check"></i> <strong>Status:</strong> You have confirmed completion</div>`,
+            'both_confirmed': `<div style="color: #28a745;"><i class="fas fa-check-double"></i> <strong>Status:</strong> Trip completed successfully!</div>`
+        };
+
+        completionStatus.innerHTML = statusMessages[status] || statusMessages.pending;
+
+        if (isCompleted || status === 'both_confirmed') {
+            document.getElementById('confirmCompletionBtn').style.display = 'none';
+        }
+    }
+
+    function showCompletionMessage(message, type) {
+        const completionMessage = document.getElementById('completionMessage');
+        if (!completionMessage) return;
+
+        completionMessage.innerHTML = `
+            <div style="color: ${type === 'success' ? '#28a745' : '#dc3545'}; font-weight: 600; padding: 10px; background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; border-radius: 8px; border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}
+            </div>
+        `;
+    }
+
+    function stopTracking() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+        if (statusInterval) {
+            clearInterval(statusInterval);
+            statusInterval = null;
+        }
+    }
+
+    function cancelOngoingBooking() {
+        if (!confirm('Are you sure you want to cancel this ongoing trip?\n\n⚠️ This action cannot be undone. The driver will be notified immediately.')) {
+            return;
         }
 
-        // Auto-redirect to dashboard after 30 seconds (only if no rating is needed)
-        @if($booking->review()->exists())
+        const cancelBtn = document.getElementById('cancelBookingBtn');
+        const originalText = cancelBtn.innerHTML;
+        cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+        cancelBtn.disabled = true;
+
+        const url = `${APP_URLS.passenger.cancelBooking}/${bookingData.id}`;
+        console.log('Cancelling booking at:', url);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Cancel response:', data);
+            if (data.success) {
+                document.getElementById('cancelMessage').innerHTML = `<div class="cancel-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
+                stopTracking();
+                updateStatusDisplay('cancelled');
+                document.getElementById('confirmCompletionBtn').disabled = true;
+                document.getElementById('cancelBookingBtn').style.display = 'none';
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error cancelling booking:', error);
+            document.getElementById('cancelMessage').innerHTML = `<div class="cancel-error"><i class="fas fa-exclamation-triangle"></i> ${error.message}</div>`;
+            cancelBtn.innerHTML = originalText;
+            cancelBtn.disabled = false;
+        });
+    }
+
+    function showUrgentHelpModal() {
+        document.getElementById('urgentHelpModal').style.display = 'flex';
+    }
+
+    function hideUrgentHelpModal() {
+        document.getElementById('urgentHelpModal').style.display = 'none';
+        document.getElementById('urgentHelpNotes').value = '';
+    }
+
+    function showComplaintModal() {
+        document.getElementById('complaintModal').style.display = 'flex';
+    }
+
+    function hideComplaintModal() {
+        document.getElementById('complaintModal').style.display = 'none';
+        document.getElementById('complaintType').value = 'driver_behavior';
+        document.getElementById('complaintSeverity').value = 'medium';
+        document.getElementById('complaintDescription').value = '';
+    }
+
+    function sendUrgentHelp() {
+        const notes = document.getElementById('urgentHelpNotes').value;
+        
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+
+        const url = APP_URLS.report.urgentHelp;
+        console.log('Sending urgent help to:', url);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken
+            },
+            body: JSON.stringify({
+                booking_id: bookingData.id,
+                additional_notes: notes,
+                user_type: 'passenger'
+            })
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Urgent help response:', data);
+            if (data.success) {
+                showNotification('success', data.message || 'Help request sent successfully!');
+                hideUrgentHelpModal();
+            } else {
+                throw new Error(data.message || 'Failed to send help request');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending urgent help:', error);
+            showNotification('error', error.message || 'Failed to send help request. Please try again.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    function sendComplaint() {
+        const type = document.getElementById('complaintType').value;
+        const severity = document.getElementById('complaintSeverity').value;
+        const description = document.getElementById('complaintDescription').value;
+
+        if (!description.trim()) {
+            showNotification('error', 'Please provide a description of the issue');
+            return;
+        }
+
+        if (description.trim().length < 10) {
+            showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
+            return;
+        }
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        btn.disabled = true;
+
+        const url = APP_URLS.report.complaint;
+        console.log('Sending complaint to:', url);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': bookingData.csrfToken
+            },
+            body: JSON.stringify({
+                booking_id: bookingData.id,
+                complaint_type: type,
+                severity: severity,
+                description: description,
+                user_type: 'passenger'
+            })
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Complaint response:', data);
+            if (data.success) {
+                showNotification('success', data.message || 'Complaint submitted successfully!');
+                hideComplaintModal();
+            } else {
+                throw new Error(data.message || 'Failed to submit complaint');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting complaint:', error);
+            showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    function showNotification(type, message, duration = 5000) {
+        const existingNotifications = document.querySelectorAll('.custom-notification');
+        existingNotifications.forEach(notification => notification.remove());
+
+        const notification = document.createElement('div');
+        notification.className = 'custom-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10001;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: auto; padding: 0; font-size: 1rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
         setTimeout(() => {
-            window.location.href = "{{ route('passenger.dashboard') }}";
-        }, 30000);
-        @endif
-    </script>
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+
+    // Test function for debugging
+    function testDriverLocation() {
+        console.log('Testing driver location update...');
+        console.log('Current URLs:', APP_URLS);
+        console.log('Booking data:', bookingData);
+        
+        // Force a location update
+        updateDriverLocation();
+        updateBookingStatus();
+    }
+
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    window.addEventListener('beforeunload', stopTracking);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing tracking...');
+        console.log('App URLs configured:', APP_URLS);
+        console.log('Booking ID:', bookingData.id);
+        
+        initMap();
+        updateBookingStatus();
+        
+        console.log('Report system initialized for booking:', bookingData.id);
+    });
+</script>
 </body>
 </html>

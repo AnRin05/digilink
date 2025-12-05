@@ -736,6 +736,21 @@
     let completionCheckInterval;
     let notificationCheckInterval;
 
+    // URL configuration - will work on both local and Railway
+    const APP_URLS = {
+        base: "{{ url('/') }}",
+        driver: {
+            updateLocation: "{{ route('driver.update.location') }}",
+            getBookingStatus: "{{ url('/driver/get-booking-status') }}",
+            confirmCompletion: "{{ url('/driver/confirm-completion') }}",
+            notifications: "{{ url('/driver/notifications') }}",
+            markNotificationRead: "{{ url('/driver/notifications') }}",
+            dashboard: "{{ route('driver.dashboard') }}",
+            urgentHelp: "{{ url('/driver/report/urgent-help') }}",
+            complaint: "{{ url('/driver/report/complaint') }}"
+        }
+    };
+
     const bookingData = {
         id: {{ $booking->bookingID }},
         pickup: {
@@ -752,9 +767,11 @@
         csrfToken: '{{ csrf_token() }}'
     };
 
-
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('🚗 Initializing driver tracking with notifications...');
+        console.log('🚗 Initializing driver tracking...');
+        console.log('Base URL:', APP_URLS.base);
+        console.log('Driver URLs:', APP_URLS.driver);
+        
         initializeDriverTracking();
         startNotificationMonitoring();
         startCompletionMonitoring();
@@ -777,7 +794,7 @@
             maxZoom: 19
         }).addTo(driverMap);
 
-
+        // Pickup marker
         const pickupIcon = L.divIcon({
             className: 'pickup-marker',
             html: `
@@ -797,6 +814,7 @@
             .bindPopup(`<strong>📍 PICKUP LOCATION</strong><br>${bookingData.pickup.address}`)
             .openPopup();
 
+        // Dropoff marker
         const dropoffIcon = L.divIcon({
             className: 'dropoff-marker',
             html: `
@@ -918,7 +936,7 @@
             _token: bookingData.csrfToken
         };
 
-        fetch('/digilink/public/driver/update-location', {
+        fetch(APP_URLS.driver.updateLocation, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -948,7 +966,9 @@
     }
 
     function checkForCancellations() {
-        fetch(`/digilink/public/driver/get-booking-status/${bookingData.id}?_t=${Date.now()}`)
+        const url = `${APP_URLS.driver.getBookingStatus}/${bookingData.id}?_t=${Date.now()}`;
+        
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.booking) {
@@ -963,7 +983,7 @@
     }
 
     function checkForNotifications() {
-        fetch('/digilink/public/driver/notifications')
+        fetch(APP_URLS.driver.notifications)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.notifications) {
@@ -1079,7 +1099,9 @@
     }
 
     function markNotificationAsRead(notificationId) {
-        fetch(`/digilink/public/driver/notifications/${notificationId}/read`, {
+        const url = `${APP_URLS.driver.markNotificationRead}/${notificationId}/read`;
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1105,7 +1127,9 @@
     }
 
     function checkCompletionStatus() {
-        fetch(`/digilink/public/driver/get-booking-status/${bookingData.id}?_t=${Date.now()}`)
+        const url = `${APP_URLS.driver.getBookingStatus}/${bookingData.id}?_t=${Date.now()}`;
+        
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.booking) {
@@ -1182,7 +1206,7 @@
                 confirmBtn.style.background = '#6c757d';
 
                 setTimeout(() => {
-                    window.location.href = '/digilink/public/driver/dashboard';
+                    window.location.href = APP_URLS.driver.dashboard;
                 }, 3000);
             } else if (status === 'driver_confirmed') {
                 confirmBtn.innerHTML = '<i class="fas fa-clock"></i> Waiting for Passenger';
@@ -1213,7 +1237,9 @@
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
         confirmBtn.disabled = true;
 
-        fetch(`/digilink/public/driver/confirm-completion/${bookingData.id}`, {
+        const url = `${APP_URLS.driver.confirmCompletion}/${bookingData.id}`;
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1341,11 +1367,12 @@
         try {
             console.log('🚨 Sending urgent help request...');
             
+            // Try multiple possible endpoints
             const endpoints = [
-                '/digilink/public/driver/report/urgent-help',
-                '/digilink/public/driver/urgent-help',
-                '/digilink/public/report/urgent-help',
-                '/driver/report/urgent-help'
+                APP_URLS.driver.urgentHelp,
+                `${APP_URLS.base}/driver/report/urgent-help`,
+                `${APP_URLS.base}/driver/urgent-help`,
+                `${APP_URLS.base}/report/urgent-help`
             ];
 
             let lastError = null;
@@ -1399,8 +1426,6 @@
         }
     }
 
-
-
     async function sendComplaint() {
         const type = document.getElementById('complaintType').value;
         const severity = document.getElementById('complaintSeverity').value;
@@ -1424,11 +1449,12 @@
                 description: description
             });
 
+            // Try multiple possible endpoints
             const endpoints = [
-                '/digilink/public/driver/report/complaint',
-                '/digilink/public/driver/complaint',
-                '/digilink/public/report/complaint',
-                '/driver/report/complaint'
+                APP_URLS.driver.complaint,
+                `${APP_URLS.base}/driver/report/complaint`,
+                `${APP_URLS.base}/driver/complaint`,
+                `${APP_URLS.base}/report/complaint`
             ];
 
             let lastError = null;
@@ -1484,7 +1510,6 @@
         }
     }
 
-
     function storeReportLocally(type, data) {
         try {
             const reports = JSON.parse(localStorage.getItem('pending_reports') || '[]');
@@ -1502,51 +1527,6 @@
             return false;
         }
     }
-
-    function showNotification(type, message) {
-        const existingNotifications = document.querySelectorAll('.custom-notification');
-        existingNotifications.forEach(notification => notification.remove());
-
-        const notification = document.createElement('div');
-        notification.className = 'custom-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'};
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10001;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 300);
-        }, 5000);
-    }
-    document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    });
 
     function showNotification(type, message) {
         const existingNotifications = document.querySelectorAll('.custom-notification');
@@ -1626,7 +1606,7 @@
     }
 
     function redirectToDashboard() {
-        window.location.href = '/digilink/public/driver/dashboard';
+        window.location.href = APP_URLS.driver.dashboard;
     }
 
     function tryFallbackLocation() {
@@ -1761,6 +1741,8 @@
     });
 
     window.addEventListener('beforeunload', stopAllTracking);
+    
+    // Add CSS animations
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -1894,6 +1876,7 @@
     `;
     document.head.appendChild(style);
 
+    // Add manual controls for testing
     setTimeout(addManualControls, 2000);
     </script>
 </body>
