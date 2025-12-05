@@ -653,99 +653,128 @@ public function bookRide(Request $request)
     }
 
     // NEW DEDICATED DRIVER TRACKING FUNCTION
-    public function getDriverLocation($id)
-    {
-        if (!Auth::guard('passenger')->check()) {
-            return response()->json(['success' => false, 'message' => 'Not authenticated']);
-        }
+public function getDriverLocation($id)
+{
+    if (!Auth::guard('passenger')->check()) {
+        return response()->json(['success' => false, 'message' => 'Not authenticated']);
+    }
 
-        try {
-            $passenger = Auth::guard('passenger')->user();
-            $booking = Booking::where('bookingID', $id)
-                ->where('passengerID', $passenger->id)
-                ->with('driver')
-                ->firstOrFail();
+    try {
+        $passenger = Auth::guard('passenger')->user();
+        $booking = Booking::where('bookingID', $id)
+            ->where('passengerID', $passenger->id)
+            ->with('driver')
+            ->firstOrFail();
 
-            if (!in_array($booking->status, [Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Booking is not active for tracking'
-                ]);
-            }
-
-            $driver = $booking->driver;
-            
-            if (!$driver) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No driver assigned to this booking yet'
-                ]);
-            }
-
-            // Get fresh driver data
-            $freshDriver = Driver::find($driver->id);
-            
-            if (!$freshDriver) {
-                throw new \Exception("Driver not found with ID: {$driver->id}");
-            }
-
-            // Handle coordinates - convert to float if they are strings
-            $driverLat = $freshDriver->current_lat;
-            $driverLng = $freshDriver->current_lng;
-            $isFallback = false;
-
-            // Convert to float if they are strings
-            if (is_string($driverLat)) {
-                $driverLat = (float) $driverLat;
-            }
-            if (is_string($driverLng)) {
-                $driverLng = (float) $driverLng;
-            }
-
-            // Check if driver location is valid
-            if ($driverLat === null || $driverLng === null || $driverLat == 0 || $driverLng == 0) {
-                // Use pickup location as fallback
-                $driverLat = (float) $booking->pickupLatitude;
-                $driverLng = (float) $booking->pickupLongitude;
-                $isFallback = true;
-            }
-
-            $response = [
-                'success' => true,
-                'booking' => [
-                    'id' => $booking->bookingID,
-                    'status' => $booking->status,
-                    'pickup_location' => $booking->pickupLocation,
-                    'dropoff_location' => $booking->dropoffLocation,
-                    'pickup_lat' => (float) $booking->pickupLatitude,
-                    'pickup_lng' => (float) $booking->pickupLongitude,
-                    'dropoff_lat' => (float) $booking->dropoffLatitude,
-                    'dropoff_lng' => (float) $booking->dropoffLongitude,
-                ],
-                'driver' => [
-                    'id' => $freshDriver->id,
-                    'name' => $freshDriver->fullname,
-                    'phone' => $freshDriver->phone,
-                    'vehicle' => $freshDriver->vehicleMake . ' ' . $freshDriver->vehicleModel . ' (' . $freshDriver->plateNumber . ')',
-                    'current_lat' => $driverLat,
-                    'current_lng' => $driverLng,
-                    'is_fallback' => $isFallback,
-                    'location_updated' => $freshDriver->updated_at
-                ],
-                'distance_info' => $this->calculateDistanceInfo($driverLat, $driverLng, $booking),
-                'timestamp' => now()->toISOString()
-            ];
-
-            return response()->json($response);
-
-        } catch (\Exception $e) {
-            Log::error('Error getting driver location: ' . $e->getMessage());
+        if (!in_array($booking->status, [Booking::STATUS_ACCEPTED, Booking::STATUS_IN_PROGRESS])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching driver location'
-            ], 500);
+                'message' => 'Booking is not active for tracking'
+            ]);
         }
+
+        $driver = $booking->driver;
+        
+        if (!$driver) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No driver assigned to this booking yet'
+            ]);
+        }
+
+        // Get fresh driver data
+        $freshDriver = Driver::find($driver->id);
+        
+        if (!$freshDriver) {
+            throw new \Exception("Driver not found with ID: {$driver->id}");
+        }
+
+        // DEBUG LOG - Add this to see what's happening
+        Log::info("Driver location check", [
+            'driver_id' => $freshDriver->id,
+            'current_lat' => $freshDriver->current_lat,
+            'current_lng' => $freshDriver->current_lng,
+            'location_updated' => $freshDriver->updated_at,
+            'booking_id' => $booking->bookingID
+        ]);
+
+        // Handle coordinates - convert to float if they are strings
+        $driverLat = $freshDriver->current_lat;
+        $driverLng = $freshDriver->current_lng;
+        $isFallback = false;
+
+        // Convert to float if they are strings
+        if (is_string($driverLat)) {
+            $driverLat = (float) $driverLat;
+        }
+        if (is_string($driverLng)) {
+            $driverLng = (float) $driverLng;
+        }
+
+        // Check if driver location is valid
+        if ($driverLat === null || $driverLng === null || $driverLat == 0 || $driverLng == 0) {
+            // Log the issue
+            Log::warning("Driver location is invalid, using pickup as fallback", [
+                'driver_id' => $freshDriver->id,
+                'driver_lat' => $driverLat,
+                'driver_lng' => $driverLng,
+                'fallback_to_pickup' => true
+            ]);
+            
+            // Use pickup location as fallback
+            $driverLat = (float) $booking->pickupLatitude;
+            $driverLng = (float) $booking->pickupLongitude;
+            $isFallback = true;
+        }
+
+        $response = [
+            'success' => true,
+            'booking' => [
+                'id' => $booking->bookingID,
+                'status' => $booking->status,
+                'pickup_location' => $booking->pickupLocation,
+                'dropoff_location' => $booking->dropoffLocation,
+                'pickup_lat' => (float) $booking->pickupLatitude,
+                'pickup_lng' => (float) $booking->pickupLongitude,
+                'dropoff_lat' => (float) $booking->dropoffLatitude,
+                'dropoff_lng' => (float) $booking->dropoffLongitude,
+            ],
+            'driver' => [
+                'id' => $freshDriver->id,
+                'name' => $freshDriver->fullname,
+                'phone' => $freshDriver->phone,
+                'vehicle' => $freshDriver->vehicleMake . ' ' . $freshDriver->vehicleModel . ' (' . $freshDriver->plateNumber . ')',
+                'current_lat' => $driverLat,
+                'current_lng' => $driverLng,
+                'is_fallback' => $isFallback,
+                'location_updated' => $freshDriver->updated_at ? $freshDriver->updated_at->toISOString() : null,
+                'current_location_name' => $freshDriver->currentLocation
+            ],
+            'distance_info' => $this->calculateDistanceInfo($driverLat, $driverLng, $booking),
+            'timestamp' => now()->toISOString(),
+            'debug' => [ // Add debug info
+                'driver_has_coordinates' => !is_null($freshDriver->current_lat) && !is_null($freshDriver->current_lng),
+                'driver_coordinates' => [$freshDriver->current_lat, $freshDriver->current_lng],
+                'using_fallback' => $isFallback,
+                'api_url' => url()->current()
+            ]
+        ];
+
+        return response()->json($response);
+
+    } catch (\Exception $e) {
+        Log::error('Error getting driver location: ' . $e->getMessage());
+        Log::error('Error trace: ' . $e->getTraceAsString());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error fetching driver location: ' . $e->getMessage(),
+            'debug' => [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]
+        ], 500);
     }
+}
 
     private function calculateDistanceInfo($driverLat, $driverLng, $booking)
     {
