@@ -3,10 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trip Completed - FastLan</title>
+    <title>FastLan - Track Booking</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    
+    <!-- Configuration Script -->
+    <script>
+        window.AppConfig = {
+            baseUrl: "{{ url('/') }}",
+            csrfToken: "{{ csrf_token() }}",
+            bookingId: {{ $booking->bookingID }},
+            driverId: {{ $booking->driver->id ?? 0 }},
+            environment: "{{ config('app.env') }}",
+            debug: {{ config('app.debug') ? 'true' : 'false' }},
+            isRailway: {{ strpos(url('/'), 'railway') !== false || strpos(url('/'), 'up.railway.app') !== false ? 'true' : 'false' }}
+        };
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -18,9 +34,8 @@
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             color: #212529;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .navbar {
@@ -65,99 +80,225 @@
             color: #dc3545;
         }
 
-        .completion-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
+        .tracking-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            height: calc(100vh - 80px);
         }
 
-        .completion-card {
+        .tracking-sidebar {
             background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            border: 1px solid #e9ecef;
+            border-right: 1px solid #e9ecef;
+            padding: 24px;
+            overflow-y: auto;
         }
 
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-            color: white;
+        .tracking-header {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f8f9fa;
         }
 
-        .completion-card h1 {
-            color: #28a745;
-            margin-bottom: 15px;
-            font-size: 2rem;
-        }
-
-        .completion-card p {
-            color: #6c757d;
-            margin-bottom: 25px;
-            line-height: 1.6;
-            font-size: 1.1rem;
-        }
-
-        .trip-details {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: left;
-        }
-
-        .trip-details h3 {
+        .tracking-header h1 {
+            font-size: 1.5rem;
             color: #212529;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
+            font-weight: 700;
         }
 
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e9ecef;
+        .tracking-header h1 i {
+            color: #dc3545;
         }
 
-        .detail-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 123, 255, 0.1);
+            color: #007bff;
         }
 
-        .detail-label {
+        .status-badge.in-progress {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-badge.completed {
+            background: rgba(108, 117, 125, 0.1);
             color: #6c757d;
-            font-weight: 500;
         }
 
-        .detail-value {
+        .status-badge.cancelled {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .info-card h3 {
+            color: #212529;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card h3 i {
+            color: #007bff;
+        }
+
+        .info-card p {
+            margin: 8px 0;
+            color: #495057;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-card p strong {
             color: #212529;
             font-weight: 600;
         }
 
-        .action-buttons {
+        .map-container {
+            position: relative;
+            background: white;
+        }
+
+        #trackingMap {
+            height: 100%;
+            width: 100%;
+        }
+
+        .tracking-status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,249,250,0.98) 100%);
+            padding: 14px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            z-index: 1000;
             display: flex;
-            gap: 15px;
-            margin-top: 30px;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #212529;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .tracking-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .tracking-indicator.completed {
+            background: #6c757d;
+            animation: none;
+        }
+
+        .tracking-indicator.cancelled {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.6;
+                transform: scale(1.15);
+            }
+        }
+
+        .back-link {
+            color: #6c757d;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .back-link:hover {
+            color: #007bff;
+        }
+
+        .location-status {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #28a745;
+            margin-top: 10px;
+        }
+
+        .distance-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #007bff;
+            margin-top: 10px;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-control {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-control:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
         }
 
         .btn {
-            flex: 1;
-            padding: 15px 20px;
+            padding: 12px 20px;
             border: none;
             border-radius: 8px;
             font-weight: 600;
@@ -167,109 +308,153 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            text-decoration: none;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            font-size: 0.9rem;
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            background: #28a745;
             color: white;
         }
 
         .btn-success:hover {
+            background: #218838;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #007bff;
-            color: #007bff;
-        }
-
-        .btn-outline:hover {
-            background: #007bff;
+        .btn-danger {
+            background: #dc3545;
             color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
 
-        .driver-info {
-            background: #e7f3ff;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 4px solid #007bff;
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        .driver-info h4 {
-            color: #007bff;
-            margin-bottom: 10px;
+        .status-timeline {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #007bff;
+        }
+
+        .status-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            background: white;
         }
 
-        /* Rating Section Styles */
-        .rating-section {
-            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-            border: 2px solid #ffeaa7;
-            border-left: 4px solid #ffc107;
+        .status-item.active {
+            background: #e7f3ff;
+            border-left: 3px solid #007bff;
         }
 
-        .rating-section h3 {
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.8rem;
+        }
+
+        .status-icon.pending {
+            background: #ffc107;
             color: #212529;
+        }
+
+        .status-icon.accepted {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status-icon.in-progress {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-icon.completed {
+            background: #6c757d;
+            color: white;
+        }
+
+        .status-details {
+            flex: 1;
+        }
+
+        .status-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .tracking-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tracking-sidebar::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+        .tracking-sidebar::-webkit-scrollbar-thumb {
+            background: #007bff;
+            border-radius: 10px;
+        }
+
+        /* Cancel Section Styles */
+        .cancel-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border: 2px solid #ffeaa7;
+            border-radius: 12px;
+            border-left: 4px solid #fdcb6e;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .cancel-warning {
+            color: #e17055;
+            font-size: 0.95rem;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.3rem;
+            font-weight: 600;
         }
 
-        .rating-section p {
-            color: #495057;
-            margin-bottom: 20px;
-            font-size: 1rem;
+        .cancel-warning i {
+            font-size: 1.1rem;
+            color: #e74c3c;
         }
 
-        .stars-container {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin: 20px 0;
+        .cancel-note {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            line-height: 1.4;
+            text-align: center;
         }
 
-        .rating-star {
-            font-size: 40px;
-            cursor: pointer;
-            color: #ddd;
-            transition: all 0.2s ease;
-            margin: 0 2px;
-        }
-
-        .rating-star:hover,
-        .rating-star.active {
-            color: #ffc107;
-            transform: scale(1.2);
-        }
-
-        .rate-btn {
-            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-            color: #212529;
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 12px 20px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
@@ -278,19 +463,18 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             width: 100%;
-            margin-top: 15px;
-            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
         }
 
-        .rate-btn:hover {
-            background: linear-gradient(135deg, #e0a800 0%, #c69500 100%);
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
         }
 
-        .rate-btn:disabled {
+        .btn-warning:disabled {
             background: #bdc3c7;
             cursor: not-allowed;
             transform: none;
@@ -298,7 +482,7 @@
             opacity: 0.7;
         }
 
-        .rating-message {
+        #cancelMessage {
             margin-top: 15px;
             padding: 12px;
             border-radius: 8px;
@@ -307,52 +491,226 @@
             font-weight: 500;
         }
 
-        .rating-success {
+        .cancel-success {
             background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
             color: #155724;
             border: 1px solid #b8dfc1;
             box-shadow: 0 2px 5px rgba(21, 87, 36, 0.1);
         }
 
-        .rating-error {
+        .cancel-error {
             background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             color: #721c24;
             border: 1px solid #f1b0b7;
             box-shadow: 0 2px 5px rgba(114, 28, 36, 0.1);
         }
 
-        .rating-completed {
-            background: linear-gradient(135deg, #e7f3ff 0%, #d6e9ff 100%);
-            border: 2px solid #b3d7ff;
-            border-left: 4px solid #007bff;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
         }
 
-        .rating-completed h4 {
-            color: #007bff;
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+        }
+
+        .data-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .data-preview h4 {
             margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .data-preview ul {
+            font-size: 0.8rem;
+            color: #6c757d;
+            list-style: none;
+            padding: 0;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            border: 1px solid #6c757d;
+            background: transparent;
+            color: #6c757d;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-warning {
+            padding: 10px 20px;
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Debug Panel Styles */
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 10000;
+            max-width: 400px;
+            max-height: 300px;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .debug-log {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .log-info {
+            color: #4fc3f7;
+            padding: 2px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-warn {
+            color: #ffb74d;
+            padding: 2px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-error {
+            color: #f44336;
+            padding: 2px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        /* Network Status Styles */
+        .network-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            display: none;
+        }
+
+        .network-online {
+            background: #28a745;
+            color: white;
+        }
+
+        .network-offline {
+            background: #dc3545;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
-            .completion-card {
-                padding: 30px 20px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
+            .tracking-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
             }
 
-            .rating-star {
-                font-size: 32px;
+            .tracking-sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+                max-height: 40vh;
+            }
+
+            .tracking-status {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 10px 14px;
+                font-size: 0.85rem;
+            }
+
+            .map-controls {
+                top: 60px;
+                right: 10px;
             }
         }
     </style>
@@ -367,118 +725,235 @@
         </div>
     </nav>
 
-    <div class="completion-container">
-        <div class="completion-card">
-            <div class="success-icon">
-                <i class="fas fa-check"></i>
+    <!-- Network Status Indicator -->
+    <div id="networkStatus" class="network-status network-online">
+        <i class="fas fa-wifi"></i> <span id="networkStatusText">Online</span>
+    </div>
+
+    <div class="tracking-container">
+        <div class="tracking-sidebar">
+            <a href="{{ route('passenger.pending.bookings') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to My Bookings
+            </a>
+
+            <div class="tracking-header">
+                <h1>
+                    <i class="fas fa-route"></i>
+                    Active Trip
+                </h1>
+                <span class="status-badge in-progress" id="overallStatusBadge">IN PROGRESS</span>
+                <p style="margin-top: 10px;">Real-time driver location tracking</p>
             </div>
-            
-            <h1>Trip Completed!</h1>
-            <p>Thank you for choosing FastLan. Your trip has been successfully completed.</p>
-            
-            <div class="trip-details">
-                <h3><i class="fas fa-receipt"></i> Trip Summary</h3>
-                
-                <div class="detail-item">
-                    <span class="detail-label">Booking ID:</span>
-                    <span class="detail-value">#{{ $booking->bookingID }}</span>
-                </div>
-                
-                <div class="detail-item">
-                    <span class="detail-label">Service Type:</span>
-                    <span class="detail-value">{{ $booking->getServiceTypeDisplay() }}</span>
-                </div>
-                
-                <div class="detail-item">
-                    <span class="detail-label">Pickup:</span>
-                    <span class="detail-value">{{ $booking->pickupLocation }}</span>
-                </div>
-                
-                <div class="detail-item">
-                    <span class="detail-label">Drop-off:</span>
-                    <span class="detail-value">{{ $booking->dropoffLocation }}</span>
-                </div>
-                
-                <div class="detail-item">
-                    <span class="detail-label">Total Fare:</span>
-                    <span class="detail-value">₱{{ number_format($booking->fare, 2) }}</span>
-                </div>
-                
-                <div class="detail-item">
-                    <span class="detail-label">Payment Method:</span>
-                    <span class="detail-value">{{ $booking->getPaymentMethodDisplay() }}</span>
+
+            <!-- Report/Help Section -->
+            <div class="info-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Need Help?</h3>
+                <div class="help-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Urgent Help Button -->
+                    <button class="btn btn-danger" onclick="showUrgentHelpModal()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                        <i class="fas fa-life-ring"></i>
+                        Request Urgent Help
+                    </button>
+                    
+                    <!-- Complaint Button -->
+                    <button class="btn btn-warning" onclick="showComplaintModal()" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529;">
+                        <i class="fas fa-flag"></i>
+                        Submit Complaint
+                    </button>
                 </div>
             </div>
 
-            @if($booking->driver)
-            <div class="driver-info">
-                <h4><i class="fas fa-user"></i> Driver Information</h4>
-                <p><strong>Name:</strong> {{ $booking->driver->fullname }}</p>
-                <p><strong>Vehicle:</strong> {{ $booking->driver->vehicleMake }} {{ $booking->driver->vehicleModel }} ({{ $booking->driver->plateNumber }})</p>
-                <p><strong>Contact:</strong> {{ $booking->driver->phone }}</p>
-            </div>
-            @endif
-
-            <!-- Rating Section -->
-            @if(!$booking->review()->exists())
-            <div class="rating-section" id="ratingSection">
-                <h3><i class="fas fa-star"></i> Rate Your Driver</h3>
-                <p>How was your experience with <strong>{{ $booking->driver->fullname ?? 'the driver' }}</strong>?</p>
-                
-                <div class="stars-container">
-                    @for($i = 1; $i <= 5; $i++)
-                        <span class="rating-star" data-rating="{{ $i }}">☆</span>
-                    @endfor
+            <!-- Urgent Help Modal -->
+            <div id="urgentHelpModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 style="color: #dc3545; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-life-ring"></i>
+                            Request Urgent Help
+                        </h3>
+                        <p style="color: #6c757d; margin-top: 8px; font-size: 0.9rem;">
+                            This will immediately notify administrators with your current location and booking details.
+                        </p>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Emergency Contact:</strong> If this is a life-threatening emergency, please call local emergency services immediately.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Additional Information (Optional)</label>
+                            <textarea id="urgentHelpNotes" placeholder="Describe what kind of help you need..."></textarea>
+                        </div>
+                        
+                        <div class="data-preview">
+                            <h4>What will be sent to admin:</h4>
+                            <ul>
+                                <li>✓ Your current location and booking route</li>
+                                <li>✓ Driver and vehicle information</li>
+                                <li>✓ Trip details and status</li>
+                                <li>✓ Timestamp of the incident</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button onclick="hideUrgentHelpModal()" class="btn-secondary">
+                            Cancel
+                        </button>
+                        <button onclick="sendUrgentHelp()" class="btn btn-danger" style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Urgent Help Request
+                        </button>
+                    </div>
                 </div>
-                <input type="hidden" id="selectedRating" value="5">
-                
-                <button class="rate-btn" onclick="submitRating()" id="submitRatingBtn">
-                    <i class="fas fa-paper-plane"></i>
-                    Submit Rating
-                </button>
-                
-                <div id="ratingMessage" class="rating-message"></div>
-            </div>
-            @else
-            <div class="rating-completed">
-                <h4><i class="fas fa-check-circle"></i> Rating Submitted</h4>
-                <p>Thank you for rating your driver! Your feedback helps us improve our service.</p>
-                <p><strong>Your Rating:</strong> 
-                    @for($i = 1; $i <= 5; $i++)
-                        @if($i <= $booking->review->rating)
-                            ★
-                        @else
-                            ☆
-                        @endif
-                    @endfor
-                    ({{ $booking->review->rating }}/5)
-                </p>
-            </div>
-            @endif
-
-            <div class="action-buttons">
-                <a href="{{ route('passenger.dashboard') }}" class="btn btn-primary">
-                    <i class="fas fa-home"></i>
-                    Go to Dashboard
-                </a>
-                
-                <a href="{{ route('passenger.history') }}" class="btn btn-success">
-                    <i class="fas fa-history"></i>
-                    View Trip History
-                </a>
             </div>
 
-            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e9ecef;">
-                <p style="color: #6c757d; font-size: 0.9rem;">
-                    <i class="fas fa-info-circle"></i>
-                    Need help with this trip? 
-                    <a href="{{ route('passenger.pending.bookings') }}" style="color: #007bff; text-decoration: none;">
-                        Contact Support
-                    </a>
-                </p>
+            <!-- Complaint Modal -->
+            <div id="complaintModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 style="color: #ffc107; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-flag"></i>
+                            Submit Complaint
+                        </h3>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Complaint Type</label>
+                            <select id="complaintType">
+                                <option value="driver_behavior">Driver Behavior</option>
+                                <option value="service_issue">Service Quality</option>
+                                <option value="safety_concern">Safety Concern</option>
+                                <option value="payment_issue">Payment Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Severity Level</label>
+                            <select id="complaintSeverity">
+                                <option value="low">Low - Minor Issue</option>
+                                <option value="medium">Medium - Concerning</option>
+                                <option value="high">High - Serious Issue</option>
+                                <option value="critical">Critical - Requires Immediate Attention</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="complaintDescription" placeholder="Please describe the issue in detail..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button onclick="hideComplaintModal()" class="btn-secondary">
+                            Cancel
+                        </button>
+                        <button onclick="sendComplaint()" class="btn-warning">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Complaint
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-history"></i> Trip Status</h3>
+                <div id="statusTimeline">
+                    <div class="status-item active">
+                        <div class="status-icon in-progress">
+                            <i class="fas fa-sync-alt fa-spin"></i>
+                        </div>
+                        <div class="status-details">
+                            <strong>Loading status...</strong>
+                            <div class="status-time">Updating...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-user"></i> Driver Details</h3>
+                <p><strong><i class="fas fa-user-circle"></i> Name:</strong> {{ $booking->driver->fullname ?? 'N/A' }}</p>
+                <p><strong><i class="fas fa-phone"></i> Phone:</strong> {{ $booking->driver->phone ?? 'N/A' }}</p>
+                <p><strong><i class="fas fa-car"></i> Vehicle:</strong> {{ $booking->driver->vehicleMake ?? 'N/A' }} {{ $booking->driver->vehicleModel ?? '' }} ({{ $booking->driver->plateNumber ?? 'N/A' }})</p>
+                <p><strong><i class="fas fa-chart-line"></i> Completed Trips:</strong> {{ $booking->driver->completedBooking ?? '0' }}</p>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-route"></i> Trip Details</h3>
+                <p><strong><i class="fas fa-car"></i> Service:</strong> {{ $booking->getServiceTypeDisplay() }}</p>
+                <p><strong><i class="fas fa-map-marker-alt" style="color: #28a745;"></i> Pickup:</strong> {{ $booking->pickupLocation }}</p>
+                <p><strong><i class="fas fa-flag-checkered" style="color: #dc3545;"></i> Drop-off:</strong> {{ $booking->dropoffLocation }}</p>
+                <p><strong><i class="fas fa-money-bill-wave"></i> Fare:</strong> ₱{{ number_format($booking->fare, 2) }}</p>
+                <p><strong><i class="fas fa-credit-card"></i> Payment:</strong> {{ $booking->getPaymentMethodDisplay() }}</p>
+                @if($booking->description)
+                <p><strong><i class="fas fa-sticky-note"></i> Notes:</strong> {{ $booking->description }}</p>
+                @endif
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-check-circle"></i> Trip Completion</h3>
+                <div id="completionStatus">
+                    <p><i class="fas fa-info-circle"></i> Trip in progress...</p>
+                </div>
+                <div id="completionActions" style="margin-top: 15px;">
+                    <button class="btn btn-success" onclick="confirmCompletion()" id="confirmCompletionBtn" style="width: 100%;">
+                        <i class="fas fa-check"></i>
+                        Confirm Trip Completion
+                    </button>
+                    <div id="completionMessage" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                </div>
+                <div class="cancel-section">
+                    <div class="cancel-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Need to cancel this trip?
+                    </div>
+                    <p class="cancel-note">
+                        This action will immediately end the trip and notify the driver.
+                    </p>
+                    <button class="btn-warning" onclick="cancelOngoingBooking()" id="cancelBookingBtn">
+                        <i class="fas fa-times-circle"></i>
+                        Cancel Ongoing Trip
+                    </button>
+                    <div id="cancelMessage"></div>
+                </div>
             </div>
         </div>
+
+        <div class="map-container">
+            <div class="tracking-status">
+                <div class="tracking-indicator" id="trackingIndicator"></div>
+                <span id="trackingStatusText">Live Driver Tracking Active</span>
+            </div>
+            
+            <div class="map-controls">
+                <button class="zoom-control" onclick="map.zoomIn()">+</button>
+                <button class="zoom-control" onclick="map.zoomOut()">-</button>
+                <button class="zoom-control" onclick="testDriverLocation()" style="background: #007bff; color: white;">⟳</button>
+            </div>
+            <div id="trackingMap"></div>
+        </div>
     </div>
+
+    <!-- Debug Panel (only visible in development) -->
+    @if(config('app.debug'))
+    <div id="debugPanel" class="debug-panel" style="display: none;">
+        <div style="margin-bottom: 5px; font-weight: bold;">Debug Panel</div>
+        <div id="debugLog" class="debug-log"></div>
+        <div style="margin-top: 5px; display: flex; gap: 5px;">
+            <button onclick="testDriverLocation()" style="padding: 3px 6px; font-size: 11px;">Test API</button>
+            <button onclick="simulateDriverMovement()" style="padding: 3px 6px; font-size: 11px;">Simulate Move</button>
+            <button onclick="testConnection()" style="padding: 3px 6px; font-size: 11px;">Test Connection</button>
+            <button onclick="document.getElementById('debugPanel').remove()" style="padding: 3px 6px; font-size: 11px;">Close</button>
+        </div>
+    </div>
+    @endif
+
 <script>
 // ==================== CONFIGURATION ====================
 const CONFIG = {
