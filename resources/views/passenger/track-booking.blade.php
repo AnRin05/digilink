@@ -756,6 +756,22 @@
     let updateInterval;
     let statusInterval;
 
+    // URL configuration - works on both local and Railway
+    const APP_URLS = {
+        base: "{{ url('/') }}",
+        passenger: {
+            confirmCompletion: "{{ url('/passenger/confirm-completion') }}",
+            getBookingLocation: "{{ url('/passenger/get-booking-location') }}",
+            getDriverLocation: "{{ url('/passenger/get-driver-location') }}",
+            cancelBooking: "{{ url('/passenger/cancel-ongoing-booking') }}",
+            tripCompleted: "{{ url('/passenger/trip-completed') }}"
+        },
+        report: {
+            urgentHelp: "{{ url('/report/urgent-help') }}",
+            complaint: "{{ url('/report/complaint') }}"
+        }
+    };
+
     const bookingData = {
         id: {{ $booking->bookingID }},
         driver_id: {{ $booking->driver->id ?? 0 }},
@@ -768,7 +784,8 @@
             lat: {{ $booking->dropoffLatitude }},
             lng: {{ $booking->dropoffLongitude }},
             address: `{{ $booking->dropoffLocation }}`
-        }
+        },
+        csrfToken: '{{ csrf_token() }}'
     };
 
     const statusConfig = {
@@ -826,6 +843,7 @@
 
     function initMap() {
         console.log('Initializing map for booking:', bookingData.id);
+        console.log('Base URL:', APP_URLS.base);
         
         map = L.map('trackingMap', {
             zoomControl: false
@@ -884,9 +902,11 @@
                     ${bookingData.dropoff.address}
                 </div>
             `);
+        
         startTrackingUpdates();
         startStatusUpdates();
     }
+
     function confirmCompletion() {
         if (!confirm('Are you sure you want to confirm trip completion?\n\nPlease ensure you have reached your destination safely and received your service.')) {
             return;
@@ -897,11 +917,14 @@
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
         confirmBtn.disabled = true;
 
-        fetch(`/digilink/public/passenger/confirm-completion/${bookingData.id}`, {
+        const url = `${APP_URLS.passenger.confirmCompletion}/${bookingData.id}`;
+        console.log('Confirming completion at:', url);
+
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': bookingData.csrfToken
             }
         })
         .then(response => {
@@ -909,6 +932,7 @@
             return response.json();
         })
         .then(data => {
+            console.log('Completion response:', data);
             if (data.success) {
                 updateCompletionStatus(data.completion_status, data.is_completed);
                 showCompletionMessage(data.message, 'success');
@@ -919,7 +943,7 @@
                 updateStatusDisplay('completed');
                 
                 // Immediate redirect without delay
-                window.location.href = `/digilink/public/passenger/trip-completed/${bookingData.id}`;
+                window.location.href = `${APP_URLS.passenger.tripCompleted}/${bookingData.id}`;
                 
             } else {
                 throw new Error(data.message || 'Failed to confirm completion');
@@ -932,19 +956,23 @@
             confirmBtn.disabled = false;
         });
     }
-        function startTrackingUpdates() {
-            console.log('Starting tracking updates...');
-            updateDriverLocation();
-            updateInterval = setInterval(updateDriverLocation, 3000);
-        }
 
-        function startStatusUpdates() {
-            updateBookingStatus();
-            statusInterval = setInterval(updateBookingStatus, 10000);
-        }
+    function startTrackingUpdates() {
+        console.log('Starting tracking updates...');
+        updateDriverLocation();
+        updateInterval = setInterval(updateDriverLocation, 3000);
+    }
+
+    function startStatusUpdates() {
+        updateBookingStatus();
+        statusInterval = setInterval(updateBookingStatus, 10000);
+    }
 
     function updateBookingStatus() {
-        fetch(`/digilink/public/passenger/get-booking-location/${bookingData.id}?_t=${Date.now()}`)
+        const url = `${APP_URLS.passenger.getBookingLocation}/${bookingData.id}?_t=${Date.now()}`;
+        console.log('Fetching booking status from:', url);
+
+        fetch(url)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
@@ -965,7 +993,7 @@
                         data.booking.completion_verified === 'both_confirmed') {
                         stopTracking();
                         setTimeout(() => {
-                            window.location.href = `/digilink/public/passenger/trip-completed/${bookingData.id}`;
+                            window.location.href = `${APP_URLS.passenger.tripCompleted}/${bookingData.id}`;
                         }, 1000);
                     }
                     
@@ -978,6 +1006,44 @@
                 console.error('Error fetching booking status:', error);
             });
     }
+
+    function updateDriverLocation() {
+        const url = `${APP_URLS.passenger.getDriverLocation}/${bookingData.id}?_t=${Date.now()}`;
+        console.log('Fetching driver location from:', url);
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Driver location API response:', data);
+                
+                if (data.success) {
+                    updateStatusDisplay(data.booking.status);
+                    
+                    if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
+                        const driverLat = parseFloat(data.driver.current_lat);
+                        const driverLng = parseFloat(data.driver.current_lng);
+                        
+                        if (!isNaN(driverLat) && !isNaN(driverLng)) {
+                            updateDriverPosition(driverLat, driverLng);
+                            updateDistanceInfo(data.distance_info);
+                            updateLocationStatus('success', `Live GPS tracking active - ${data.driver.name}`);
+                        }
+                    } else {
+                        updateLocationStatus('waiting', 'Waiting for driver location updates...');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching driver location:', error);
+                updateLocationStatus('error', 'Unable to fetch driver location');
+            });
+    }
+
     function updateStatusDisplay(status) {
         const config = statusConfig[status] || statusConfig.in_progress;
         
@@ -1060,43 +1126,6 @@
             'completed': 'flag-checkered'
         };
         return icons[status] || 'info-circle';
-    }
-
-    function updateDriverLocation() {
-        const url = `/digilink/public/passenger/get-driver-location/${bookingData.id}?_t=${Date.now()}`;
-        console.log('Fetching driver location from:', url);
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Driver location API response:', data);
-                
-                if (data.success) {
-                    updateStatusDisplay(data.booking.status);
-                    
-                    if (data.driver && data.driver.current_lat != null && data.driver.current_lng != null) {
-                        const driverLat = parseFloat(data.driver.current_lat);
-                        const driverLng = parseFloat(data.driver.current_lng);
-                        
-                        if (!isNaN(driverLat) && !isNaN(driverLng)) {
-                            updateDriverPosition(driverLat, driverLng);
-                            updateDistanceInfo(data.distance_info);
-                            updateLocationStatus('success', `Live GPS tracking active - ${data.driver.name}`);
-                        }
-                    } else {
-                        updateLocationStatus('waiting', 'Waiting for driver location updates...');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching driver location:', error);
-                updateLocationStatus('error', 'Unable to fetch driver location');
-            });
     }
 
     function updateDriverPosition(lat, lng) {
@@ -1202,7 +1231,6 @@
         }
     }
 
-    // ... rest of the functions (cancelOngoingBooking, showUrgentHelpModal, etc.) remain the same
     function cancelOngoingBooking() {
         if (!confirm('Are you sure you want to cancel this ongoing trip?\n\n⚠️ This action cannot be undone. The driver will be notified immediately.')) {
             return;
@@ -1213,15 +1241,19 @@
         cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
         cancelBtn.disabled = true;
 
-        fetch(`/digilink/public/passenger/cancel-ongoing-booking/${bookingData.id}`, {
+        const url = `${APP_URLS.passenger.cancelBooking}/${bookingData.id}`;
+        console.log('Cancelling booking at:', url);
+
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': bookingData.csrfToken
             }
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Cancel response:', data);
             if (data.success) {
                 document.getElementById('cancelMessage').innerHTML = `<div class="cancel-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
                 stopTracking();
@@ -1268,15 +1300,19 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         btn.disabled = true;
 
-        fetch('{{ route("report.urgent.help") }}', {
+        const url = APP_URLS.report.urgentHelp;
+        console.log('Sending urgent help to:', url);
+
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': bookingData.csrfToken
             },
             body: JSON.stringify({
-                booking_id: {{ $booking->bookingID }},
-                additional_notes: notes
+                booking_id: bookingData.id,
+                additional_notes: notes,
+                user_type: 'passenger'
             })
         })
         .then(response => {
@@ -1287,6 +1323,7 @@
             return response.json();
         })
         .then(data => {
+            console.log('Urgent help response:', data);
             if (data.success) {
                 showNotification('success', data.message || 'Help request sent successfully!');
                 hideUrgentHelpModal();
@@ -1324,17 +1361,21 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
         btn.disabled = true;
 
-        fetch('{{ route("report.complaint") }}', {
+        const url = APP_URLS.report.complaint;
+        console.log('Sending complaint to:', url);
+
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': bookingData.csrfToken
             },
             body: JSON.stringify({
-                booking_id: {{ $booking->bookingID }},
+                booking_id: bookingData.id,
                 complaint_type: type,
                 severity: severity,
-                description: description
+                description: description,
+                user_type: 'passenger'
             })
         })
         .then(response => {
@@ -1345,6 +1386,7 @@
             return response.json();
         })
         .then(data => {
+            console.log('Complaint response:', data);
             if (data.success) {
                 showNotification('success', data.message || 'Complaint submitted successfully!');
                 hideComplaintModal();
@@ -1407,6 +1449,17 @@
         }, duration);
     }
 
+    // Test function for debugging
+    function testDriverLocation() {
+        console.log('Testing driver location update...');
+        console.log('Current URLs:', APP_URLS);
+        console.log('Booking data:', bookingData);
+        
+        // Force a location update
+        updateDriverLocation();
+        updateBookingStatus();
+    }
+
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
@@ -1452,10 +1505,13 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM loaded, initializing tracking...');
+        console.log('App URLs configured:', APP_URLS);
+        console.log('Booking ID:', bookingData.id);
+        
         initMap();
         updateBookingStatus();
         
-        console.log('Report system initialized for booking:', {{ $booking->bookingID }});
+        console.log('Report system initialized for booking:', bookingData.id);
     });
 </script>
 </body>
