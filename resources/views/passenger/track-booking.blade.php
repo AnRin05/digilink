@@ -775,6 +775,7 @@
     const bookingData = {
         id: {{ $booking->bookingID }},
         driver_id: {{ $booking->driver->id ?? 0 }},
+        passenger_id: {{ Auth::guard('passenger')->id() }}, // Add passenger ID
         pickup: {
             lat: {{ $booking->pickupLatitude }},
             lng: {{ $booking->pickupLongitude }},
@@ -785,7 +786,9 @@
             lng: {{ $booking->dropoffLongitude }},
             address: `{{ $booking->dropoffLocation }}`
         },
-        csrfToken: '{{ csrf_token() }}'
+        csrfToken: '{{ csrf_token() }}',
+        user_type: 'passenger',
+        user_id: {{ Auth::guard('passenger')->id() }} 
     };
 
     const statusConfig = {
@@ -1292,118 +1295,129 @@
         document.getElementById('complaintDescription').value = '';
     }
 
-    function sendUrgentHelp() {
-        const notes = document.getElementById('urgentHelpNotes').value;
-        
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        btn.disabled = true;
+function sendUrgentHelp() {
+    const notes = document.getElementById('urgentHelpNotes').value;
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
 
-        const url = APP_URLS.report.urgentHelp;
-        console.log('Sending urgent help to:', url);
+    const url = APP_URLS.report.urgentHelp;
+    console.log('Sending urgent help to:', url);
+    console.log('User data:', {
+        booking_id: bookingData.id,
+        user_type: bookingData.user_type,
+        user_id: bookingData.user_id
+    });
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': bookingData.csrfToken
-            },
-            body: JSON.stringify({
-                booking_id: bookingData.id,
-                additional_notes: notes,
-                user_type: 'passenger'
-            })
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': bookingData.csrfToken
+        },
+        body: JSON.stringify({
+            booking_id: bookingData.id,
+            additional_notes: notes,
+            user_type: bookingData.user_type,
+            user_id: bookingData.user_id
         })
-        .then(response => {
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Server returned non-JSON response');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Urgent help response:', data);
-            if (data.success) {
-                showNotification('success', data.message || 'Help request sent successfully!');
-                hideUrgentHelpModal();
-            } else {
-                throw new Error(data.message || 'Failed to send help request');
-            }
-        })
-        .catch(error => {
-            console.error('Error sending urgent help:', error);
-            showNotification('error', error.message || 'Failed to send help request. Please try again.');
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
+    })
+    .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Urgent help response:', data);
+        if (data.success) {
+            showNotification('success', data.message || 'Help request sent successfully!');
+            hideUrgentHelpModal();
+        } else {
+            throw new Error(data.message || 'Failed to send help request');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending urgent help:', error);
+        showNotification('error', error.message || 'Failed to send help request. Please try again.');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function sendComplaint() {
+    const type = document.getElementById('complaintType').value;
+    const severity = document.getElementById('complaintSeverity').value;
+    const description = document.getElementById('complaintDescription').value;
+
+    if (!description.trim()) {
+        showNotification('error', 'Please provide a description of the issue');
+        return;
     }
 
-    function sendComplaint() {
-        const type = document.getElementById('complaintType').value;
-        const severity = document.getElementById('complaintSeverity').value;
-        const description = document.getElementById('complaintDescription').value;
-
-        if (!description.trim()) {
-            showNotification('error', 'Please provide a description of the issue');
-            return;
-        }
-
-        if (description.trim().length < 10) {
-            showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
-            return;
-        }
-
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        btn.disabled = true;
-
-        const url = APP_URLS.report.complaint;
-        console.log('Sending complaint to:', url);
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': bookingData.csrfToken
-            },
-            body: JSON.stringify({
-                booking_id: bookingData.id,
-                complaint_type: type,
-                severity: severity,
-                description: description,
-                user_type: 'passenger'
-            })
-        })
-        .then(response => {
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Server returned non-JSON response');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Complaint response:', data);
-            if (data.success) {
-                showNotification('success', data.message || 'Complaint submitted successfully!');
-                hideComplaintModal();
-            } else {
-                throw new Error(data.message || 'Failed to submit complaint');
-            }
-        })
-        .catch(error => {
-            console.error('Error submitting complaint:', error);
-            showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
+    if (description.trim().length < 10) {
+        showNotification('error', 'Please provide a more detailed description (at least 10 characters)');
+        return;
     }
 
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
+
+    const url = APP_URLS.report.complaint;
+    console.log('Sending complaint to:', url);
+    console.log('User data:', {
+        booking_id: bookingData.id,
+        user_type: bookingData.user_type,
+        user_id: bookingData.user_id
+    });
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': bookingData.csrfToken
+        },
+        body: JSON.stringify({
+            booking_id: bookingData.id,
+            complaint_type: type,
+            severity: severity,
+            description: description,
+            user_type: bookingData.user_type,
+            user_id: bookingData.user_id
+        })
+    })
+    .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Complaint response:', data);
+        if (data.success) {
+            showNotification('success', data.message || 'Complaint submitted successfully!');
+            hideComplaintModal();
+        } else {
+            throw new Error(data.message || 'Failed to submit complaint');
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting complaint:', error);
+        showNotification('error', error.message || 'Failed to submit complaint. Please try again.');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
     function showNotification(type, message, duration = 5000) {
         const existingNotifications = document.querySelectorAll('.custom-notification');
         existingNotifications.forEach(notification => notification.remove());
