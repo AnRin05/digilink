@@ -14,7 +14,7 @@
 <body>
     <nav>
         <div class="nav-left">
-            <a href="#" class="nav-brand">Fast<span>Lan</span></a>
+            @include('logo')
         </div>
         <div class="nav-right">
             <ul>

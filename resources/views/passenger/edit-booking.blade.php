@@ -752,7 +752,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 <body>
     <!-- Navbar -->
     <nav class="navbar">
-        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
+        @include('logo')
         <div class="nav-links">
             <a href="{{ route('passenger.dashboard') }}" class="nav-link">Dashboard</a>
             <a href="{{ route('passenger.edit') }}" class="nav-link">Edit Profile</a>

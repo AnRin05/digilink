@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastLan - Login</title>
+    <title>HopN'Drop - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="{{ asset('js/login.js') }}" rel="stylesheet">
@@ -924,14 +924,12 @@
     }
 
     </style>
-    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <link rel="icon" href="{{ asset('images/HopN\'Drop.png') }}">
 </head>
 <body>
                                                   <!-- Navigation -->
     <nav>
-        <div class="nav-left">
-            <a class="nav-brand">Fast<span>Lan</span></a>
-        </div>
+        @include('logo')
         <div class="nav-middle">
         </div>
         <div class="nav-right">
@@ -959,7 +957,7 @@
         @endif
 
         <div class="login-box">
-            <div class="login-logo">Fast<span style="color: #1b1b1b;">Lan</span></div>
+            <div class="login-logo">Hop<span style="color: #000000;">N'</span>Drop</div>
             <h2>Login to Your Account</h2>
             
             <form id="login-form" method="POST" action="{{ route('login') }}">

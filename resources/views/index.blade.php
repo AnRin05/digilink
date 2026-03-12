@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastLan - Motorcycle Ride & Delivery</title>
+    <title>HopN'Drop - Motorcycle Ride & Delivery</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <link rel="icon" href="{{ asset('images/story.png') }}">
 </head>
 <style>
     * {
@@ -244,10 +245,23 @@
     }
 
     @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        30% { transform: translateY(-15px); }
-        50% { transform: translateY(0); }
-        70% { transform: translateY(-7px); }
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        30% {
+            transform: translateY(-15px);
+        }
+
+        50% {
+            transform: translateY(0);
+        }
+
+        70% {
+            transform: translateY(-7px);
+        }
     }
 
     .feature-item i {
@@ -379,13 +393,16 @@
             transform: translate(0, 0) rotate(0deg) scale(1);
             opacity: 0;
         }
+
         10% {
             opacity: 0.15;
         }
+
         50% {
             transform: translate(30px, -40px) rotate(15deg) scale(1.1);
             opacity: 0.2;
         }
+
         100% {
             transform: translate(60px, -20px) rotate(30deg) scale(1);
             opacity: 0;
@@ -409,8 +426,13 @@
     }
 
     @keyframes glow {
-        from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-        to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
+        from {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        to {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
     }
 
     .description p {
@@ -526,16 +548,16 @@
         .welcome h1 {
             font-size: 2.2rem;
         }
-        
+
         .features h2,
         .description h2 {
             font-size: 2.2rem;
         }
-        
+
         .feature-item {
             width: 280px;
         }
-        
+
         .expanded-content.show {
             max-height: 2000px;
         }
@@ -545,20 +567,20 @@
         nav {
             padding: 0.5rem 1rem;
         }
-        
+
         .nav-brand {
             font-size: 1.3rem;
         }
-        
+
         .nav-right li {
             margin-left: 10px;
         }
-        
+
         .nav-right a {
             font-size: 0.95rem;
             padding: 5px 8px;
         }
-        
+
         .expanded-content.show {
             max-height: 2200px;
         }
@@ -570,92 +592,92 @@
             height: auto;
             min-height: 60px;
         }
-        
+
         .nav-brand {
             font-size: 1.3rem;
         }
-        
+
         .nav-right li {
             margin-left: 10px;
         }
-        
+
         .nav-right a {
             font-size: 0.95rem;
             padding: 5px 8px;
         }
-        
+
         .welcome {
             height: 60vh;
             min-height: 500px;
             padding: 40px 20px;
         }
-        
+
         .welcome h1 {
             font-size: 2rem;
         }
-        
+
         .welcome p {
             font-size: 1rem;
         }
-        
+
         .welcome-buttons {
             flex-direction: column;
             align-items: center;
             gap: 10px;
         }
-        
+
         .btn-red,
         .btn-dark {
             width: 200px;
             text-align: center;
         }
-        
+
         .features {
             padding: 40px 20px;
         }
-        
+
         .features h2 {
             font-size: 2rem;
             margin-bottom: 30px;
         }
-        
+
         .feature-item {
             width: 100%;
             max-width: 400px;
             padding: 25px;
         }
-        
+
         .description {
             padding: 40px 20px;
             min-height: 60vh;
         }
-        
+
         .description.expanded {
             min-height: 90vh;
         }
-        
+
         .description h2 {
             font-size: 2rem;
         }
-        
+
         .description p {
             font-size: 1rem;
         }
-        
+
         .feature-grid {
             grid-template-columns: 1fr;
             gap: 20px;
         }
-        
+
         .expanded-content h3 {
             font-size: 1.8rem;
         }
-        
+
         .expanded-content.show {
             max-height: 2400px;
             padding: 25px 15px 40px;
         }
-        
+
         .btn-container {
             margin-top: 20px;
             padding-bottom: 10px;
@@ -668,90 +690,90 @@
             padding: 10px;
             height: auto;
         }
-        
+
         nav .nav-left,
         nav .nav-right {
             width: 100%;
             justify-content: center;
             margin: 5px 0;
         }
-        
+
         .nav-right ul {
             flex-wrap: wrap;
             justify-content: center;
         }
-        
+
         .nav-right li {
             margin: 5px 8px;
         }
-        
+
         .nav-brand {
             font-size: 1.2rem;
         }
-        
+
         .welcome {
             height: 70vh;
             padding: 30px 15px;
         }
-        
+
         .welcome h1 {
             font-size: 1.8rem;
         }
-        
+
         .welcome p {
             font-size: 0.9rem;
         }
-        
+
         .features {
             padding: 30px 15px;
         }
-        
+
         .features h2 {
             font-size: 1.8rem;
         }
-        
+
         .feature-item h5 {
             font-size: 1.2rem;
         }
-        
+
         .description {
             padding: 30px 15px;
             min-height: 70vh;
         }
-        
+
         .description.expanded {
             min-height: 100vh;
         }
-        
+
         .description h2 {
             font-size: 1.8rem;
         }
-        
+
         .btn-container {
             flex-direction: column;
             align-items: center;
             margin-top: 15px;
         }
-        
+
         .action-btn {
             width: 200px;
             margin: 8px 0;
             padding: 10px 25px;
         }
-        
+
         .expanded-content.show {
             max-height: 2600px;
             padding: 20px 10px 35px;
         }
-        
+
         .expanded-feature {
             padding: 20px;
         }
-        
+
         .floating-icon {
             font-size: 1.8rem !important;
         }
-        
+
         .floating-icon:nth-child(n+7) {
             display: none;
         }
@@ -762,36 +784,36 @@
             font-size: 0.85rem;
             padding: 5px 6px;
         }
-        
+
         .welcome h1 {
             font-size: 1.6rem;
         }
-        
+
         .features h2 {
             font-size: 1.6rem;
         }
-        
+
         .description h2 {
             font-size: 1.6rem;
         }
-        
+
         .feature-item {
             padding: 20px;
         }
-        
+
         .description {
             min-height: 80vh;
         }
-        
+
         .description.expanded {
             min-height: 110vh;
         }
-        
+
         .expanded-content.show {
             max-height: 2800px;
             padding: 15px 8px 30px;
         }
-        
+
         .btn-red,
         .btn-dark,
         .action-btn {
@@ -804,7 +826,7 @@
         .description.expanded {
             min-height: 120vh;
         }
-        
+
         .expanded-content.show {
             max-height: 3000px;
         }
@@ -814,11 +836,11 @@
         .description.expanded {
             min-height: 140vh;
         }
-        
+
         .expanded-content.show {
             max-height: 3200px;
         }
-        
+
         .btn-container {
             position: sticky;
             bottom: 20px;
@@ -830,11 +852,11 @@
         .description.expanded {
             min-height: 130vh;
         }
-        
+
         .expanded-content.show {
             max-height: 3000px;
         }
-        
+
         .action-btn {
             min-width: 180px;
             padding: 12px 20px;
@@ -845,22 +867,21 @@
         .description.expanded {
             min-height: 200vh;
         }
-        
+
         .expanded-content.show {
             max-height: 4000px;
         }
-        
+
         .btn-container {
             margin-top: 40px;
             padding-bottom: 30px;
         }
     }
 </style>
+
 <body>
     <nav>
-        <div class="nav-left">
-           <a class="nav-brand">Fast<span>Lan</span></a>
-        </div>
+        @include('logo')
         <div class="nav-right">
             <ul>
                 <li><a href="#" class="active">Home</a></li>
@@ -872,7 +893,7 @@
 
     <section class="welcome">
         <div class="welcome-content">
-            <h1>Fastlan tayo sa Surigao!</h1>
+            <h1>HopN'Drop tayo sa Surigao!</h1>
             <p>Experience the fast and efficient motorcycle ride booking today!</p>
             <div class="welcome-buttons">
                 <a href="{{ route('passign') }}" class="btn-red">Book a Ride</a>
@@ -882,12 +903,13 @@
     </section>
 
     <section class="features">
-        <h2>Why Choose FastLan?</h2>
+        <h2>Why Choose HopN'Drop?</h2>
         <div class="features-container">
             <div class="feature-item">
                 <i class="fas fa-bolt"></i>
                 <h5>Fast Service</h5>
-                <p>Our motorcycle riders can navigate through traffic to get you or your items to the destination faster.</p>
+                <p>Our motorcycle riders can navigate through traffic to get you or your items to the destination
+                    faster.</p>
             </div>
             <div class="feature-item">
                 <i class="fas fa-shield-alt"></i>
@@ -916,44 +938,51 @@
             <i class="fas fa-tachometer-alt floating-icon"></i>
             <i class="fas fa-users floating-icon"></i>
         </div>
-        
+
         <div class="description-content">
-            <h2>How FastLan Works</h2>
-            <p>Experience the revolution in urban mobility! Simply book a ride or delivery through our intuitive platform, track your rider in real-time with GPS precision, and enjoy lightning-fast service that beats traffic every time.</p>
+            <h2>How HopN'Drop Works</h2>
+            <p>Experience the revolution in urban mobility! Simply book a ride or delivery through our intuitive
+                platform, track your rider in real-time with GPS precision, and enjoy lightning-fast service that beats
+                traffic every time.</p>
             <button class="btn-dark" id="learn-more-btn">
                 <i class="fas fa-rocket"></i> Learn More
             </button>
-            
+
             <div class="expanded-content" id="expanded-content">
-                <h3>Discover What Makes FastLan Special</h3>
-                <p>FastLan isn't just another ride-hailing service – we're your trusted partner in navigating the bustling streets of Surigao with unmatched speed and reliability.</p>
-                
+                <h3>Discover What Makes HopN'Drop Special</h3>
+                <p>HopN'Drop isn't just another ride-hailing service – we're your trusted partner in navigating the
+                    bustling streets of Surigao with unmatched speed and reliability.</p>
+
                 <div class="feature-grid">
                     <div class="expanded-feature">
                         <i class="fas fa-clock"></i>
                         <h4>24/7 Availability</h4>
-                        <p>Rain or shine, day or night – FastLan drivers are always ready to serve you. Our round-the-clock service ensures you're never stranded.</p>
+                        <p>Rain or shine, day or night – HopN'Drop drivers are always ready to serve you. Our
+                            round-the-clock service ensures you're never stranded.</p>
                     </div>
-                    
+
                     <div class="expanded-feature">
                         <i class="fas fa-mobile-alt"></i>
                         <h4>User-Friendly App</h4>
-                        <p>Book rides in seconds with our intuitive mobile app. Features include live tracking and fare estimation</p>
+                        <p>Book rides in seconds with our intuitive mobile app. Features include live tracking and fare
+                            estimation</p>
                     </div>
-                    
+
                     <div class="expanded-feature">
                         <i class="fas fa-leaf"></i>
                         <h4>Eco-Friendly Choice</h4>
-                        <p>Choose sustainability without compromising speed. Our motorcycle fleet reduces carbon emissions while providing efficient transportation.</p>
+                        <p>Choose sustainability without compromising speed. Our motorcycle fleet reduces carbon
+                            emissions while providing efficient transportation.</p>
                     </div>
-                    
+
                     <div class="expanded-feature">
                         <i class="fas fa-handshake"></i>
                         <h4>Community-Driven</h4>
-                        <p>Supporting local drivers and businesses in Surigao. When you choose FastLan, you're contributing to your community's economic growth.</p>
+                        <p>Supporting local drivers and businesses in Surigao. When you choose HopN'Drop, you're
+                            contributing to your community's economic growth.</p>
                     </div>
                 </div>
-                
+
                 <div class="btn-container">
                     <button class="action-btn" id="show-less-btn">
                         <i class="fas fa-chevron-up"></i> Show Less
@@ -964,7 +993,7 @@
     </section>
 
     <footer>
-        @include('footer') 
+        @include('footer')
     </footer>
 
     <script>
@@ -973,12 +1002,12 @@
             const showLessBtn = document.getElementById('show-less-btn');
             const expandedContent = document.getElementById('expanded-content');
             const descriptionSection = document.getElementById('description-section');
-            
+
             learnMoreBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 expandedContent.classList.add('show');
                 learnMoreBtn.style.display = 'none';
-                
+
                 setTimeout(() => {
                     const expandedFeatures = document.querySelectorAll('.expanded-feature');
                     expandedFeatures.forEach((feature, index) => {
@@ -987,7 +1016,7 @@
                         }, index * 150);
                     });
                 }, 400);
-                
+
                 setTimeout(() => {
                     expandedContent.scrollIntoView({
                         behavior: 'smooth',
@@ -995,28 +1024,28 @@
                     });
                 }, 300);
             });
-            
+
             showLessBtn.addEventListener('click', function() {
                 descriptionSection.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
                 });
-                
+
                 setTimeout(() => {
                     expandedContent.classList.remove('show');
                     setTimeout(() => {
                         learnMoreBtn.style.display = 'inline-block';
                     }, 400);
-                    
+
                     const expandedFeatures = document.querySelectorAll('.expanded-feature');
                     expandedFeatures.forEach(feature => {
                         feature.classList.remove('animate');
                     });
                 }, 500);
             });
-            
+
             const featureItems = document.querySelectorAll('.feature-item');
-            
+
             function checkScroll() {
                 featureItems.forEach(item => {
                     const rect = item.getBoundingClientRect();
@@ -1025,10 +1054,11 @@
                     }
                 });
             }
-            
+
             checkScroll();
             window.addEventListener('scroll', checkScroll);
         });
     </script>
 </body>
+
 </html>

@@ -70,7 +70,7 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3>About Us</h3>
-                <p>FastLan is a leading provider of motorcycle ride and delivery services, operating in Surigao and nearby areas.</p>
+                <p>HopN'Drop is a leading provider of motorcycle ride and delivery services, operating in Surigao and nearby areas.</p>
             </div>
             <div class="footer-section">
                 <h3>Quick Links</h3>
@@ -83,7 +83,7 @@
             <div class="footer-section">
                 <h3>Contact Us</h3>
                 <p><i class="fas fa-phone"></i> +63 (955) 123-4567</p>
-                <p><i class="fas fa-envelope"></i> info@fastlan.com</p>
+                <p><i class="fas fa-envelope"></i> info@digilink.com</p>
             </div>
             <div class="footer-section">
                 <h3>Follow Us</h3>

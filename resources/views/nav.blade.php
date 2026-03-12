@@ -94,9 +94,7 @@
     }
 </style>
 
-        <div class="nav-left">
-           <a href="{{ route(name: 'home') }}" class="nav-brand">Fast<span>Lan</span></a>
-        </div>
+@include('logo')
         <div class="nav-middle">
         </div>
         <div class="nav-right">

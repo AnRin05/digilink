@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastLan - Driver Signup</title>
-    <link rel="shortcut icon" href="images/fastlan.png" type="image/x-icon">
+    <title>HopN'Drop - Driver Signup</title>
+    <link rel="shortcut icon" href="images/HopN'Drop.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <link rel="icon" href="{{ asset('images/HopN\'Drop.png') }}">
     <style>
         * {
             margin: 0;
@@ -629,7 +629,7 @@
     <div class="main-container">
         <div class="form-container">
             <div class="form-header">
-                <h1>Become a FastLan Driver</h1>
+                <h1>Become a HopN'Drop Driver</h1>
                 <p>Join our network of professional drivers and start earning today</p>
             </div>
             

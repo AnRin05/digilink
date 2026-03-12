@@ -1163,7 +1163,7 @@
 <body>
                                                             <!-- Navbar -->
     <nav class="navbar">
-        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
+        @include('logo')
         <div class="nav-links">
             <a href="{{ route('passenger.dashboard') }}" class="nav-link">Ride Service</a>
             <a href="{{ route('passenger.edit') }}" class="nav-link">Edit Profile</a>
@@ -1332,11 +1332,12 @@
                                                             <!-- Map -->
                 <div id="map"></div>
             </div>
-            <div style="margin-bottom: 1rem;">
-                <button type="button" id="resetMapBtn" class="btn btn-danger">
-                    <i class="fas fa-redo"></i> Reset Map
-                </button>
-            </div>
+                <div class="form-group">
+                    <hr>
+                    <h2 style="text-align:center; color:#e83d4e">If you made a mistake picking your coordinates, please drag it to your
+                        desired destination</h2>
+                    <hr>
+                </div>
             
                                                             <!-- Location Info -->
             <div class="map-info">
@@ -1360,6 +1361,8 @@
             <form action="{{ route('passenger.book.ride') }}" method="POST" class="booking-form" id="bookingForm">
                 @csrf
                                                             <!-- Hidden fields -->
+                <input type="hidden" name="pickupLocationName" id="pickupLocationName">
+                <input type="hidden" name="dropoffLocationName" id="dropoffLocationName">
                 <input type="hidden" name="pickupLatitude" id="pickupLatitude">
                 <input type="hidden" name="pickupLongitude" id="pickupLongitude">
                 <input type="hidden" name="dropoffLatitude" id="dropoffLatitude">
@@ -1409,6 +1412,15 @@
     </div>
 
 <script>
+    function setServiceType(type) {
+        document.getElementById('serviceType').value = type;
+
+        document.querySelectorAll('.booking-nav button, .booking-nav a').forEach(element => {
+            element.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+    }
+
     let map;
     let mapInitialized = false;
     let pickupMarker = null;
@@ -1416,30 +1428,132 @@
     let routeControl = null;
     let currentRoute = null;
     let isSubmitting = false;
+    let geocodeTimeout = null;
 
-    function showAlert(message, type = 'success', duration = 5000) {
-        // Remove any existing alerts first
-        const existingAlerts = document.querySelectorAll('.alert[style*="position: fixed"]');
-        existingAlerts.forEach(alert => alert.remove());
-        
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        const alertHtml = `
-            <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
-                <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong> ${message}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', alertHtml);
-        
-        // Auto-dismiss after duration
-        setTimeout(() => {
-            const alert = document.querySelector('.alert:last-child');
-            if (alert) {
-                alert.remove();
+    // Improved address reverse geocoding function
+    function updateAddressFromCoords(lat, lng, type) {
+        // Clear any previous timeout
+        if (geocodeTimeout) {
+            clearTimeout(geocodeTimeout);
+        }
+
+        // Show loading state
+        const inputField = type === 'pickup' ? document.getElementById('pickupLocation') : document.getElementById('dropoffLocation');
+        const displayField = type === 'pickup' ? document.getElementById('pickupDisplay') : document.getElementById('dropoffDisplay');
+        const originalValue = inputField.value;
+        inputField.value = "Getting address...";
+        displayField.textContent = "Getting address...";
+        inputField.disabled = true;
+
+        // Use debouncing to prevent too many API calls
+        geocodeTimeout = setTimeout(async () => {
+            try {
+                // Use Nominatim with better parameters
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+                    {
+                        headers: {
+                            'Accept-Language': 'en',
+                            'User-Agent': 'FastLanApp/1.0'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                if (data && data.display_name) {
+                    // Parse the address to get a cleaner format
+                    const address = formatAddress(data);
+
+                    if (type === 'pickup') {
+                        document.getElementById('pickupLocation').value = address;
+                        document.getElementById('pickupDisplay').textContent = address;
+                    } else if (type === 'dropoff') {
+                        document.getElementById('dropoffLocation').value = address;
+                        document.getElementById('dropoffDisplay').textContent = address;
+                    }
+                } else {
+                    // Fallback to coordinates if no address found
+                    const fallbackText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    if (type === 'pickup') {
+                        document.getElementById('pickupLocation').value = fallbackText;
+                        document.getElementById('pickupDisplay').textContent = "Location set (enter address manually)";
+                    } else if (type === 'dropoff') {
+                        document.getElementById('dropoffLocation').value = fallbackText;
+                        document.getElementById('dropoffDisplay').textContent = "Location set (enter address manually)";
+                    }
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                // Fallback to coordinates
+                const fallbackText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                if (type === 'pickup') {
+                    document.getElementById('pickupLocation').value = fallbackText;
+                    document.getElementById('pickupDisplay').textContent = "Unable to get address. Please enter manually.";
+                } else if (type === 'dropoff') {
+                    document.getElementById('dropoffLocation').value = fallbackText;
+                    document.getElementById('dropoffDisplay').textContent = "Unable to get address. Please enter manually.";
+                }
+            } finally {
+                inputField.disabled = false;
+                // If the user hasn't changed the value while it was loading, focus the field
+                if (inputField.value === "Getting address...") {
+                    inputField.value = "";
+                    inputField.focus();
+                }
             }
-        }, duration);
+        }, 500); // 500ms debounce delay
+    }
+
+    // Helper function to format the address from Nominatim response
+    function formatAddress(data) {
+        if (!data.address) {
+            return data.display_name || '';
+        }
+
+        const addr = data.address;
+        const parts = [];
+
+        // Build address in a logical order
+        if (addr.road) {
+            parts.push(addr.road);
+        }
+        if (addr.neighbourhood) {
+            parts.push(addr.neighbourhood);
+        }
+        if (addr.suburb) {
+            parts.push(addr.suburb);
+        }
+        if (addr.village) {
+            parts.push(addr.village);
+        }
+        if (addr.town) {
+            parts.push(addr.town);
+        }
+        if (addr.city) {
+            parts.push(addr.city);
+        }
+        if (addr.county) {
+            parts.push(addr.county);
+        }
+        if (addr.state) {
+            parts.push(addr.state);
+        }
+        if (addr.country) {
+            parts.push(addr.country);
+        }
+
+        // If we have a good address, return it
+        if (parts.length > 0) {
+            return parts.join(', ');
+        }
+
+        // Fallback to full display name
+        return data.display_name;
     }
 
     function initializeMap() {
@@ -1447,20 +1561,20 @@
             if (mapInitialized) {
                 return;
             }
-            
+
             const mapElement = document.getElementById('map');
             if (!mapElement) {
                 console.error('Map element not found');
                 return;
             }
-            
+
             if (mapElement._leaflet_id) {
                 console.log('Map already initialized');
                 return;
             }
 
             const surigaoCity = [9.7890, 125.4950];
-            
+
             map = L.map('map', {
                 center: surigaoCity,
                 zoom: 13,
@@ -1475,20 +1589,23 @@
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            tileLayer.on('load', function() {
+            tileLayer.on('load', function () {
                 document.getElementById('map-loading').style.display = 'none';
                 mapInitialized = true;
                 console.log('Map initialized successfully');
+
+                // Add click event for the map
+                map.on('click', function (e) {
+                    handleMapClick(e);
+                });
             });
 
-            tileLayer.on('tileerror', function() {
+            tileLayer.on('tileerror', function () {
                 console.error('Failed to load map tiles');
                 document.getElementById('map-loading').style.display = 'none';
                 showAlert('Failed to load map. Please check your internet connection.', 'error');
             });
 
-            initializeMapFeatures();
-            
         } catch (error) {
             console.error('Error initializing map:', error);
             document.getElementById('map-loading').style.display = 'none';
@@ -1496,61 +1613,86 @@
         }
     }
 
-    function initializeMapFeatures() {
-        map.on('click', function(e) {
-            if (!pickupMarker) {
-                pickupMarker = L.marker(e.latlng, { 
-                    draggable: true,
-                    icon: L.divIcon({
-                        className: 'pickup-marker',
-                        html: '<div style="background: #28a745; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-                        iconSize: [20, 20]
-                    })
-                }).addTo(map).bindPopup('Pickup Location');
+    // Separate function to handle map clicks
+    function handleMapClick(e) {
+        if (!pickupMarker) {
+            // Create pickup marker
+            pickupMarker = L.marker(e.latlng, {
+                draggable: true,
+                icon: L.divIcon({
+                    className: 'pickup-marker',
+                    html: '<div style="background: #28a745; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [20, 20]
+                })
+            }).addTo(map).bindPopup('Pickup Location');
 
-                document.getElementById('pickupLatitude').value = e.latlng.lat.toFixed(6);
-                document.getElementById('pickupLongitude').value = e.latlng.lng.toFixed(6);
-                document.getElementById('pickupDisplay').textContent = e.latlng.lat.toFixed(4) + ', ' + e.latlng.lng.toFixed(4);
+            // Update coordinates
+            document.getElementById('pickupLatitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('pickupLongitude').value = e.latlng.lng.toFixed(6);
 
-                pickupMarker.on('dragend', function(ev) {
-                    let coords = ev.target.getLatLng();
-                    updatePickupCoords(coords);
-                    if (dropoffMarker) {
-                        showRoute(pickupMarker.getLatLng(), dropoffMarker.getLatLng());
-                    }
-                });
+            // Show coordinates temporarily while getting address
+            document.getElementById('pickupDisplay').textContent = "Getting address...";
 
-            } else if (!dropoffMarker) {
-                dropoffMarker = L.marker(e.latlng, { 
-                    draggable: true,
-                    icon: L.divIcon({
-                        className: 'dropoff-marker',
-                        html: '<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-                        iconSize: [20, 20]
-                    })
-                }).addTo(map).bindPopup('Delivery Location');
+            // Get address from coordinates
+            updateAddressFromCoords(e.latlng.lat, e.latlng.lng, 'pickup');
 
-                document.getElementById('dropoffLatitude').value = e.latlng.lat.toFixed(6);
-                document.getElementById('dropoffLongitude').value = e.latlng.lng.toFixed(6);
-                document.getElementById('dropoffDisplay').textContent = e.latlng.lat.toFixed(4) + ', ' + e.latlng.lng.toFixed(4);
+            // Add drag event
+            pickupMarker.on('dragend', function (ev) {
+                let coords = ev.target.getLatLng();
+                updatePickupCoords(coords);
+                if (dropoffMarker) {
+                    showRoute(pickupMarker.getLatLng(), dropoffMarker.getLatLng());
+                }
+            });
 
-                dropoffMarker.on('dragend', function(ev) {
-                    let coords = ev.target.getLatLng();
-                    updateDropoffCoords(coords);
-                    if (pickupMarker) {
-                        showRoute(pickupMarker.getLatLng(), dropoffMarker.getLatLng());
-                    }
-                });
+        } else if (!dropoffMarker) {
+            // Create dropoff marker
+            dropoffMarker = L.marker(e.latlng, {
+                draggable: true,
+                icon: L.divIcon({
+                    className: 'dropoff-marker',
+                    html: '<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [20, 20]
+                })
+            }).addTo(map).bindPopup('Delivery Location');
 
+            // Update coordinates
+            document.getElementById('dropoffLatitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('dropoffLongitude').value = e.latlng.lng.toFixed(6);
+
+            // Show coordinates temporarily while getting address
+            document.getElementById('dropoffDisplay').textContent = "Getting address...";
+
+            // Get address from coordinates
+            updateAddressFromCoords(e.latlng.lat, e.latlng.lng, 'dropoff');
+
+            // Add drag event
+            dropoffMarker.on('dragend', function (ev) {
+                let coords = ev.target.getLatLng();
+                updateDropoffCoords(coords);
+                if (pickupMarker) {
+                    showRoute(pickupMarker.getLatLng(), dropoffMarker.getLatLng());
+                }
+            });
+
+            // Show route between points
+            if (pickupMarker) {
                 showRoute(pickupMarker.getLatLng(), dropoffMarker.getLatLng());
             }
-        });
+        } else {
+            // Both markers exist, ask user if they want to reset or replace
+            if (confirm('Both pickup and delivery locations are already set. Would you like to clear them and start over?')) {
+                resetMap();
+                // Set new pickup at clicked location
+                handleMapClick(e);
+            }
+        }
     }
 
     function calculateFare(distanceKm) {
         const serviceFee = 5;
         let fare;
-        
+
         if (distanceKm <= 4) {
             fare = 10;
         } else if (distanceKm <= 6) {
@@ -1566,10 +1708,10 @@
         } else {
             fare = 75 + (distanceKm - 24) * 5;
         }
-        
+
         // Add service fee
         const totalFare = fare + serviceFee;
-        
+
         return {
             baseFare: fare,
             serviceFee: serviceFee,
@@ -1580,7 +1722,7 @@
 
     function updateFareDisplay(distanceKm) {
         const fareData = calculateFare(distanceKm);
-        document.getElementById('fareDisplay').innerHTML = 
+        document.getElementById('fareDisplay').innerHTML =
             `<span class="fare-amount">₱${fareData.totalFare.toFixed(2)}</span>`;
     }
 
@@ -1588,14 +1730,14 @@
         if (routeControl) {
             map.removeControl(routeControl);
         }
-        
+
         // Check if L.Routing is available
         if (!L.Routing) {
             console.error('Leaflet Routing Machine is not loaded');
             showAlert('Route calculation service is not available.', 'error');
             return;
         }
-        
+
         routeControl = L.Routing.control({
             waypoints: [
                 L.latLng(start.lat, start.lng),
@@ -1608,10 +1750,11 @@
             addWaypoints: false,
             draggableWaypoints: false,
             fitSelectedRoutes: true,
-            showAlternatives: false
+            showAlternatives: false,
+            createMarker: function () { return null; } // Don't create default markers
         }).addTo(map);
 
-        routeControl.on('routesfound', function(e) {
+        routeControl.on('routesfound', function (e) {
             const route = e.routes[0];
             const distanceKm = route.summary.totalDistance / 1000;
             const totalSeconds = route.summary.totalTime;
@@ -1636,7 +1779,7 @@
             currentRoute = route;
         });
 
-        routeControl.on('routingerror', function(e) {
+        routeControl.on('routingerror', function (e) {
             console.error('Route error:', e.error);
             showAlert('Unable to calculate route. Please check your locations.', 'error');
         });
@@ -1645,13 +1788,44 @@
     function updatePickupCoords(coords) {
         document.getElementById('pickupLatitude').value = coords.lat.toFixed(6);
         document.getElementById('pickupLongitude').value = coords.lng.toFixed(6);
-        document.getElementById('pickupDisplay').textContent = coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4);
+        document.getElementById('pickupDisplay').textContent = "Updating address...";
+
+        // Update address when marker is dragged
+        updateAddressFromCoords(coords.lat, coords.lng, 'pickup');
     }
 
     function updateDropoffCoords(coords) {
         document.getElementById('dropoffLatitude').value = coords.lat.toFixed(6);
         document.getElementById('dropoffLongitude').value = coords.lng.toFixed(6);
-        document.getElementById('dropoffDisplay').textContent = coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4);
+        document.getElementById('dropoffDisplay').textContent = "Updating address...";
+
+        // Update address when marker is dragged
+        updateAddressFromCoords(coords.lat, coords.lng, 'dropoff');
+    }
+
+    function showAlert(message, type = 'success', duration = 5000) {
+        // Remove any existing alerts first
+        const existingAlerts = document.querySelectorAll('.alert[style*="position: fixed"]');
+        existingAlerts.forEach(alert => alert.remove());
+
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
+                <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong> ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+        // Auto-dismiss after duration
+        setTimeout(() => {
+            const alert = document.querySelector('.alert:last-child');
+            if (alert) {
+                alert.remove();
+            }
+        }, duration);
     }
 
     function resetMap() {
@@ -1678,11 +1852,11 @@
         document.getElementById('dropoffDisplay').textContent = 'Click again to set delivery location';
         document.getElementById('distanceDisplay').textContent = '-';
         document.getElementById('durationDisplay').textContent = '-';
-        
+
         // Reset fare display
         document.getElementById('fareDisplay').innerHTML = `<span class="fare-amount">₱0.00</span>`;
         document.getElementById('fare').value = '';
-        
+
         const surigaoCity = [9.7890, 125.4950];
         map.setView(surigaoCity, 13);
     }
@@ -1697,7 +1871,7 @@
                     'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                 }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 return data.pending_count || 0;
@@ -1709,7 +1883,7 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const barangaySelect = document.getElementById('barangay');
         const driverList = document.getElementById('driverList');
         const searchDriversBtn = document.getElementById('searchDriversBtn');
@@ -1718,7 +1892,7 @@
         initializeMap();
 
         function searchDrivers() {
-            const selectedBarangay = barangaySelect.value;          
+            const selectedBarangay = barangaySelect.value;
             driverList.innerHTML = '<div class="driver-card"><p>Searching for delivery drivers...</p></div>';
             fetch(`{{ route('passenger.available.delivery.drivers') }}?barangay=${selectedBarangay}`)
                 .then(response => {
@@ -1748,107 +1922,107 @@
                 });
         }
 
-    function updateDriverList(drivers, barangay) {
-        if (drivers.length === 0) {
-            const locationText = barangay === 'all' ? 'in any barangay' : `in ${barangay}`;
-            driverList.innerHTML = `
-                <div class="driver-card empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-motorcycle"></i>
+        function updateDriverList(drivers, barangay) {
+            if (drivers.length === 0) {
+                const locationText = barangay === 'all' ? 'in any barangay' : `in ${barangay}`;
+                driverList.innerHTML = `
+                    <div class="driver-card empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-motorcycle"></i>
+                        </div>
+                        <p>No available delivery drivers ${locationText} at the moment.</p>
+                        <small class="text-muted">Please check back later or try a different barangay.</small>
                     </div>
-                    <p>No available delivery drivers ${locationText} at the moment.</p>
-                    <small class="text-muted">Please check back later or try a different barangay.</small>
-                </div>
-            `;
-            return;
-        }
-        
-        driverList.innerHTML = drivers.map(driver => {
-            const locationText = driver.currentLocation === 'all' 
-                ? '<span class="text-success">Available for All Locations</span>' 
-                : driver.currentLocation;
-            
-            const profileImage = driver.profile_image || '/images/default-avatar.png';
-            const averageRating = driver.average_rating ? driver.average_rating.toFixed(1) : 'New';
-            const totalReviews = driver.total_reviews || 0;
-            
-            return `
-                <div class="driver-card" data-driver-id="${driver.id}">
-                    <div class="driver-header">
-                        <div class="driver-profile">
-                            <img src="${profileImage}" alt="${driver.fullname}" class="driver-avatar">
-                            <div class="driver-info">
-                                <strong>${driver.fullname}</strong>
-                                <div class="driver-rating">
-                                    <span class="star-rating">
-                                        <i class="fas fa-star"></i> ${averageRating}
-                                    </span>
-                                    <span class="rating-text">(${totalReviews} reviews)</span>
+                `;
+                return;
+            }
+
+            driverList.innerHTML = drivers.map(driver => {
+                const locationText = driver.currentLocation === 'all'
+                    ? '<span class="text-success">Available for All Locations</span>'
+                    : driver.currentLocation;
+
+                const profileImage = driver.profile_image || '/images/default-avatar.png';
+                const averageRating = driver.average_rating ? driver.average_rating.toFixed(1) : 'New';
+                const totalReviews = driver.total_reviews || 0;
+
+                return `
+                    <div class="driver-card" data-driver-id="${driver.id}">
+                        <div class="driver-header">
+                            <div class="driver-profile">
+                                <img src="${profileImage}" alt="${driver.fullname}" class="driver-avatar">
+                                <div class="driver-info">
+                                    <strong>${driver.fullname}</strong>
+                                    <div class="driver-rating">
+                                        <span class="star-rating">
+                                            <i class="fas fa-star"></i> ${averageRating}
+                                        </span>
+                                        <span class="rating-text">(${totalReviews} reviews)</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="driver-details">
-                        <div class="detail-item">
-                            <i class="fas fa-motorcycle"></i>
-                            <span>${driver.vehicleMake} ${driver.vehicleModel}</span>
+                        
+                        <div class="driver-details">
+                            <div class="detail-item">
+                                <i class="fas fa-motorcycle"></i>
+                                <span>${driver.vehicleMake} ${driver.vehicleModel}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-tag"></i>
+                                <span>Plate: ${driver.plateNumber}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>${driver.completedBooking} completed deliveries</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span class="${driver.currentLocation === 'all' ? 'text-success' : 'text-info'}">
+                                    ${driver.currentLocation === 'all' ? 'All Areas' : driver.currentLocation}
+                                </span>
+                            </div>
                         </div>
-                        <div class="detail-item">
-                            <i class="fas fa-tag"></i>
-                            <span>Plate: ${driver.plateNumber}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>${driver.completedBooking} completed deliveries</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span class="${driver.currentLocation === 'all' ? 'text-success' : 'text-info'}">
-                                ${driver.currentLocation === 'all' ? 'All Areas' : driver.currentLocation}
+                        
+                        <div class="driver-status">
+                            <span class="status-badge status-available">
+                                <i class="fas fa-circle"></i> Available for Delivery
                             </span>
                         </div>
                     </div>
-                    
-                    <div class="driver-status">
-                        <span class="status-badge status-available">
-                            <i class="fas fa-circle"></i> Available for Delivery
-                        </span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+                `;
+            }).join('');
+        }
 
         if (searchDriversBtn) {
             searchDriversBtn.addEventListener('click', searchDrivers);
         }
 
         if (bookingForm) {
-            bookingForm.addEventListener('submit', async function(e) {
+            bookingForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                
+
                 // Prevent multiple submissions
                 if (isSubmitting) {
                     return;
                 }
-                
+
                 console.log('Delivery form submitted via AJAX');
-                
+
                 // Validate required fields
                 const pickupLat = document.getElementById('pickupLatitude').value;
                 const dropoffLat = document.getElementById('dropoffLatitude').value;
-                
+
                 if (!pickupLat || !dropoffLat) {
                     showAlert('Please set both pickup and delivery locations on the map before booking.', 'error');
                     return false;
                 }
-                
+
                 const pickupLocation = document.getElementById('pickupLocation').value;
                 const dropoffLocation = document.getElementById('dropoffLocation').value;
-                
+
                 if (!pickupLocation || !dropoffLocation) {
-                    showAlert('Please fill in both pickup and delivery barangay names.', 'error');
+                    showAlert('Please fill in both pickup and delivery locations.', 'error');
                     return false;
                 }
 
@@ -1857,22 +2031,22 @@
                     showAlert('Please describe the item you want to deliver.', 'error');
                     return false;
                 }
-                
+
                 // Check booking limit
                 const pendingCount = await checkBookingLimit();
                 if (pendingCount >= 3) {
                     showAlert(`You cannot book more than 3 deliveries at a time. You currently have ${pendingCount} pending bookings. Please wait for some to be completed before booking again.`, 'error', 8000);
                     return false;
                 }
-                
+
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                 submitBtn.disabled = true;
                 isSubmitting = true;
-                
+
                 const formData = new FormData(this);
-                
+
                 try {
                     const response = await fetch(this.action, {
                         method: 'POST',
@@ -1882,24 +2056,24 @@
                             'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                         }
                     });
-                    
+
                     const data = await response.json();
-                    
+
                     if (data.redirect) {
                         window.location.href = data.redirect;
                     } else if (data.success) {
                         showAlert(data.message, 'success', 6000);
-                        
+
                         // Reset form after successful booking
                         setTimeout(() => {
                             resetMap();
-                            
+
                             // Clear form fields
                             document.getElementById('pickupLocation').value = '';
                             document.getElementById('dropoffLocation').value = '';
                             document.getElementById('description').value = '';
                             document.getElementById('scheduleTime').value = '';
-                            
+
                             // Show success message with booking info
                             if (data.booking_id) {
                                 const fare = document.getElementById('fare').value || '0.00';
@@ -1936,13 +2110,13 @@
 
         const userProfileDropdown = document.getElementById('userProfileDropdown');
         if (userProfileDropdown) {
-            userProfileDropdown.addEventListener('click', function(e) {
+            userProfileDropdown.addEventListener('click', function (e) {
                 e.stopPropagation();
                 document.getElementById('dropdownMenu').classList.toggle('show');
             });
         }
-        
-        document.addEventListener('click', function(e) {
+
+        document.addEventListener('click', function (e) {
             if (!e.target.closest('.user-profile-dropdown')) {
                 const dropdownMenu = document.getElementById('dropdownMenu');
                 if (dropdownMenu) {
@@ -1951,7 +2125,7 @@
             }
         });
 
-        setTimeout(function() {
+        setTimeout(function () {
             const loadingOverlay = document.getElementById('map-loading');
             if (loadingOverlay && loadingOverlay.style.display !== 'none') {
                 loadingOverlay.style.display = 'none';

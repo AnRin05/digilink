@@ -896,7 +896,7 @@ body {
 <body>
                                                             <!-- Navbar -->
     <nav class="navbar">
-        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
+        @include('logo')
         <div class="nav-links">
             <a href="{{ route('passenger.dashboard') }}" class="nav-link">Dashboard</a>
             <a href="{{ route('passenger.edit') }}" class="nav-link">Edit Profile</a>
@@ -958,21 +958,195 @@ body {
         </div>
     </div>
 
-<script>
-    function loadPendingBookings() {
-        const bookingsList = document.getElementById('bookingsList');
-        const bookingsCount = document.getElementById('bookingsCount');
-        bookingsList.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-spinner fa-spin"></i>
+    <script>
+        function loadPendingBookings() {
+            const bookingsList = document.getElementById('bookingsList');
+            const bookingsCount = document.getElementById('bookingsCount');
+            bookingsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <h3 class="empty-title">Loading Bookings</h3>
+                    <p class="empty-text">Please wait while we fetch your bookings...</p>
                 </div>
-                <h3 class="empty-title">Loading Bookings</h3>
-                <p class="empty-text">Please wait while we fetch your bookings...</p>
-            </div>
-        `;
+            `;
 
-        fetch("{{ route('passenger.get.pending.bookings') }}")
+            fetch("{{ route('passenger.get.pending.bookings') }}")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message || 'Failed to load bookings');
+                    }
+
+                    bookingsCount.textContent = `${data.count} booking${data.count !== 1 ? 's' : ''}`;
+
+                    if (data.count === 0) {
+                        bookingsList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <h3 class="empty-title">No Active Bookings</h3>
+                                <p class="empty-text">You don't have any pending, accepted, or on-going bookings.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    bookingsList.innerHTML = '';
+                    data.bookings.forEach(booking => {
+                        const bookingCard = document.createElement('div');
+                        bookingCard.className = 'booking-card';
+                        bookingCard.dataset.bookingId = booking.id;
+                        bookingCard.dataset.createdAt = booking.created_at;
+                        bookingCard.dataset.scheduleTime = booking.schedule_time || '';
+                        bookingCard.dataset.status = booking.status;
+                        bookingCard.dataset.isImmediate = booking.schedule_time === 'Immediate';
+                        
+                        bookingCard.innerHTML = `
+                            <div class="booking-header">
+                                <div class="booking-info">
+                                    <h3>${booking.service_type} Booking</h3>
+                                    <p class="detail-row created-time">
+                                        <i class="fas fa-calendar"></i>
+                                        Booked on: ${booking.created_at}
+                                    </p>
+                                    ${booking.status === 'pending' && booking.schedule_time === 'Immediate' ? `
+                                    <div class="immediate-countdown-container" style="margin-top: 8px;"></div>
+                                    ` : ''}
+                                </div>
+                                <span class="status-badge status-${booking.status}">
+                                    ${booking.status_display}
+                                </span>
+                            </div>
+
+                            <div class="booking-details">
+                                <div class="detail-row">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <strong>Pickup:</strong> ${booking.pickup_location}
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-flag-checkered"></i>
+                                    <strong>Drop-off:</strong> ${booking.dropoff_location}
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <strong>Fare:</strong> ${booking.fare}
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-credit-card"></i>
+                                    <strong>Payment:</strong> ${booking.payment_method}
+                                </div>
+                                ${booking.schedule_time !== 'Immediate' && booking.schedule_time ? `
+                                <div class="detail-row schedule-time">
+                                    <i class="fas fa-clock"></i>
+                                    <strong>Scheduled:</strong> ${booking.schedule_time}
+                                    ${booking.status === 'pending' ? `
+                                    <div class="schedule-countdown-container" style="margin-top: 8px;"></div>
+                                    ` : ''}
+                                </div>
+                                ` : ''}
+                                ${booking.description ? `
+                                <div class="detail-row">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <strong>Description:</strong> ${booking.description}
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            ${booking.driver_name !== 'Not assigned yet' ? `
+                            <div class="driver-info">
+                                <h4>Driver Information</h4>
+                                <div class="detail-row">
+                                    <i class="fas fa-user"></i>
+                                    <strong>Driver:</strong> ${booking.driver_name}
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-phone"></i>
+                                    <strong>Phone:</strong> ${booking.driver_phone}
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-car"></i>
+                                    <strong>Vehicle:</strong> ${booking.vehicle_info}
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-list"></i>
+                                    <strong>Completed Booking:</strong> ${booking.completed_booking}
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${booking.can_edit ? `
+                                <div class="booking-actions">
+                                    <a href="/digilink/public/passenger/edit-booking/${booking.id}" class="btn btn-outline">
+                                        <i class="fas fa-edit"></i>
+                                        Edit Booking
+                                    </a>
+                                    <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
+                                        <i class="fas fa-times"></i>
+                                        Cancel Booking
+                                    </button>
+                                </div>
+                                ` : booking.can_track ? `
+                                <div class="booking-actions">
+                                    <a href="/digilink/public/passenger/track-booking/${booking.id}" class="btn btn-track">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        View Progress
+                                    </a>
+                                </div>
+                                ` : booking.can_cancel ? `
+                                <div class="booking-actions">
+                                    <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
+                                        <i class="fas fa-times"></i>
+                                        Cancel Booking
+                                    </button>
+                                </div>
+                                ` : ''}
+                        `;
+                        bookingsList.appendChild(bookingCard);
+                        
+                        // Initialize timer for this booking card
+                        setTimeout(() => {
+                            initializeBookingTimers(bookingCard);
+                        }, 100);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading bookings:', error);
+                    bookingsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h3 class="empty-title">Error Loading Bookings</h3>
+                            <p class="empty-text">There was a problem loading your bookings. Please try again.</p>
+                            <button class="btn btn-danger" onclick="loadPendingBookings()" style="margin-top: 1rem;">
+                                <i class="fas fa-redo"></i>
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+                    bookingsCount.textContent = 'Error';
+                });
+        }
+
+        function cancelBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+                return;
+            }
+
+            fetch(`/digilink/public/passenger/cancel-booking/${bookingId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -980,210 +1154,394 @@ body {
                 return response.json();
             })
             .then(data => {
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to load bookings');
+                if (data.success) {
+                    alert('Booking cancelled successfully!');
+                    loadPendingBookings();
+                } else {
+                    throw new Error(data.message || 'Failed to cancel booking');
                 }
-
-                bookingsCount.textContent = `${data.count} booking${data.count !== 1 ? 's' : ''}`;
-
-                if (data.count === 0) {
-                    bookingsList.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <h3 class="empty-title">No Active Bookings</h3>
-                            <p class="empty-text">You don't have any pending, accepted, or on-going bookings.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                bookingsList.innerHTML = '';
-                data.bookings.forEach(booking => {
-                    const bookingCard = document.createElement('div');
-                    bookingCard.className = 'booking-card';
-                    bookingCard.innerHTML = `
-                        <div class="booking-header">
-                            <div class="booking-info">
-                                <h3>${booking.service_type} Booking</h3>
-                                <p class="detail-row">
-                                    <i class="fas fa-calendar"></i>
-                                    Booked on: ${booking.created_at}
-                                </p>
-                            </div>
-                            <span class="status-badge status-${booking.status}">
-                                ${booking.status_display}
-                            </span>
-                        </div>
-
-                        <div class="booking-details">
-                            <div class="detail-row">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <strong>Pickup:</strong> ${booking.pickup_location}
-                            </div>
-                            <div class="detail-row">
-                                <i class="fas fa-flag-checkered"></i>
-                                <strong>Drop-off:</strong> ${booking.dropoff_location}
-                            </div>
-                            <div class="detail-row">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <strong>Fare:</strong> ${booking.fare}
-                            </div>
-                            <div class="detail-row">
-                                <i class="fas fa-credit-card"></i>
-                                <strong>Payment:</strong> ${booking.payment_method}
-                            </div>
-                            ${booking.schedule_time !== 'Immediate' ? `
-                            <div class="detail-row">
-                                <i class="fas fa-clock"></i>
-                                <strong>Scheduled:</strong> ${booking.schedule_time}
-                            </div>
-                            ` : ''}
-                            ${booking.description ? `
-                            <div class="detail-row">
-                                <i class="fas fa-sticky-note"></i>
-                                <strong>Description:</strong> ${booking.description}
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        ${booking.driver_name !== 'Not assigned yet' ? `
-                        <div class="driver-info">
-                            <h4>Driver Information</h4>
-                            <div class="detail-row">
-                                <i class="fas fa-user"></i>
-                                <strong>Driver:</strong> ${booking.driver_name}
-                            </div>
-                            <div class="detail-row">
-                                <i class="fas fa-phone"></i>
-                                <strong>Phone:</strong> ${booking.driver_phone}
-                            </div>
-                            <div class="detail-row">
-                                <i class="fas fa-car"></i>
-                                <strong>Vehicle:</strong> ${booking.vehicle_info}
-                            </div>
-                            <div class="detail-row">
-                                <i class="fas fa-list"></i>
-                                <strong>Completed Booking:</strong> ${booking.completed_booking}
-                            </div>
-                        </div>
-                        ` : ''}
-                        ${booking.can_edit ? `
-                        <div class="booking-actions">
-                            <a href="{{ url('/passenger/edit-booking') }}/${booking.id}" class="btn btn-edit">
-                                <i class="fas fa-edit"></i>
-                                Edit Booking
-                            </a>
-                            <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
-                                <i class="fas fa-times"></i>
-                                Cancel Booking
-                            </button>
-                        </div>
-                        ` : booking.can_track ? `
-                        <div class="booking-actions">
-                            <a href="{{ url('/passenger/track-booking') }}/${booking.id}" class="btn btn-track">
-                                <i class="fas fa-map-marker-alt"></i>
-                                View Progress
-                            </a>
-                            <button class="btn btn-danger" onclick="cancelBooking(${booking.id})" ${booking.can_cancel ? '' : 'disabled'}>
-                                <i class="fas fa-times"></i>
-                                Cancel Booking
-                            </button>
-                        </div>
-                        ` : booking.can_cancel ? `
-                        <div class="booking-actions">
-                            <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">
-                                <i class="fas fa-times"></i>
-                                Cancel Booking
-                            </button>
-                        </div>
-                        ` : ''}
-                    `;
-                    bookingsList.appendChild(bookingCard);
-                });
             })
             .catch(error => {
-                console.error('Error loading bookings:', error);
-                bookingsList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <h3 class="empty-title">Error Loading Bookings</h3>
-                        <p class="empty-text">There was a problem loading your bookings. Please try again.</p>
-                        <button class="btn btn-danger" onclick="loadPendingBookings()" style="margin-top: 1rem;">
-                            <i class="fas fa-redo"></i>
-                            Try Again
-                        </button>
-                    </div>
-                `;
-                bookingsCount.textContent = 'Error';
+                console.error('Error cancelling booking:', error);
+                alert('Failed to cancel booking: ' + error.message);
             });
-    }
-
-    function cancelBooking(bookingId) {
-        if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-            return;
         }
 
-        // FIXED: Use the same URL format as your other links
-        fetch(`{{ url('/passenger/cancel-booking') }}/${bookingId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({}) // Optional: send empty JSON object
-        })
-        .then(response => {
-            // Better error handling to get the actual error message
-            if (!response.ok) {
-                // Try to parse the error response
-                return response.json().then(errorData => {
-                    throw new Error(errorData.message || 'Network response was not ok');
-                }).catch(() => {
-                    throw new Error('Network response was not ok');
-                });
+        function parseLaravelDateTime(dateTimeString) {
+            console.log('Parsing date:', dateTimeString);
+            
+            // Check if it's "Immediate"
+            if (dateTimeString === 'Immediate' || !dateTimeString) {
+                return null;
             }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                alert('Booking cancelled successfully!');
-                loadPendingBookings();
+            
+            // Clean the date string - remove any "at" and trim
+            dateTimeString = dateTimeString.toString().replace(' at', '').trim();
+            
+            // Try parsing as ISO format first
+            let date = new Date(dateTimeString);
+            
+            // If that fails, try parsing PHP/Laravel format manually
+            if (isNaN(date.getTime())) {
+                // Try to match common PHP datetime formats
+                const regex = /(\d{4})[-/](\d{1,2})[-/](\d{1,2})[T\s](\d{1,2}):(\d{1,2}):(\d{1,2})/;
+                const match = dateTimeString.match(regex);
+                
+                if (match) {
+                    const [_, year, month, day, hour, minute, second] = match;
+                    date = new Date(
+                        parseInt(year),
+                        parseInt(month) - 1,
+                        parseInt(day),
+                        parseInt(hour),
+                        parseInt(minute),
+                        parseInt(second)
+                    );
+                } else {
+                    // Try another format
+                    const parts = dateTimeString.split(/[- :T]/);
+                    if (parts.length >= 6) {
+                        date = new Date(
+                            parseInt(parts[0]),
+                            parseInt(parts[1]) - 1,
+                            parseInt(parts[2]),
+                            parseInt(parts[3]) || 0,
+                            parseInt(parts[4]) || 0,
+                            parseInt(parts[5]) || 0
+                        );
+                    }
+                }
+            }
+            
+            // Adjust for Philippine Time (UTC+8)
+            if (!isNaN(date.getTime())) {
+                // Convert to Philippine Time
+                const philippineOffset = 8 * 60; // UTC+8 in minutes
+                const localOffset = date.getTimezoneOffset();
+                const offsetDiff = philippineOffset + localOffset;
+                date.setMinutes(date.getMinutes() + offsetDiff);
+                
+                console.log('Parsed date (PH Time):', date);
+                return date;
+            }
+            
+            console.error('Could not parse datetime:', dateTimeString);
+            return null;
+        }
+
+        function initializeBookingTimers(bookingCard) {
+            const status = bookingCard.dataset.status;
+            const isImmediate = bookingCard.dataset.isImmediate === 'true';
+            const createdTime = bookingCard.dataset.createdAt;
+            const scheduleTime = bookingCard.dataset.scheduleTime;
+            
+            // Only add timers for pending bookings
+            if (status !== 'pending') return;
+            
+            // Remove existing timers first
+            const existingTimer = bookingCard.querySelector('.countdown-timer');
+            const existingScheduleTimer = bookingCard.querySelector('.schedule-countdown');
+            if (existingTimer) existingTimer.remove();
+            if (existingScheduleTimer) existingScheduleTimer.remove();
+            
+            if (isImmediate) {
+                // Immediate booking - 1 hour countdown from creation
+                const bookingTime = parseLaravelDateTime(createdTime);
+                if (bookingTime) {
+                    addImmediateCountdown(bookingCard, bookingTime);
+                }
+            } else if (scheduleTime && scheduleTime !== 'Immediate') {
+                // Scheduled booking - countdown to schedule time
+                const scheduleDateTime = parseLaravelDateTime(scheduleTime);
+                if (scheduleDateTime) {
+                    addScheduleCountdown(bookingCard, scheduleDateTime);
+                }
+            }
+        }
+
+        function addImmediateCountdown(bookingCard, bookingTime) {
+            const container = bookingCard.querySelector('.immediate-countdown-container');
+            if (!container) return;
+            
+            // Create timer element
+            const timerElement = document.createElement('div');
+            timerElement.className = 'countdown-timer immediate-timer';
+            timerElement.style.cssText = `
+                font-weight: 600;
+                font-size: 0.9rem;
+                padding: 6px 14px;
+                border-radius: 20px;
+                display: inline-block;
+                transition: all 0.3s ease;
+                background: #343a40;
+                color: white;
+                text-align: center;
+                min-width: 140px;
+            `;
+            
+            container.appendChild(timerElement);
+            
+            // Start the countdown
+            startImmediateCountdown(bookingTime, timerElement, bookingCard);
+        }
+
+        function startImmediateCountdown(bookingTime, timerElement, bookingCard) {
+            // Calculate expiry time (1 hour from booking)
+            const expiryTime = bookingTime.getTime() + (60 * 60 * 1000);
+            const bookingId = bookingCard.dataset.bookingId;
+            
+            function update() {
+                const now = new Date().getTime();
+                let timeDiff = expiryTime - now;
+                
+                // If time is up or passed
+                if (timeDiff <= 0) {
+                    timerElement.textContent = "TIME EXPIRED";
+                    timerElement.style.background = '#dc3545';
+                    timerElement.style.color = 'white';
+                    timerElement.style.animation = 'blink 1s infinite';
+                    
+                    // Auto-cancel after 5 seconds
+                    setTimeout(() => {
+                        if (bookingId && !bookingCard.querySelector('.cancelling')) {
+                            bookingCard.querySelector('.cancelling').remove();
+                            cancelExpiredBooking(bookingId);
+                        }
+                    }, 5000);
+                    
+                    return;
+                }
+                
+                // Calculate hours, minutes, seconds
+                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                
+                // Format time display
+                let displayText;
+                if (hours > 0) {
+                    displayText = `${hours}h ${minutes}m ${seconds}s`;
+                } else {
+                    displayText = `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+                }
+                
+                timerElement.textContent = `Expires in: ${displayText}`;
+                
+                // Update colors based on time remaining
+                updateTimerColors(timeDiff, timerElement);
+                
+                // Schedule next update
+                setTimeout(update, 1000);
+            }
+            
+            update();
+        }
+
+        function addScheduleCountdown(bookingCard, scheduleTime) {
+            const container = bookingCard.querySelector('.schedule-countdown-container');
+            if (!container) return;
+            
+            const now = new Date().getTime();
+            const scheduleTimeMs = scheduleTime.getTime();
+            let timeDiff = scheduleTimeMs - now;
+            
+            // Only show countdown if within 1 hour of schedule (positive or negative)
+            if (Math.abs(timeDiff) <= (60 * 60 * 1000)) {
+                const timerElement = document.createElement('div');
+                timerElement.className = 'countdown-timer schedule-timer';
+                timerElement.style.cssText = `
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    display: inline-block;
+                    transition: all 0.3s ease;
+                    background: #343a40;
+                    color: white;
+                    text-align: center;
+                    min-width: 140px;
+                `;
+                
+                container.appendChild(timerElement);
+                
+                // Start the countdown
+                startScheduleCountdown(scheduleTime, timerElement, bookingCard);
+            }
+        }
+
+        function startScheduleCountdown(scheduleTime, timerElement, bookingCard) {
+            const scheduleTimeMs = scheduleTime.getTime();
+            const bookingId = bookingCard.dataset.bookingId;
+            
+            function update() {
+                const now = new Date().getTime();
+                let timeDiff = scheduleTimeMs - now;
+                
+                // If schedule time has passed (more than 1 hour ago)
+                if (timeDiff < -(60 * 60 * 1000)) {
+                    timerElement.textContent = "SCHEDULE PASSED";
+                    timerElement.style.background = '#dc3545';
+                    timerElement.style.color = 'white';
+                    timerElement.style.animation = 'blink 1s infinite';
+                    
+                    // Auto-cancel after 5 seconds
+                    setTimeout(() => {
+                        if (bookingId && !bookingCard.querySelector('.cancelling')) {
+                            bookingCard.querySelector('.cancelling').remove();
+                            cancelExpiredBooking(bookingId);
+                        }
+                    }, 5000);
+                    
+                    return;
+                }
+                
+                // Calculate time display
+                if (timeDiff <= 0) {
+                    // Schedule time has arrived or passed (within 1 hour)
+                    const passedMinutes = Math.floor(Math.abs(timeDiff) / (1000 * 60));
+                    const passedSeconds = Math.floor((Math.abs(timeDiff) % (1000 * 60)) / 1000);
+                    
+                    timerElement.textContent = `Started ${passedMinutes}m ${passedSeconds.toString().padStart(2, '0')}s ago`;
+                    timerElement.style.background = '#ffc107';
+                    timerElement.style.color = '#212529';
+                    timerElement.style.animation = '';
+                } else {
+                    // Countdown to schedule
+                    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                    
+                    let displayText;
+                    if (hours > 0) {
+                        displayText = `${hours}h ${minutes}m ${seconds}s`;
+                    } else {
+                        displayText = `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+                    }
+                    
+                    timerElement.textContent = `Starts in: ${displayText}`;
+                    
+                    // Update colors based on time remaining
+                    updateTimerColors(timeDiff, timerElement);
+                }
+                
+                // Schedule next update
+                setTimeout(update, 1000);
+            }
+            
+            update();
+        }
+
+        function updateTimerColors(timeDiff, timerElement) {
+            // Remove blinking first
+            timerElement.style.animation = '';
+            
+            if (timeDiff <= (5 * 60 * 1000)) { // 5 minutes or less
+                timerElement.style.background = '#dc3545';
+                timerElement.style.color = 'white';
+                timerElement.style.animation = 'blink 1s infinite';
+            } else if (timeDiff <= (15 * 60 * 1000)) { // 15 minutes or less
+                timerElement.style.background = '#ffc107';
+                timerElement.style.color = '#212529';
+            } else if (timeDiff <= (30 * 60 * 1000)) { // 30 minutes or less
+                timerElement.style.background = '#17a2b8';
+                timerElement.style.color = 'white';
             } else {
-                throw new Error(data.message || 'Failed to cancel booking');
+                timerElement.style.background = '#343a40';
+                timerElement.style.color = 'white';
             }
-        })
-        .catch(error => {
-            console.error('Error cancelling booking:', error);
-            alert('Failed to cancel booking: ' + error.message);
-        });
-    }
-
-    // Alternative cancel function using a link (if you prefer this format)
-    function cancelBookingLink(bookingId, event) {
-        event.preventDefault(); // Prevent link navigation
-        cancelBooking(bookingId); // Call the main cancel function
-    }
-
-    document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
-        e.stopPropagation();
-        document.getElementById('dropdownMenu').classList.toggle('show');
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.user-profile-dropdown')) {
-            document.getElementById('dropdownMenu').classList.remove('show');
         }
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadPendingBookings();
+        function cancelExpiredBooking(bookingId) {
+            if (!bookingId) return;
+            
+            // Add cancelling indicator
+            const bookingCard = document.querySelector(`.booking-card[data-booking-id="${bookingId}"]`);
+            if (bookingCard) {
+                const cancellingElement = document.createElement('div');
+                cancellingElement.className = 'cancelling';
+                cancellingElement.style.cssText = `
+                    background: #dc3545;
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    margin-top: 8px;
+                    font-weight: 600;
+                    text-align: center;
+                `;
+                cancellingElement.textContent = 'Auto-cancelling expired booking...';
+                bookingCard.appendChild(cancellingElement);
+            }
+            
+            fetch(`/digilink/public/passenger/cancel-booking/${bookingId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ 
+                    expired: true, 
+                    reason: 'Booking expired - no driver accepted within required time' 
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('Expired booking cancelled:', bookingId);
+                    // Reload bookings after 2 seconds
+                    setTimeout(loadPendingBookings, 2000);
+                } else {
+                    console.error('Failed to cancel expired booking:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error cancelling expired booking:', error);
+            });
+        }
 
-        setInterval(loadPendingBookings, 30000);
-    });
-</script>
+        document.getElementById('userProfileDropdown').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('dropdownMenu').classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-profile-dropdown')) {
+                document.getElementById('dropdownMenu').classList.remove('show');
+            }
+        });
+
+        // Add CSS for blinking animation
+        if (!document.querySelector('#blink-styles')) {
+            const style = document.createElement('style');
+            style.id = 'blink-styles';
+            style.textContent = `
+                @keyframes blink {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                }
+                .countdown-timer {
+                    font-family: 'Poppins', sans-serif;
+                }
+                .immediate-timer {
+                    margin-top: 5px !important;
+                }
+                .schedule-timer {
+                    margin-top: 5px !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPendingBookings();
+            
+            // Refresh bookings every 30 seconds
+            setInterval(loadPendingBookings, 30000);
+        });
+    </script>
 </body>
 </html>

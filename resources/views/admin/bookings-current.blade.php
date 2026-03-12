@@ -11,7 +11,7 @@
 <body>
     <header class="admin-header">
         <div class="header-left">
-            <h1>Admin Dashboard</h1>
+            @include('logo')
         </div>
         <nav class="admin-nav">
             <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>

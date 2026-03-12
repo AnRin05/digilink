@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Submitted - FastLan</title>
+    <title>Application Submitted - HopN'Drop</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="{{ asset('css/nav.css') }}" rel="stylesheet">
     <link href="{{ asset('css/waiting.css') }}" rel="stylesheet">
-    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <link rel="icon" href="{{ asset('images/HopN\'Drop.png') }}">
 </head>
 <body>
     <nav>
         <div class="nav-left">
-            <a href="/digilink/public" class="nav-brand">Fast<span>Lan</span></a>
+            @include('logo')
         </div>
         <div class="nav-right">
             <ul>
@@ -41,7 +41,7 @@
 
             <div class="success-body">
                 <div class="congratulations-text">
-                    Thank you for choosing to become a FastLan driver!
+                    Thank you for choosing to become a HopN'Drop driver!
                 </div>
 
                 <div class="info-section">
@@ -51,7 +51,7 @@
                         <li>We will verify your credentials and conduct necessary background checks</li>
                         <li>You may be contacted for additional information or clarification</li>
                         <li>Once approved, you'll receive login credentials via email</li>
-                        <li>You can then start accepting rides and earning with FastLan</li>
+                        <li>You can then start accepting rides and earning with HopN'Drop</li>
                     </ul>
 
                     <div class="timeline">
@@ -73,7 +73,7 @@
                     <div class="contact-info">
                         <h4><i class="fas fa-question-circle"></i> Need Help?</h4>
                         <p><i class="fas fa-phone"></i> Call us: +63 (955) 123-4567</p>
-                        <p><i class="fas fa-envelope"></i> Email: drivers@fastlan.com</p>
+                        <p><i class="fas fa-envelope"></i> Email: drivers@HopN'Drop.com</p>
                         <p><i class="fas fa-clock"></i> Support Hours: Mon-Fri, 8:00 AM - 6:00 PM</p>
                     </div>
                 </div>

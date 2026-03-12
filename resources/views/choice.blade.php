@@ -538,9 +538,7 @@ footer {
 </head>
 <body>
     <nav>
-        <div class="nav-left">
-            <a class="nav-brand">Fast<span>Lan</span></a>
-        </div>
+@include('logo')
         <div class="nav-right">
             <ul>
                 <li><a href="{{ route('home') }}">Home</a></li>

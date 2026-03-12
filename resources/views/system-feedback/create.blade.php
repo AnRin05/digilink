@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastLan - System Feedback</title>
+    <title>HopN'Drop - System Feedback</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="{{ asset('images/fastlan1.png') }}">
+    <link rel="icon" href="{{ asset('images/HopN\'Drop.png') }}">
     <style>
 * {
     margin: 0;
@@ -529,7 +529,7 @@ body {
     <div class="container">
         <div class="header-section text-center">
             <h1>Share Your Feedback</h1>
-            <p>Help us improve FastLan by sharing your experience</p>
+            <p>Help us improve HopN'Drop by sharing your experience</p>
         </div>
 
         @if(session('success'))
@@ -556,7 +556,7 @@ body {
 
                 <div class="rating-section">
                     <label class="rating-label">
-                        How satisfied are you with FastLan? *
+                        How satisfied are you with HopN'Drop? *
                     </label>
                     <div class="rating-stars" id="ratingStars">
                         @for($i = 1; $i <= 5; $i++)
@@ -610,7 +610,7 @@ body {
 
                 <div class="form-group">
                     <label for="positive_feedback" class="form-label">
-                        What do you like about FastLan? (Optional)
+                        What do you like about HopN'Drop? (Optional)
                     </label>
                     <textarea name="positive_feedback" id="positive_feedback" class="form-textarea" rows="3" placeholder="Tell us what you enjoy about using our service...">{{ old('positive_feedback') }}</textarea>
                 </div>

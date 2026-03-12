@@ -768,7 +768,7 @@ input[type="file"] {
 <body>
                                                             <!-- Navbar -->
     <nav class="navbar">
-        <a href="#" class="nav-brand">Fast<span>Lan</span></a>
+        @include('logo')
         <a href="{{ route('passenger.dashboard') }}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
